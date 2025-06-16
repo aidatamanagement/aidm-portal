@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ProgressCircle from '@/components/ProgressCircle';
+import SplitText from '@/components/SplitText';
 import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import { Link } from 'react-router-dom';
@@ -27,6 +27,14 @@ const Dashboard = () => {
   const promptsToShow = stats?.favoritePrompts.length > 0 
     ? stats.favoritePrompts.map(f => f.prompts).filter(Boolean)
     : stats?.allPrompts || [];
+
+  const handleWelcomeAnimationComplete = () => {
+    console.log('Welcome animation completed!');
+  };
+
+  const handleNameAnimationComplete = () => {
+    console.log('Name animation completed!');
+  };
 
   if (isLoading) {
     return (
@@ -60,9 +68,34 @@ const Dashboard = () => {
       <div className="relative bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-8 text-white overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2">
-            Welcome, {user?.user_metadata?.name || 'Valued Client'}!
-          </h1>
+          <SplitText
+            text="Welcome,"
+            className="text-3xl font-bold mb-2"
+            delay={50}
+            duration={0.8}
+            ease="power3.out"
+            splitType="chars"
+            from={{ opacity: 0, y: 50, rotationX: -90 }}
+            to={{ opacity: 1, y: 0, rotationX: 0 }}
+            threshold={0.1}
+            rootMargin="-50px"
+            textAlign="left"
+            onLetterAnimationComplete={handleWelcomeAnimationComplete}
+          />
+          <SplitText
+            text={user?.user_metadata?.name || 'Valued Client'}
+            className="text-3xl font-bold mb-4"
+            delay={80}
+            duration={0.8}
+            ease="power3.out"
+            splitType="chars"
+            from={{ opacity: 0, y: 50, rotationX: -90 }}
+            to={{ opacity: 1, y: 0, rotationX: 0 }}
+            threshold={0.1}
+            rootMargin="-50px"
+            textAlign="left"
+            onLetterAnimationComplete={handleNameAnimationComplete}
+          />
           <p className="text-white/90 text-lg max-w-2xl">
             Explore AI innovations, access cutting-edge data management solutions, and connect with our expert services. 
             Your journey into intelligent business transformation starts here.
