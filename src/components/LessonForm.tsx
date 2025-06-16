@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -46,51 +45,7 @@ const LessonForm: React.FC<LessonFormProps> = ({ isOpen, onClose, courseId, less
     ],
     clipboard: {
       // Enhanced clipboard settings to preserve Word formatting
-      matchVisual: false,
-      matchers: [
-        // Custom matcher to preserve bold formatting from Word
-        ['B', function(node, delta) {
-          return delta.compose(new (window as any).Quill.import('delta')().retain(delta.length(), { bold: true }));
-        }],
-        ['STRONG', function(node, delta) {
-          return delta.compose(new (window as any).Quill.import('delta')().retain(delta.length(), { bold: true }));
-        }],
-        // Preserve italic formatting
-        ['I', function(node, delta) {
-          return delta.compose(new (window as any).Quill.import('delta')().retain(delta.length(), { italic: true }));
-        }],
-        ['EM', function(node, delta) {
-          return delta.compose(new (window as any).Quill.import('delta')().retain(delta.length(), { italic: true }));
-        }],
-        // Handle Word's paragraph styles that include bold
-        ['P', function(node, delta) {
-          const style = node.getAttribute('style') || '';
-          if (style.includes('font-weight: bold') || style.includes('font-weight:bold') || style.includes('font-weight: 700')) {
-            return delta.compose(new (window as any).Quill.import('delta')().retain(delta.length(), { bold: true }));
-          }
-          return delta;
-        }],
-        // Handle Word's span elements with bold styling
-        ['SPAN', function(node, delta) {
-          const style = node.getAttribute('style') || '';
-          let attributes = {};
-          
-          if (style.includes('font-weight: bold') || style.includes('font-weight:bold') || style.includes('font-weight: 700')) {
-            attributes = { ...attributes, bold: true };
-          }
-          if (style.includes('font-style: italic') || style.includes('font-style:italic')) {
-            attributes = { ...attributes, italic: true };
-          }
-          if (style.includes('text-decoration: underline') || style.includes('text-decoration:underline')) {
-            attributes = { ...attributes, underline: true };
-          }
-          
-          if (Object.keys(attributes).length > 0) {
-            return delta.compose(new (window as any).Quill.import('delta')().retain(delta.length(), attributes));
-          }
-          return delta;
-        }]
-      ]
+      matchVisual: false
     }
   };
 
