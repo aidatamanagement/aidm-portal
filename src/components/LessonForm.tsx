@@ -31,21 +31,32 @@ const LessonForm: React.FC<LessonFormProps> = ({ isOpen, onClose, courseId, less
   const quillModules = {
     toolbar: [
       [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      [{ 'font': [] }],
+      [{ 'size': ['small', false, 'large', 'huge'] }],
       ['bold', 'italic', 'underline', 'strike'],
       [{ 'color': [] }, { 'background': [] }],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'script': 'sub'}, { 'script': 'super' }],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
       [{ 'indent': '-1'}, { 'indent': '+1' }],
+      [{ 'direction': 'rtl' }],
       [{ 'align': [] }],
       ['blockquote', 'code-block'],
-      ['link'],
+      ['link', 'image', 'video'],
       ['clean']
     ],
+    clipboard: {
+      // toggle to add extra line breaks when pasting HTML:
+      matchVisual: false,
+    }
   };
 
   const quillFormats = [
-    'header', 'bold', 'italic', 'underline', 'strike',
-    'color', 'background', 'list', 'bullet', 'indent',
-    'align', 'blockquote', 'code-block', 'link'
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'video',
+    'align', 'color', 'background',
+    'script', 'direction', 'code-block'
   ];
 
   const saveMutation = useMutation({

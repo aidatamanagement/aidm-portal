@@ -21,6 +21,32 @@
   border-radius: 0 0 6px 6px;
 }
 
+/* Enhanced formatting support for Word documents */
+.ql-editor h1, .ql-editor h2, .ql-editor h3, .ql-editor h4, .ql-editor h5, .ql-editor h6 {
+  margin: 0.5em 0;
+}
+
+.ql-editor ul, .ql-editor ol {
+  padding-left: 1.5em;
+}
+
+.ql-editor blockquote {
+  border-left: 4px solid #ccc;
+  margin-bottom: 5px;
+  margin-top: 5px;
+  padding-left: 16px;
+}
+
+.ql-editor table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.ql-editor td, .ql-editor th {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
 /* Dark mode support */
 .dark .ql-toolbar {
   border-color: #374151;
@@ -46,4 +72,12 @@
 
 .dark .ql-picker-label {
   color: #9ca3af;
+}
+
+.dark .ql-editor blockquote {
+  border-left-color: #6b7280;
+}
+
+.dark .ql-editor td, .dark .ql-editor th {
+  border-color: #6b7280;
 }
