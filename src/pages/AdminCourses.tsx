@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +20,43 @@ const AdminCourses = () => {
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [selectedLesson, setSelectedLesson] = useState<any>(null);
   const [formMode, setFormMode] = useState<'add' | 'edit'>('add');
+
+  // Set up real-time subscription for course assignments
+  useEffect(() => {
+    const channel = supabase
+      .channel('course-assignments-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_course_assignments'
+        },
+        (payload) => {
+          console.log('Real-time course assignment change:', payload);
+          // Invalidate and refetch course assignments data
+          queryClient.invalidateQueries({ queryKey: ['admin-course-assignments'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_lesson_locks'
+        },
+        (payload) => {
+          console.log('Real-time lesson lock change:', payload);
+          // Invalidate and refetch lesson locks data
+          queryClient.invalidateQueries({ queryKey: ['admin-lesson-locks'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const { data: courses, isLoading: coursesLoading } = useQuery({
     queryKey: ['admin-courses'],
