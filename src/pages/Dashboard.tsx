@@ -69,7 +69,7 @@ const Dashboard = () => {
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative z-10">
           <SplitText
-            text="Welcome,{user?.user_metadata?.name || 'Valued Client'}"
+            text="Welcome,"{user?.user_metadata?.name || 'Valued Client'}
             className="text-3xl font-bold mb-2"
             delay={50}
             duration={0.8}
