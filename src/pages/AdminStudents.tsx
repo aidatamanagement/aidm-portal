@@ -18,23 +18,49 @@ const AdminStudents = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          user_services(
-            id,
-            status,
-            services(title, type)
-          ),
-          user_course_assignments(
-            id,
-            courses(title)
-          )
-        `)
+        .select('*')
         .eq('role', 'student')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data || [];
+    },
+  });
+
+  const { data: studentServices } = useQuery({
+    queryKey: ['admin-student-services'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_services')
+        .select(`
+          user_id,
+          services (
+            id,
+            title,
+            type
+          )
+        `);
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: studentCourses } = useQuery({
+    queryKey: ['admin-student-courses'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_course_assignments')
+        .select(`
+          user_id,
+          courses (
+            id,
+            title
+          )
+        `);
+
+      if (error) throw error;
+      return data || [];
     },
   });
 
@@ -43,6 +69,14 @@ const AdminStudents = () => {
     student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.organization?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const getStudentServices = (studentId: string) => {
+    return studentServices?.filter(service => service.user_id === studentId) || [];
+  };
+
+  const getStudentCourses = (studentId: string) => {
+    return studentCourses?.filter(course => course.user_id === studentId) || [];
+  };
 
   if (isLoading) {
     return (
@@ -124,74 +158,79 @@ const AdminStudents = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStudents?.map((student) => (
-                <TableRow key={student.id} className="hover:bg-accent/50">
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-[#0D5C4B] rounded-full flex items-center justify-center">
-                        <span className="text-white text-sm font-medium">
-                          {student.name?.charAt(0)?.toUpperCase() || 'U'}
-                        </span>
+              {filteredStudents?.map((student) => {
+                const studentServicesList = getStudentServices(student.id);
+                const studentCoursesList = getStudentCourses(student.id);
+                
+                return (
+                  <TableRow key={student.id} className="hover:bg-accent/50">
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-[#0D5C4B] rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-medium">
+                            {student.name?.charAt(0)?.toUpperCase() || 'U'}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium">{student.name}</p>
+                          <p className="text-sm text-muted-foreground">{student.email}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{student.name}</p>
-                        <p className="text-sm text-muted-foreground">{student.email}</p>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">{student.organization || '-'}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {studentServicesList.slice(0, 2).map((service: any) => (
+                          <Badge key={service.services?.id} variant="outline" className="text-xs">
+                            {service.services?.title}
+                          </Badge>
+                        ))}
+                        {studentServicesList.length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{studentServicesList.length - 2} more
+                          </Badge>
+                        )}
+                        {!studentServicesList.length && (
+                          <span className="text-xs text-muted-foreground">No services</span>
+                        )}
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">{student.organization || '-'}</span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {student.user_services?.slice(0, 2).map((service: any) => (
-                        <Badge key={service.id} variant="outline" className="text-xs">
-                          {service.services?.title}
-                        </Badge>
-                      ))}
-                      {student.user_services?.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{student.user_services.length - 2} more
-                        </Badge>
-                      )}
-                      {!student.user_services?.length && (
-                        <span className="text-xs text-muted-foreground">No services</span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {student.user_course_assignments?.slice(0, 1).map((assignment: any) => (
-                        <Badge key={assignment.id} variant="secondary" className="text-xs">
-                          {assignment.courses?.title}
-                        </Badge>
-                      ))}
-                      {student.user_course_assignments?.length > 1 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{student.user_course_assignments.length - 1} more
-                        </Badge>
-                      )}
-                      {!student.user_course_assignments?.length && (
-                        <span className="text-xs text-muted-foreground">No courses</span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">
-                      {new Date(student.created_at).toLocaleDateString()}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Link to={`/admin/students/${student.id}`}>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {studentCoursesList.slice(0, 1).map((course: any) => (
+                          <Badge key={course.courses?.id} variant="secondary" className="text-xs">
+                            {course.courses?.title}
+                          </Badge>
+                        ))}
+                        {studentCoursesList.length > 1 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{studentCoursesList.length - 1} more
+                          </Badge>
+                        )}
+                        {!studentCoursesList.length && (
+                          <span className="text-xs text-muted-foreground">No courses</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">
+                        {new Date(student.created_at).toLocaleDateString()}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Link to={`/admin/students/${student.id}`}>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
           

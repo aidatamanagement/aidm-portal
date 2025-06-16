@@ -29,32 +29,74 @@ const AdminStudentDetail = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          user_services(
-            id,
-            status,
-            assigned_at,
-            services(id, title, type, description)
-          ),
-          user_course_assignments(
-            id,
-            locked,
-            courses(id, title, description)
-          ),
-          files(
-            id,
-            name,
-            type,
-            uploaded_at,
-            description
-          )
-        `)
+        .select('*')
         .eq('id', id)
         .single();
 
       if (error) throw error;
       return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: userServices } = useQuery({
+    queryKey: ['admin-student-services', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_services')
+        .select(`
+          id,
+          status,
+          assigned_at,
+          service_id,
+          services (
+            id,
+            title,
+            type,
+            description
+          )
+        `)
+        .eq('user_id', id);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: userCourses } = useQuery({
+    queryKey: ['admin-student-courses', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_course_assignments')
+        .select(`
+          id,
+          locked,
+          course_id,
+          courses (
+            id,
+            title,
+            description
+          )
+        `)
+        .eq('user_id', id);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: userFiles } = useQuery({
+    queryKey: ['admin-student-files', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('files')
+        .select('*')
+        .eq('student_id', id);
+
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!id,
   });
@@ -100,7 +142,7 @@ const AdminStudentDetail = () => {
     },
     onSuccess: () => {
       toast.success('Service removed successfully');
-      queryClient.invalidateQueries({ queryKey: ['admin-student', id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-student-services', id] });
     },
     onError: (error) => {
       toast.error('Failed to remove service');
@@ -211,15 +253,15 @@ const AdminStudentDetail = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center p-4 bg-[#0D5C4B]/10 rounded-lg">
-              <p className="text-2xl font-bold text-[#0D5C4B]">{student.user_services?.length || 0}</p>
+              <p className="text-2xl font-bold text-[#0D5C4B]">{userServices?.length || 0}</p>
               <p className="text-sm text-muted-foreground">Active Services</p>
             </div>
             <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <p className="text-2xl font-bold text-blue-600">{student.user_course_assignments?.length || 0}</p>
+              <p className="text-2xl font-bold text-blue-600">{userCourses?.length || 0}</p>
               <p className="text-sm text-muted-foreground">Enrolled Courses</p>
             </div>
             <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <p className="text-2xl font-bold text-orange-600">{student.files?.length || 0}</p>
+              <p className="text-2xl font-bold text-orange-600">{userFiles?.length || 0}</p>
               <p className="text-sm text-muted-foreground">Shared Files</p>
             </div>
           </CardContent>
@@ -242,14 +284,14 @@ const AdminStudentDetail = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {student.user_services?.map((userService: any) => (
+            {userServices?.map((userService: any) => (
               <div key={userService.id} className="p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-semibold">{userService.services?.title}</h3>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeServiceMutation.mutate(userService.services.id)}
+                    onClick={() => removeServiceMutation.mutate(userService.service_id)}
                     disabled={removeServiceMutation.isPending}
                   >
                     <X className="h-4 w-4" />
@@ -266,7 +308,7 @@ const AdminStudentDetail = () => {
                 </div>
               </div>
             ))}
-            {!student.user_services?.length && (
+            {!userServices?.length && (
               <div className="col-span-2 text-center py-8">
                 <Zap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">No services assigned</p>
@@ -292,7 +334,7 @@ const AdminStudentDetail = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {student.user_course_assignments?.map((assignment: any) => (
+            {userCourses?.map((assignment: any) => (
               <div key={assignment.id} className="p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                 <div className="flex justify-between items-start">
                   <div>
@@ -305,7 +347,7 @@ const AdminStudentDetail = () => {
                 </div>
               </div>
             ))}
-            {!student.user_course_assignments?.length && (
+            {!userCourses?.length && (
               <div className="text-center py-8">
                 <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">No courses assigned</p>
@@ -331,7 +373,7 @@ const AdminStudentDetail = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {student.files?.map((file: any) => (
+            {userFiles?.map((file: any) => (
               <div key={file.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
                 <div className="flex items-center space-x-3">
                   <FileText className="h-5 w-5 text-muted-foreground" />
@@ -347,7 +389,7 @@ const AdminStudentDetail = () => {
                 </Button>
               </div>
             ))}
-            {!student.files?.length && (
+            {!userFiles?.length && (
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">No files shared</p>
