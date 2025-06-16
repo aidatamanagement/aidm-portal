@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,12 +15,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/components/ThemeProvider';
 import { Moon, Sun } from 'lucide-react';
 import ChatSupport from './ChatSupport';
+import { supabase } from '@/integrations/supabase/client';
 
 const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const [profile, setProfile] = useState<any>(null);
   
   const navigation = [
     { name: 'Dashboard', href: '/dashboard' },
@@ -28,6 +30,27 @@ const Layout = () => {
     { name: 'Prompts', href: '/prompts' },
     { name: 'Services', href: '/services' },
   ];
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -88,9 +111,9 @@ const Layout = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={user?.user_metadata?.profile_image} alt="Profile" />
+                      <AvatarImage src={profile?.profile_image} alt="Profile" />
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        {user?.user_metadata?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
+                        {profile?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -99,7 +122,7 @@ const Layout = () => {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
-                        {user?.user_metadata?.name || 'User'}
+                        {profile?.name || user?.user_metadata?.name || 'User'}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
                         {user?.email}
