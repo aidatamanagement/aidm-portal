@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,10 +8,18 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
-import { Search, Eye, Users } from 'lucide-react';
+import { Search, Eye, Users, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import DeleteUserDialog from '@/components/DeleteUserDialog';
 
 const AdminStudents = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    user: any | null;
+  }>({ isOpen: false, user: null });
+
+  const queryClient = useQueryClient();
 
   const { data: students, isLoading, error } = useQuery({
     queryKey: ['admin-students'],
@@ -64,6 +71,56 @@ const AdminStudents = () => {
       return data || [];
     },
   });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      const response = await fetch(`https://oimqzyfmglyhljjuboek.supabase.co/functions/v1/delete-user`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete user');
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      toast.success('User deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['admin-students'] });
+      setDeleteDialog({ isOpen: false, user: null });
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to delete user: ${error.message}`);
+      console.error('Delete user error:', error);
+    },
+  });
+
+  const handleDeleteUser = (user: any) => {
+    setDeleteDialog({ isOpen: true, user });
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteDialog.user) {
+      deleteUserMutation.mutate(deleteDialog.user.id);
+    }
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialog({ isOpen: false, user: null });
+  };
 
   const filteredStudents = students?.filter(student =>
     student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -236,6 +293,14 @@ const AdminStudents = () => {
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteUser(student)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -255,6 +320,16 @@ const AdminStudents = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete User Dialog */}
+      <DeleteUserDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={handleCloseDeleteDialog}
+        onConfirm={handleConfirmDelete}
+        userName={deleteDialog.user?.name || ''}
+        userEmail={deleteDialog.user?.email || ''}
+        isDeleting={deleteUserMutation.isPending}
+      />
     </div>
   );
 };
