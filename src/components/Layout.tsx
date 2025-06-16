@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/components/ThemeProvider';
 import { Moon, Sun } from 'lucide-react';
 import ChatSupport from './ChatSupport';
 
@@ -24,7 +24,6 @@ const Layout = () => {
   
   const navigation = [
     { name: 'Dashboard', href: '/dashboard' },
-    { name: 'AI Leadership Training', href: '/courses' },
     { name: 'Files', href: '/files' },
     { name: 'Prompts', href: '/prompts' },
     { name: 'Services', href: '/services' },

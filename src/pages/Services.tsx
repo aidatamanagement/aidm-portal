@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { Lock, CheckCircle, Clock } from 'lucide-react';
 
 const Services = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [services, setServices] = useState<any[]>([]);
   const [userServices, setUserServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,6 +79,18 @@ const Services = () => {
     }
   };
 
+  const handleServiceClick = (service: any, status: string) => {
+    if (status === 'locked') return;
+    
+    // If it's AI Leadership Training service, navigate to courses
+    if (service.title?.toLowerCase().includes('leadership') || service.title?.toLowerCase().includes('training')) {
+      navigate('/courses');
+    } else {
+      // Handle other services as needed
+      console.log('Accessing service:', service.title);
+    }
+  };
+
   if (loading) {
     return <div className="p-6">Loading services...</div>;
   }
@@ -96,7 +110,7 @@ const Services = () => {
             <Card 
               key={service.id} 
               className={`hover:shadow-md transition-shadow ${
-                isLocked ? 'opacity-60' : ''
+                isLocked ? 'opacity-60' : 'cursor-pointer'
               }`}
             >
               <CardHeader>
@@ -122,6 +136,7 @@ const Services = () => {
                     className="w-full" 
                     disabled={isLocked}
                     variant={isLocked ? "outline" : "default"}
+                    onClick={() => handleServiceClick(service, status)}
                   >
                     {isLocked ? (
                       <>

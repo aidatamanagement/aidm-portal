@@ -39,7 +39,7 @@ const LessonViewer = () => {
         .gt('order', lessonData?.order || 0)
         .order('order')
         .limit(1)
-        .single();
+        .maybeSingle();
 
       // Fetch user progress for this lesson
       const { data: progressData } = await supabase
@@ -47,7 +47,7 @@ const LessonViewer = () => {
         .select('*')
         .eq('lesson_id', lessonId)
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
       setLesson(lessonData);
       setNextLesson(nextLessonData);
@@ -87,6 +87,12 @@ const LessonViewer = () => {
     }
   };
 
+  const goToNextLesson = () => {
+    if (nextLesson) {
+      navigate(`/courses/${courseId}/lessons/${nextLesson.id}`);
+    }
+  };
+
   if (loading) {
     return <div className="p-6">Loading lesson...</div>;
   }
@@ -96,9 +102,9 @@ const LessonViewer = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b px-6 py-4">
+      <div className="bg-card border-b px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
@@ -125,38 +131,50 @@ const LessonViewer = () => {
 
       {/* Content */}
       <div className="flex-1 p-6">
-        <Card className="max-w-4xl mx-auto">
-          <CardHeader>
-            <CardTitle>{lesson.title}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {/* PDF Viewer */}
-              <div className="bg-gray-100 rounded-lg p-8 text-center">
-                <p className="text-gray-600 mb-4">PDF Content Viewer</p>
-                <p className="text-sm text-gray-500">
-                  PDF URL: {lesson.pdf_url}
-                </p>
-                {/* In a real implementation, you'd embed a PDF viewer here */}
+        <div className="max-w-5xl mx-auto space-y-6">
+          {/* PDF Viewer */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Lesson Content</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="w-full h-[600px] border rounded-lg">
+                {lesson.pdf_url ? (
+                  <iframe
+                    src={lesson.pdf_url}
+                    className="w-full h-full rounded-lg"
+                    title="Lesson PDF"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg">
+                    <p className="text-gray-500">No PDF content available</p>
+                  </div>
+                )}
               </div>
+            </CardContent>
+          </Card>
 
-              {/* Instructor Notes */}
-              {lesson.instructor_notes && (
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Instructor Notes</h3>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-gray-700">{lesson.instructor_notes}</p>
+          {/* Instructor Notes */}
+          {lesson.instructor_notes && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Instructor Notes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="text-gray-700 whitespace-pre-wrap">
+                    {lesson.instructor_notes}
                   </div>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
 
       {/* Footer Actions */}
-      <div className="bg-white border-t px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+      <div className="bg-card border-t px-6 py-4">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div />
           
           <div className="flex items-center space-x-3">
@@ -167,12 +185,17 @@ const LessonViewer = () => {
             )}
             
             {nextLesson && userProgress?.completed && (
-              <Button
-                onClick={() => navigate(`/courses/${courseId}/lessons/${nextLesson.id}`)}
-              >
+              <Button onClick={goToNextLesson}>
                 Next Lesson
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
+            )}
+            
+            {!nextLesson && userProgress?.completed && (
+              <div className="text-sm text-green-600 flex items-center">
+                <CheckCircle className="h-4 w-4 mr-1" />
+                Course Complete! New lessons coming soon.
+              </div>
             )}
           </div>
         </div>

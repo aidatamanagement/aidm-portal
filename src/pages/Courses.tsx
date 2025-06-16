@@ -6,11 +6,12 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Link } from 'react-router-dom';
-import { BookOpen, Lock, CheckCircle, Clock } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { BookOpen, Lock, CheckCircle, Clock, ArrowLeft } from 'lucide-react';
 
 const Courses = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<any[]>([]);
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [userProgress, setUserProgress] = useState<any[]>([]);
@@ -123,7 +124,17 @@ const Courses = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">My Courses</h1>
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/services')}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Services
+          </Button>
+          <h1 className="text-2xl font-bold">AI Leadership Training</h1>
+        </div>
       </div>
 
       {courses.length === 0 ? (
