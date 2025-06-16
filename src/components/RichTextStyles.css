@@ -24,6 +24,15 @@
 /* Enhanced formatting support for Word documents */
 .ql-editor h1, .ql-editor h2, .ql-editor h3, .ql-editor h4, .ql-editor h5, .ql-editor h6 {
   margin: 0.5em 0;
+  font-weight: bold !important; /* Ensure headers are always bold */
+}
+
+.ql-editor strong, .ql-editor b {
+  font-weight: bold !important;
+}
+
+.ql-editor em, .ql-editor i {
+  font-style: italic !important;
 }
 
 .ql-editor ul, .ql-editor ol {
@@ -45,6 +54,28 @@
 .ql-editor td, .ql-editor th {
   border: 1px solid #ccc;
   padding: 8px;
+}
+
+/* Better support for Word document formatting */
+.ql-editor p[style*="font-weight"] {
+  font-weight: inherit !important;
+}
+
+.ql-editor span[style*="font-weight: bold"],
+.ql-editor span[style*="font-weight:bold"],
+.ql-editor span[style*="font-weight: 700"] {
+  font-weight: bold !important;
+}
+
+.ql-editor span[style*="font-style: italic"],
+.ql-editor span[style*="font-style:italic"] {
+  font-style: italic !important;
+}
+
+/* Ensure Quill's bold formatting is preserved */
+.ql-editor .ql-font-bold,
+.ql-editor [class*="ql-bold"] {
+  font-weight: bold !important;
 }
 
 /* Dark mode support */
@@ -80,4 +111,16 @@
 
 .dark .ql-editor td, .dark .ql-editor th {
   border-color: #6b7280;
+}
+
+/* Dark mode bold text */
+.dark .ql-editor strong, 
+.dark .ql-editor b,
+.dark .ql-editor h1, 
+.dark .ql-editor h2, 
+.dark .ql-editor h3, 
+.dark .ql-editor h4, 
+.dark .ql-editor h5, 
+.dark .ql-editor h6 {
+  font-weight: bold !important;
 }
