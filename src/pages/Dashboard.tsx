@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,10 +9,33 @@ import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import { Link } from 'react-router-dom';
 import { BookOpen, FileText, MessageSquare, Zap, Heart, Copy, TrendingUp, Users, Award } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const { data: stats, isLoading, error, isFetching } = useRealtimeDashboard();
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const progressPercentage = stats?.totalLessons > 0 
     ? Math.round((stats.completedLessons / stats.totalLessons) * 100) 
@@ -35,6 +58,8 @@ const Dashboard = () => {
   const handleNameAnimationComplete = () => {
     console.log('Name animation completed!');
   };
+
+  const userName = profile?.name || user?.user_metadata?.name || 'Valued Client';
 
   if (isLoading) {
     return (
@@ -69,7 +94,7 @@ const Dashboard = () => {
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative z-10">
           <SplitText
-            text={`Welcome, ${user?.user_metadata?.name || 'Valued Client'}`}
+            text={`Welcome, ${userName}`}
             className="text-3xl font-bold mb-2"
             delay={50}
             duration={0.8}
