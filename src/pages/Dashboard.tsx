@@ -18,7 +18,9 @@ const Dashboard = () => {
     favoritePrompts: [],
     allPrompts: [],
     enrolledServices: [],
-    hasEnrolledCourses: false
+    hasEnrolledCourses: false,
+    totalLessons: 0,
+    completedLessons: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -39,15 +41,37 @@ const Dashboard = () => {
         `)
         .eq('user_id', user?.id);
 
-      // Fetch user progress for completed courses
+      // Get all lessons from enrolled courses
+      const enrolledCourseIds = assignments?.map(a => a.course_id) || [];
+      let totalLessonsCount = 0;
+      
+      if (enrolledCourseIds.length > 0) {
+        const { count: lessonsCount } = await supabase
+          .from('lessons')
+          .select('*', { count: 'exact', head: true })
+          .in('course_id', enrolledCourseIds);
+        
+        totalLessonsCount = lessonsCount || 0;
+      }
+
+      // Fetch user progress for completed lessons
       const { data: progress } = await supabase
+        .from('user_progress')
+        .select('course_id, lesson_id, completed')
+        .eq('user_id', user?.id)
+        .eq('completed', true);
+
+      const completedLessonsCount = progress?.length || 0;
+
+      // Fetch user progress for completed courses
+      const { data: courseProgress } = await supabase
         .from('user_progress')
         .select('course_id, completed')
         .eq('user_id', user?.id)
         .eq('completed', true);
 
       // Get unique completed courses
-      const completedCourseIds = new Set(progress?.map(p => p.course_id) || []);
+      const completedCourseIds = new Set(courseProgress?.map(p => p.course_id) || []);
       const uniqueCompletedCourses = Array.from(completedCourseIds).length;
 
       // Fetch total files count
@@ -92,7 +116,9 @@ const Dashboard = () => {
         favoritePrompts: favorites || [],
         allPrompts: allPrompts || [],
         enrolledServices: userServices || [],
-        hasEnrolledCourses
+        hasEnrolledCourses,
+        totalLessons: totalLessonsCount,
+        completedLessons: completedLessonsCount
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -101,8 +127,8 @@ const Dashboard = () => {
     }
   };
 
-  const progressPercentage = stats.totalCourses > 0 
-    ? Math.round((stats.completedCourses / stats.totalCourses) * 100) 
+  const progressPercentage = stats.totalLessons > 0 
+    ? Math.round((stats.completedLessons / stats.totalLessons) * 100) 
     : 0;
 
   const copyPrompt = (prompt: any) => {
@@ -154,7 +180,7 @@ const Dashboard = () => {
                   <div>
                     <p className="text-2xl font-bold">{progressPercentage}%</p>
                     <p className="text-xs text-muted-foreground">
-                      {stats.completedCourses} of {stats.totalCourses} completed
+                      {stats.completedLessons} of {stats.totalLessons} lessons
                     </p>
                   </div>
                 </div>
