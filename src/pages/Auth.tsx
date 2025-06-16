@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,9 +19,35 @@ const Auth = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
+    const checkUserRoleAndRedirect = async () => {
+      if (user) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching user role:', error);
+            navigate('/dashboard');
+            return;
+          }
+
+          // Redirect based on role
+          if (data?.role === 'admin') {
+            navigate('/admin');
+          } else {
+            navigate('/dashboard');
+          }
+        } catch (error) {
+          console.error('Error checking user role:', error);
+          navigate('/dashboard');
+        }
+      }
+    };
+
+    checkUserRoleAndRedirect();
   }, [user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -45,7 +70,7 @@ const Auth = () => {
       }
 
       toast.success('Welcome back!');
-      navigate('/dashboard');
+      // Navigation will be handled by the useEffect above
     } catch (error: any) {
       toast.error('An unexpected error occurred. Please try again.');
     } finally {
@@ -124,7 +149,7 @@ const Auth = () => {
             <CardDescription>
               {showForgotPassword 
                 ? 'Enter your email to receive a password reset link'
-                : 'Sign in to access your client portal'
+                : 'Sign in to access your portal'
               }
             </CardDescription>
           </CardHeader>
