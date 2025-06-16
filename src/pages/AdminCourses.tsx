@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { BookOpen, Plus, Users, Lock, Unlock } from 'lucide-react';
+import { BookOpen, Plus, Users, Lock, Unlock, X } from 'lucide-react';
 
 const AdminCourses = () => {
   const queryClient = useQueryClient();
@@ -103,6 +102,25 @@ const AdminCourses = () => {
     },
     onError: (error: any) => {
       toast.error(`Failed to assign course: ${error.message}`);
+    },
+  });
+
+  const removeCourseAssignmentMutation = useMutation({
+    mutationFn: async ({ courseId, studentId }: { courseId: string; studentId: string }) => {
+      const { error } = await supabase
+        .from('user_course_assignments')
+        .delete()
+        .eq('course_id', courseId)
+        .eq('user_id', studentId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Course assignment removed successfully');
+      queryClient.invalidateQueries({ queryKey: ['admin-course-assignments'] });
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to remove course assignment: ${error.message}`);
     },
   });
 
@@ -235,6 +253,69 @@ const AdminCourses = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Course Assignments Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Course Assignments</CardTitle>
+          <CardDescription>Manage which students are assigned to which courses</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Student</TableHead>
+                <TableHead>Course</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Assigned Date</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {courseAssignments?.map((assignment: any) => (
+                <TableRow key={assignment.id}>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">{assignment.profiles?.name}</p>
+                      <p className="text-sm text-muted-foreground">{assignment.profiles?.email}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <p className="font-medium">{assignment.courses?.title}</p>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={assignment.locked ? "destructive" : "default"}>
+                      {assignment.locked ? 'Locked' : 'Active'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(assignment.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeCourseAssignmentMutation.mutate({
+                        courseId: assignment.course_id,
+                        studentId: assignment.user_id
+                      })}
+                      disabled={removeCourseAssignmentMutation.isPending}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {!courseAssignments?.length && (
+            <div className="text-center py-8">
+              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No course assignments found</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Courses Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

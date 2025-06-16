@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ArrowLeft, User, Zap, BookOpen, FileText, Plus, X, Download } from 'lucide-react';
@@ -19,6 +21,8 @@ const AdminStudentDetail = () => {
   const [editMode, setEditMode] = useState(false);
   const [showAssignService, setShowAssignService] = useState(false);
   const [showUploadFile, setShowUploadFile] = useState(false);
+  const [showAssignCourse, setShowAssignCourse] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -104,6 +108,19 @@ const AdminStudentDetail = () => {
     enabled: !!id,
   });
 
+  const { data: availableCourses } = useQuery({
+    queryKey: ['admin-available-courses'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('id, title, description')
+        .order('title');
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   React.useEffect(() => {
     if (student) {
       setFormData({
@@ -172,6 +189,28 @@ const AdminStudentDetail = () => {
     },
   });
 
+  const assignCourseMutation = useMutation({
+    mutationFn: async (courseId: string) => {
+      const { error } = await supabase
+        .from('user_course_assignments')
+        .insert({
+          user_id: id,
+          course_id: courseId,
+          locked: false
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Course assigned successfully');
+      queryClient.invalidateQueries({ queryKey: ['admin-student-courses', id] });
+      setShowAssignCourse(false);
+      setSelectedCourse('');
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to assign course: ${error.message}`);
+    },
+  });
+
   const downloadFileMutation = useMutation({
     mutationFn: async (filePath: string) => {
       // Extract the file path from the full URL
@@ -207,6 +246,14 @@ const AdminStudentDetail = () => {
     updateStudentMutation.mutate(formData);
   };
 
+  const handleAssignCourse = () => {
+    if (!selectedCourse) {
+      toast.error('Please select a course');
+      return;
+    }
+    assignCourseMutation.mutate(selectedCourse);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -224,6 +271,8 @@ const AdminStudentDetail = () => {
   }
 
   const assignedServiceIds = userServices?.map(us => us.service_id).filter(Boolean) || [];
+  const assignedCourseIds = userCourses?.map(uc => uc.course_id).filter(Boolean) || [];
+  const availableCoursesToAssign = availableCourses?.filter(course => !assignedCourseIds.includes(course.id)) || [];
 
   return (
     <div className="space-y-6">
@@ -394,10 +443,51 @@ const AdminStudentDetail = () => {
               <BookOpen className="h-5 w-5 text-[#0D5C4B]" />
               <CardTitle>Enrolled Courses</CardTitle>
             </div>
-            <Button variant="outline" size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Assign Course
-            </Button>
+            <Dialog open={showAssignCourse} onOpenChange={setShowAssignCourse}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Assign Course
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Assign Course to Student</DialogTitle>
+                  <DialogDescription>
+                    Select a course to assign to {student.name}.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="course">Course</Label>
+                    <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a course" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableCoursesToAssign?.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button 
+                      onClick={handleAssignCourse}
+                      disabled={assignCourseMutation.isPending || !selectedCourse}
+                      className="bg-[#0D5C4B] hover:bg-green-700"
+                    >
+                      {assignCourseMutation.isPending ? 'Assigning...' : 'Assign Course'}
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowAssignCourse(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </CardHeader>
         <CardContent>
