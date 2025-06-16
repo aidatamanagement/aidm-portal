@@ -1,23 +1,16 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { BookOpen, Plus, Users, Lock, Unlock, X } from 'lucide-react';
+import { BookOpen, Users, Lock, Unlock } from 'lucide-react';
 
 const AdminCourses = () => {
   const queryClient = useQueryClient();
-  const [selectedCourse, setSelectedCourse] = useState<string>('');
-  const [selectedStudent, setSelectedStudent] = useState<string>('');
-  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
 
   const { data: courses, isLoading: coursesLoading } = useQuery({
     queryKey: ['admin-courses'],
@@ -81,49 +74,6 @@ const AdminCourses = () => {
     },
   });
 
-  const assignCourseMutation = useMutation({
-    mutationFn: async ({ courseId, studentId }: { courseId: string; studentId: string }) => {
-      const { error } = await supabase
-        .from('user_course_assignments')
-        .insert({
-          course_id: courseId,
-          user_id: studentId,
-          locked: false
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success('Course assigned successfully');
-      queryClient.invalidateQueries({ queryKey: ['admin-course-assignments'] });
-      setAssignDialogOpen(false);
-      setSelectedCourse('');
-      setSelectedStudent('');
-    },
-    onError: (error: any) => {
-      toast.error(`Failed to assign course: ${error.message}`);
-    },
-  });
-
-  const removeCourseAssignmentMutation = useMutation({
-    mutationFn: async ({ courseId, studentId }: { courseId: string; studentId: string }) => {
-      const { error } = await supabase
-        .from('user_course_assignments')
-        .delete()
-        .eq('course_id', courseId)
-        .eq('user_id', studentId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success('Course assignment removed successfully');
-      queryClient.invalidateQueries({ queryKey: ['admin-course-assignments'] });
-    },
-    onError: (error: any) => {
-      toast.error(`Failed to remove course assignment: ${error.message}`);
-    },
-  });
-
   const toggleLessonLockMutation = useMutation({
     mutationFn: async ({ lessonId, studentId, locked }: { lessonId: string; studentId: string; locked: boolean }) => {
       if (locked) {
@@ -156,18 +106,6 @@ const AdminCourses = () => {
     },
   });
 
-  const handleAssignCourse = () => {
-    if (!selectedCourse || !selectedStudent) {
-      toast.error('Please select both a course and a student');
-      return;
-    }
-
-    assignCourseMutation.mutate({
-      courseId: selectedCourse,
-      studentId: selectedStudent
-    });
-  };
-
   const isLessonLocked = (lessonId: string, studentId: string) => {
     return lessonLocks?.some(lock => 
       lock.lesson_id === lessonId && 
@@ -187,135 +125,10 @@ const AdminCourses = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-[#0D5C4B]">Course Management</h1>
-          <p className="text-muted-foreground">Manage courses, assignments, and lesson access</p>
-        </div>
-        <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#0D5C4B] hover:bg-green-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Assign Course
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Assign Course to Student</DialogTitle>
-              <DialogDescription>
-                Select a course and student to create a new assignment.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Course</label>
-                <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a course" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {courses?.map((course) => (
-                      <SelectItem key={course.id} value={course.id}>
-                        {course.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Student</label>
-                <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a student" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {students?.map((student) => (
-                      <SelectItem key={student.id} value={student.id}>
-                        {student.name} - {student.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex space-x-2">
-                <Button 
-                  onClick={handleAssignCourse}
-                  disabled={assignCourseMutation.isPending}
-                  className="bg-[#0D5C4B] hover:bg-green-700"
-                >
-                  {assignCourseMutation.isPending ? 'Assigning...' : 'Assign Course'}
-                </Button>
-                <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+      <div>
+        <h1 className="text-3xl font-bold text-[#0D5C4B]">Course Management</h1>
+        <p className="text-muted-foreground">Manage courses and lesson access</p>
       </div>
-
-      {/* Course Assignments Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Course Assignments</CardTitle>
-          <CardDescription>Manage which students are assigned to which courses</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Student</TableHead>
-                <TableHead>Course</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Assigned Date</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {courseAssignments?.map((assignment: any) => (
-                <TableRow key={assignment.id}>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{assignment.profiles?.name}</p>
-                      <p className="text-sm text-muted-foreground">{assignment.profiles?.email}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <p className="font-medium">{assignment.courses?.title}</p>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={assignment.locked ? "destructive" : "default"}>
-                      {assignment.locked ? 'Locked' : 'Active'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(assignment.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeCourseAssignmentMutation.mutate({
-                        courseId: assignment.course_id,
-                        studentId: assignment.user_id
-                      })}
-                      disabled={removeCourseAssignmentMutation.isPending}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          {!courseAssignments?.length && (
-            <div className="text-center py-8">
-              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No course assignments found</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Courses Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
