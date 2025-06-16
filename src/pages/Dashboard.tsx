@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,8 @@ const Dashboard = () => {
     totalFiles: 0,
     favoritePrompts: [],
     allPrompts: [],
-    enrolledServices: []
+    enrolledServices: [],
+    hasEnrolledCourses: false
   });
   const [loading, setLoading] = useState(true);
 
@@ -39,11 +39,16 @@ const Dashboard = () => {
         `)
         .eq('user_id', user?.id);
 
-      // Fetch user progress
+      // Fetch user progress for completed courses
       const { data: progress } = await supabase
         .from('user_progress')
         .select('course_id, completed')
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id)
+        .eq('completed', true);
+
+      // Get unique completed courses
+      const completedCourseIds = new Set(progress?.map(p => p.course_id) || []);
+      const uniqueCompletedCourses = Array.from(completedCourseIds).length;
 
       // Fetch total files count
       const { count: filesCount } = await supabase
@@ -78,15 +83,16 @@ const Dashboard = () => {
         .eq('user_id', user?.id);
 
       const totalCourses = assignments?.length || 0;
-      const completedCourses = progress?.filter(p => p.completed)?.length || 0;
+      const hasEnrolledCourses = totalCourses > 0;
 
       setStats({
         totalCourses,
-        completedCourses,
+        completedCourses: uniqueCompletedCourses,
         totalFiles: filesCount || 0,
         favoritePrompts: favorites || [],
         allPrompts: allPrompts || [],
-        enrolledServices: userServices || []
+        enrolledServices: userServices || [],
+        hasEnrolledCourses
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -211,14 +217,26 @@ const Dashboard = () => {
               <div className="p-4 bg-card/50 rounded-lg border">
                 <h3 className="font-semibold text-lg mb-2">Ready to Lead the AI Revolution?</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Unlock exclusive content designed for forward-thinking leaders.
+                  {stats.hasEnrolledCourses 
+                    ? 'Continue your learning journey with your enrolled courses.'
+                    : 'Contact us to get enrolled in exclusive AI leadership training courses.'
+                  }
                 </p>
-                <Link to="/courses">
-                  <Button className="w-full">
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    Access Training Materials
-                  </Button>
-                </Link>
+                {stats.hasEnrolledCourses ? (
+                  <Link to="/courses">
+                    <Button className="w-full">
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      Access Training Materials
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link to="/support">
+                    <Button className="w-full" variant="outline">
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Contact Support for Enrollment
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </CardContent>
