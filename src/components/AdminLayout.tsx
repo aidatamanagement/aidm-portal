@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/components/ThemeProvider';
-import { Moon, Sun, Users, BookOpen, Zap, FileText, BarChart3, UserPlus } from 'lucide-react';
+import { Moon, Sun, Users, BookOpen, Zap, BarChart3, UserPlus } from 'lucide-react';
 
 const AdminLayout = () => {
   const location = useLocation();
@@ -26,7 +26,6 @@ const AdminLayout = () => {
     { name: 'Students', href: '/admin/students', icon: Users },
     { name: 'Courses', href: '/admin/courses', icon: BookOpen },
     { name: 'Services', href: '/admin/services', icon: Zap },
-    { name: 'Files', href: '/admin/files', icon: FileText },
     { name: 'Add User', href: '/admin/add-user', icon: UserPlus },
   ];
 

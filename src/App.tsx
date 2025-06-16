@@ -23,6 +23,9 @@ import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminStudents from "./pages/AdminStudents";
 import AdminStudentDetail from "./pages/AdminStudentDetail";
+import AdminAddUser from "./pages/AdminAddUser";
+import AdminServices from "./pages/AdminServices";
+import AdminCourses from "./pages/AdminCourses";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +74,9 @@ const App = () => (
               <Route index element={<AdminDashboard />} />
               <Route path="students" element={<AdminStudents />} />
               <Route path="students/:id" element={<AdminStudentDetail />} />
+              <Route path="add-user" element={<AdminAddUser />} />
+              <Route path="services" element={<AdminServices />} />
+              <Route path="courses" element={<AdminCourses />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

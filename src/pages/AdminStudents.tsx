@@ -5,10 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
-import { Search, Eye, UserMinus, Upload, Users } from 'lucide-react';
+import { Search, Eye, Users } from 'lucide-react';
 
 const AdminStudents = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -166,11 +167,15 @@ const AdminStudents = () => {
                   <TableRow key={student.id} className="hover:bg-accent/50">
                     <TableCell>
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-[#0D5C4B] rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-medium">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage 
+                            src={student.profile_image || ''} 
+                            alt={student.name || 'Student'} 
+                          />
+                          <AvatarFallback className="bg-[#0D5C4B] text-white">
                             {student.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </span>
-                        </div>
+                          </AvatarFallback>
+                        </Avatar>
                         <div>
                           <p className="font-medium">{student.name}</p>
                           <p className="text-sm text-muted-foreground">{student.email}</p>
@@ -178,7 +183,12 @@ const AdminStudents = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm">{student.organization || '-'}</span>
+                      <div>
+                        <span className="text-sm font-medium">{student.organization || '-'}</span>
+                        {student.organization_role && (
+                          <p className="text-xs text-muted-foreground">{student.organization_role}</p>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
