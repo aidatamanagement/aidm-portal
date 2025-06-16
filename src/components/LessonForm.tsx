@@ -8,6 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import './RichTextStyles.css';
 
 interface LessonFormProps {
   isOpen: boolean;
@@ -24,6 +27,26 @@ const LessonForm: React.FC<LessonFormProps> = ({ isOpen, onClose, courseId, less
   const [instructorNotes, setInstructorNotes] = useState(lesson?.instructor_notes || '');
   const [order, setOrder] = useState(lesson?.order || 1);
   const queryClient = useQueryClient();
+
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'indent': '-1'}, { 'indent': '+1' }],
+      [{ 'align': [] }],
+      ['blockquote', 'code-block'],
+      ['link'],
+      ['clean']
+    ],
+  };
+
+  const quillFormats = [
+    'header', 'bold', 'italic', 'underline', 'strike',
+    'color', 'background', 'list', 'bullet', 'indent',
+    'align', 'blockquote', 'code-block', 'link'
+  ];
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -96,7 +119,7 @@ const LessonForm: React.FC<LessonFormProps> = ({ isOpen, onClose, courseId, less
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{mode === 'add' ? 'Add New Lesson' : 'Edit Lesson'}</DialogTitle>
         </DialogHeader>
@@ -145,14 +168,17 @@ const LessonForm: React.FC<LessonFormProps> = ({ isOpen, onClose, courseId, less
           </div>
           <div>
             <Label htmlFor="instructorNotes">Instructor Notes</Label>
-            <Textarea
-              id="instructorNotes"
-              value={instructorNotes}
-              onChange={(e) => setInstructorNotes(e.target.value)}
-              placeholder="Enter instructor notes"
-              rows={3}
-              required
-            />
+            <div className="mt-2">
+              <ReactQuill
+                theme="snow"
+                value={instructorNotes}
+                onChange={setInstructorNotes}
+                modules={quillModules}
+                formats={quillFormats}
+                placeholder="Enter instructor notes with rich formatting..."
+                style={{ height: '200px', marginBottom: '50px' }}
+              />
+            </div>
           </div>
           <div className="flex space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={handleClose} className="flex-1">

@@ -1,0 +1,49 @@
+
+/* Rich Text Editor Styles */
+.ql-editor {
+  min-height: 150px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ql-toolbar {
+  border-top: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-radius: 6px 6px 0 0;
+}
+
+.ql-container {
+  border-bottom: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-radius: 0 0 6px 6px;
+}
+
+/* Dark mode support */
+.dark .ql-toolbar {
+  border-color: #374151;
+  background-color: #1f2937;
+}
+
+.dark .ql-container {
+  border-color: #374151;
+  background-color: #1f2937;
+}
+
+.dark .ql-editor {
+  color: #f9fafb;
+}
+
+.dark .ql-stroke {
+  stroke: #9ca3af;
+}
+
+.dark .ql-fill {
+  fill: #9ca3af;
+}
+
+.dark .ql-picker-label {
+  color: #9ca3af;
+}
