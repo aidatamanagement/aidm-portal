@@ -178,7 +178,6 @@ const Dashboard = () => {
                 <div className="flex items-center space-x-3 mt-2">
                   <ProgressCircle progress={progressPercentage} size={60} strokeWidth={4} />
                   <div>
-                    <p className="text-2xl font-bold">{progressPercentage}%</p>
                     <p className="text-xs text-muted-foreground">
                       {stats.completedLessons} of {stats.totalLessons} lessons
                     </p>
