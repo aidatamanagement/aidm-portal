@@ -2,19 +2,22 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import ProgressCircle from '@/components/ProgressCircle';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
-import { BookOpen, FileText, MessageSquare, Zap, Heart, Lock } from 'lucide-react';
+import { BookOpen, FileText, MessageSquare, Zap, Heart, Lock, Copy, TrendingUp, Users, Award } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
     totalCourses: 0,
     completedCourses: 0,
-    recentFiles: [],
-    dailyPrompt: null,
+    totalFiles: 0,
+    favoritePrompts: [],
+    allPrompts: [],
     enrolledServices: []
   });
   const [loading, setLoading] = useState(true);
@@ -42,19 +45,27 @@ const Dashboard = () => {
         .select('course_id, completed')
         .eq('user_id', user?.id);
 
-      // Fetch recent files
-      const { data: files } = await supabase
+      // Fetch total files count
+      const { count: filesCount } = await supabase
         .from('files')
-        .select('*')
-        .eq('student_id', user?.id)
-        .order('uploaded_at', { ascending: false })
+        .select('*', { count: 'exact', head: true })
+        .eq('student_id', user?.id);
+
+      // Fetch favorite prompts
+      const { data: favorites } = await supabase
+        .from('favorites')
+        .select(`
+          prompt_id,
+          prompts (id, title, context, task)
+        `)
+        .eq('user_id', user?.id)
         .limit(3);
 
-      // Fetch a random daily prompt
-      const { data: prompts } = await supabase
+      // Fetch all prompts if no favorites
+      const { data: allPrompts } = await supabase
         .from('prompts')
-        .select('*')
-        .limit(1);
+        .select('id, title, context, task')
+        .limit(3);
 
       // Fetch enrolled services
       const { data: userServices } = await supabase
@@ -72,8 +83,9 @@ const Dashboard = () => {
       setStats({
         totalCourses,
         completedCourses,
-        recentFiles: files || [],
-        dailyPrompt: prompts?.[0] || null,
+        totalFiles: filesCount || 0,
+        favoritePrompts: favorites || [],
+        allPrompts: allPrompts || [],
         enrolledServices: userServices || []
       });
     } catch (error) {
@@ -87,55 +99,59 @@ const Dashboard = () => {
     ? Math.round((stats.completedCourses / stats.totalCourses) * 100) 
     : 0;
 
+  const copyPrompt = (prompt: any) => {
+    const promptText = `${prompt.context} ${prompt.task}`;
+    navigator.clipboard.writeText(promptText);
+    toast.success('Prompt copied to clipboard!');
+  };
+
+  const promptsToShow = stats.favoritePrompts.length > 0 
+    ? stats.favoritePrompts.map(f => f.prompts).filter(Boolean)
+    : stats.allPrompts;
+
   if (loading) {
-    return <div className="p-6">Loading dashboard...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Welcome Header */}
-      <div className="bg-white rounded-lg p-6 border">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Welcome back, {user?.user_metadata?.name || 'Student'}!
-        </h1>
-        <p className="text-gray-600">Ready to continue your learning journey?</p>
+      <div className="relative bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-8 text-white overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative z-10">
+          <h1 className="text-3xl font-bold mb-2">
+            Welcome, {user?.user_metadata?.name || 'Valued Client'}!
+          </h1>
+          <p className="text-white/90 text-lg max-w-2xl">
+            Explore AI innovations, access cutting-edge data management solutions, and connect with our expert services. 
+            Your journey into intelligent business transformation starts here.
+          </p>
+        </div>
+        <div className="absolute top-4 right-4 opacity-20">
+          <div className="w-32 h-32 rounded-full border-4 border-white/30"></div>
+        </div>
       </div>
 
-      {/* Progress Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="relative overflow-hidden">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Course Progress</p>
-                <p className="text-2xl font-bold text-gray-900">{progressPercentage}%</p>
-              </div>
-              <ProgressCircle progress={progressPercentage} size={48} />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Enrolled Courses</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalCourses}</p>
-              </div>
-              <BookOpen className="h-8 w-8 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completedCourses}</p>
-              </div>
-              <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-green-600 font-bold">✓</span>
+                <p className="text-sm font-medium text-muted-foreground">Learning Progress</p>
+                <div className="flex items-center space-x-3 mt-2">
+                  <ProgressCircle progress={progressPercentage} size={60} strokeWidth={4} />
+                  <div>
+                    <p className="text-2xl font-bold">{progressPercentage}%</p>
+                    <p className="text-xs text-muted-foreground">
+                      {stats.completedCourses} of {stats.totalCourses} completed
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -145,70 +161,106 @@ const Dashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">My Files</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.recentFiles.length}</p>
+                <p className="text-sm font-medium text-muted-foreground">Active Services</p>
+                <p className="text-2xl font-bold">{stats.enrolledServices.length}</p>
+              </div>
+              <Zap className="h-8 w-8 text-primary" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">My Files</p>
+                <p className="text-2xl font-bold">{stats.totalFiles}</p>
               </div>
               <FileText className="h-8 w-8 text-primary" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Favorite Prompts</p>
+                <p className="text-2xl font-bold">{stats.favoritePrompts.length}</p>
+              </div>
+              <Heart className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Resume Learning */}
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* AI Leadership Training */}
+        <Card className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
           <CardHeader>
-            <CardTitle>Continue Learning</CardTitle>
-            <CardDescription>Pick up where you left off</CardDescription>
+            <div className="flex items-center space-x-2">
+              <Award className="h-5 w-5 text-primary" />
+              <CardTitle>AI Leadership Training</CardTitle>
+            </div>
+            <CardDescription>Advance your AI leadership skills</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="p-4 bg-primary/5 rounded-lg">
-                <h3 className="font-medium text-gray-900 mb-2">Ready to learn?</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Explore your available courses and continue your progress.
+              <div className="p-4 bg-card/50 rounded-lg border">
+                <h3 className="font-semibold text-lg mb-2">Ready to Lead the AI Revolution?</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Unlock exclusive content designed for forward-thinking leaders.
                 </p>
                 <Link to="/courses">
-                  <Button>View Courses</Button>
+                  <Button className="w-full">
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Access Training Materials
+                  </Button>
                 </Link>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Enrolled Services */}
+        {/* Services Overview */}
         <Card>
           <CardHeader>
-            <CardTitle>My Services</CardTitle>
-            <CardDescription>Active and pending services</CardDescription>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Users className="h-5 w-5 text-primary" />
+                <CardTitle>My Services</CardTitle>
+              </div>
+              <Link to="/services">
+                <Button variant="outline" size="sm">View All</Button>
+              </Link>
+            </div>
+            <CardDescription>Active and available services</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {stats.enrolledServices.length === 0 ? (
-                <div className="text-center py-4">
-                  <Zap className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">No services enrolled yet</p>
-                  <Link to="/services" className="mt-2 inline-block">
-                    <Button variant="outline" size="sm">Browse Services</Button>
+                <div className="text-center py-6">
+                  <Zap className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground mb-3">No active services</p>
+                  <Link to="/services">
+                    <Button variant="outline" size="sm">Explore Services</Button>
                   </Link>
                 </div>
               ) : (
                 stats.enrolledServices.slice(0, 3).map((userService: any) => (
-                  <div key={userService.service_id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={userService.service_id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex items-center space-x-3">
-                      {userService.status === 'active' ? (
-                        <Zap className="h-5 w-5 text-green-600" />
-                      ) : userService.status === 'pending' ? (
-                        <div className="h-5 w-5 rounded-full bg-yellow-200 flex items-center justify-center">
-                          <div className="h-2 w-2 rounded-full bg-yellow-600"></div>
-                        </div>
-                      ) : (
-                        <Lock className="h-5 w-5 text-gray-400" />
-                      )}
+                      <div className={`w-2 h-2 rounded-full ${
+                        userService.status === 'active' ? 'bg-green-500' : 
+                        userService.status === 'pending' ? 'bg-yellow-500' : 'bg-gray-400'
+                      }`}></div>
                       <div>
                         <p className="font-medium text-sm">{userService.services.title}</p>
-                        <p className="text-xs text-gray-600 capitalize">{userService.status}</p>
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {userService.status}
+                        </Badge>
                       </div>
                     </div>
                   </div>
@@ -218,68 +270,92 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Recent Files */}
+        {/* Prompts */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Files</CardTitle>
-            <CardDescription>Your latest uploaded files</CardDescription>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <MessageSquare className="h-5 w-5 text-primary" />
+                <CardTitle>
+                  {stats.favoritePrompts.length > 0 ? 'Favorite Prompts' : 'Prompts'}
+                </CardTitle>
+              </div>
+              <Link to="/prompts">
+                <Button variant="outline" size="sm">View All</Button>
+              </Link>
+            </div>
+            <CardDescription>
+              {stats.favoritePrompts.length > 0 
+                ? 'Your bookmarked prompts' 
+                : 'Discover powerful AI prompts'
+              }
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {stats.recentFiles.length === 0 ? (
-                <div className="text-center py-4">
-                  <FileText className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">No files uploaded yet</p>
+              {promptsToShow.length === 0 ? (
+                <div className="text-center py-6">
+                  <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground">No prompts available</p>
                 </div>
               ) : (
-                stats.recentFiles.map((file: any) => (
-                  <div key={file.id} className="flex items-center space-x-3 p-3 border rounded-lg">
-                    <FileText className="h-5 w-5 text-primary" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{file.name}</p>
-                      <p className="text-xs text-gray-600">{file.type.toUpperCase()}</p>
+                promptsToShow.slice(0, 2).map((prompt: any) => (
+                  <div key={prompt.id} className="p-3 border rounded-lg hover:bg-accent/50 transition-colors">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-medium text-sm line-clamp-1">{prompt.title}</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyPrompt(prompt)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
                     </div>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{prompt.context}</p>
                   </div>
                 ))
-              )}
-              {stats.recentFiles.length > 0 && (
-                <Link to="/files">
-                  <Button variant="outline" size="sm" className="w-full">View All Files</Button>
-                </Link>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Daily Prompt */}
+        {/* Quick Actions */}
         <Card>
           <CardHeader>
-            <CardTitle>Daily Writing Prompt</CardTitle>
-            <CardDescription>Get inspired with today's prompt</CardDescription>
+            <div className="flex items-center space-x-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              <CardTitle>Quick Actions</CardTitle>
+            </div>
+            <CardDescription>Access your most-used features</CardDescription>
           </CardHeader>
           <CardContent>
-            {stats.dailyPrompt ? (
-              <div className="space-y-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <h3 className="font-medium text-gray-900 mb-2">{stats.dailyPrompt.title}</h3>
-                  <p className="text-sm text-gray-600 mb-3">{stats.dailyPrompt.context}</p>
-                  <div className="flex items-center justify-between">
-                    <Button variant="ghost" size="sm">
-                      <Heart className="h-4 w-4 mr-2" />
-                      Favorite
-                    </Button>
-                    <Link to="/prompts">
-                      <Button variant="outline" size="sm">View All Prompts</Button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <MessageSquare className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">No prompts available</p>
-              </div>
-            )}
+            <div className="grid grid-cols-2 gap-3">
+              <Link to="/files">
+                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
+                  <FileText className="h-5 w-5" />
+                  <span className="text-xs">Browse Files</span>
+                </Button>
+              </Link>
+              <Link to="/prompts">
+                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
+                  <MessageSquare className="h-5 w-5" />
+                  <span className="text-xs">Explore Prompts</span>
+                </Button>
+              </Link>
+              <Link to="/services">
+                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
+                  <Zap className="h-5 w-5" />
+                  <span className="text-xs">View Services</span>
+                </Button>
+              </Link>
+              <Link to="/profile">
+                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
+                  <Users className="h-5 w-5" />
+                  <span className="text-xs">My Profile</span>
+                </Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -6,13 +6,15 @@ interface ProgressCircleProps {
   size?: number;
   strokeWidth?: number;
   className?: string;
+  showPercentage?: boolean;
 }
 
 const ProgressCircle: React.FC<ProgressCircleProps> = ({
   progress,
   size = 120,
   strokeWidth = 8,
-  className = ''
+  className = '',
+  showPercentage = true
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -31,27 +33,32 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#e5e7eb"
+          stroke="currentColor"
           strokeWidth={strokeWidth}
           fill="transparent"
+          className="text-muted/20"
         />
         {/* Progress circle */}
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#0D5C4B"
+          stroke="currentColor"
           strokeWidth={strokeWidth}
           fill="transparent"
           strokeDasharray={strokeDasharray}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          className="transition-all duration-300 ease-in-out"
+          className="text-primary transition-all duration-300 ease-in-out"
         />
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-2xl font-bold text-gray-900">{progress}%</span>
-      </div>
+      {showPercentage && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="font-bold text-foreground" style={{ fontSize: size * 0.16 }}>
+            {progress}%
+          </span>
+        </div>
+      )}
     </div>
   );
 };
