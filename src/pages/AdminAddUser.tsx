@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -27,35 +26,30 @@ const AdminAddUser = () => {
 
   const createUserMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: data.email,
-        password: data.password,
-        email_confirm: true,
-        user_metadata: {
-          name: data.name,
-          organization: data.organization,
-          organization_role: data.organization_role,
-          role: data.role
-        }
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      // Call the Edge Function
+      const response = await fetch(`https://oimqzyfmglyhljjuboek.supabase.co/functions/v1/create-user`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       });
 
-      if (authError) throw authError;
+      const result = await response.json();
 
-      // Update profile with additional info
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          name: data.name,
-          organization: data.organization,
-          organization_role: data.organization_role,
-          role: data.role
-        })
-        .eq('id', authData.user.id);
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create user');
+      }
 
-      if (profileError) throw profileError;
-
-      return authData.user;
+      return result.user;
     },
     onSuccess: (user) => {
       toast.success('User created successfully');
@@ -73,6 +67,11 @@ const AdminAddUser = () => {
     
     if (!formData.name || !formData.email || !formData.password) {
       toast.error('Please fill in all required fields');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error('Password must be at least 6 characters long');
       return;
     }
 
