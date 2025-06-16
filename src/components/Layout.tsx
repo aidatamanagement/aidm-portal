@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,8 +12,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/components/ThemeProvider';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Home, Zap, FileText, MessageSquare } from 'lucide-react';
 import ChatSupport from './ChatSupport';
+import Dock from './Dock';
 import { supabase } from '@/integrations/supabase/client';
 
 const Layout = () => {
@@ -60,6 +60,33 @@ const Layout = () => {
     navigate('/auth');
   };
 
+  const dockItems = [
+    {
+      icon: <Home size={18} />,
+      label: 'Dashboard',
+      onClick: () => navigate('/dashboard'),
+      isActive: isActive('/dashboard'),
+    },
+    {
+      icon: <Zap size={18} />,
+      label: 'Services',
+      onClick: () => navigate('/services'),
+      isActive: isActive('/services'),
+    },
+    {
+      icon: <FileText size={18} />,
+      label: 'Files',
+      onClick: () => navigate('/files'),
+      isActive: isActive('/files'),
+    },
+    {
+      icon: <MessageSquare size={18} />,
+      label: 'Prompts',
+      onClick: () => navigate('/prompts'),
+      isActive: isActive('/prompts'),
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -79,20 +106,29 @@ const Layout = () => {
               </Link>
             </div>
 
-            {/* Navigation */}
-            <nav className="hidden md:flex space-x-1">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive(item.href)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
-                  }`}
+            {/* Animated Dock Navigation - Hidden on mobile, shown on desktop */}
+            <div className="hidden md:block">
+              <Dock 
+                items={dockItems}
+                panelHeight={68}
+                baseItemSize={50}
+                magnification={70}
+              />
+            </div>
+
+            {/* Mobile Navigation - Only shown on mobile */}
+            <nav className="md:hidden flex space-x-1">
+              {dockItems.map((item) => (
+                <Button
+                  key={item.label}
+                  variant={item.isActive ? "default" : "ghost"}
+                  size="sm"
+                  onClick={item.onClick}
+                  className="flex items-center space-x-1"
                 >
-                  {item.name}
-                </Link>
+                  {item.icon}
+                  <span className="sr-only">{item.label}</span>
+                </Button>
               ))}
             </nav>
 
