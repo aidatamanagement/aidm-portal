@@ -153,6 +153,25 @@ const AdminStudentDetail = () => {
     },
   });
 
+  const removeCourseAssignmentMutation = useMutation({
+    mutationFn: async (courseId: string) => {
+      const { error } = await supabase
+        .from('user_course_assignments')
+        .delete()
+        .eq('user_id', id)
+        .eq('course_id', courseId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Course assignment removed successfully');
+      queryClient.invalidateQueries({ queryKey: ['admin-student-courses', id] });
+    },
+    onError: (error) => {
+      toast.error('Failed to remove course assignment');
+      console.error('Remove course assignment error:', error);
+    },
+  });
+
   const downloadFileMutation = useMutation({
     mutationFn: async (filePath: string) => {
       // Extract the file path from the full URL
@@ -390,9 +409,19 @@ const AdminStudentDetail = () => {
                     <h3 className="font-semibold">{assignment.courses?.title}</h3>
                     <p className="text-sm text-muted-foreground">{assignment.courses?.description}</p>
                   </div>
-                  <Badge variant={assignment.locked ? "destructive" : "default"}>
-                    {assignment.locked ? 'Locked' : 'Active'}
-                  </Badge>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant={assignment.locked ? "destructive" : "default"}>
+                      {assignment.locked ? 'Locked' : 'Active'}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeCourseAssignmentMutation.mutate(assignment.course_id)}
+                      disabled={removeCourseAssignmentMutation.isPending}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
