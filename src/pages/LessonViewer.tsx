@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -93,12 +92,28 @@ const LessonViewer = () => {
     }
   };
 
+  // Helper function to render plain text from HTML
+  const renderTextContent = (htmlContent: string) => {
+    if (!htmlContent) return '';
+    // Strip HTML tags and decode HTML entities
+    const textContent = htmlContent
+      .replace(/<[^>]*>/g, '') // Remove HTML tags
+      .replace(/&nbsp;/g, ' ') // Replace &nbsp; with space
+      .replace(/&amp;/g, '&') // Replace &amp; with &
+      .replace(/&lt;/g, '<') // Replace &lt; with <
+      .replace(/&gt;/g, '>') // Replace &gt; with >
+      .replace(/&quot;/g, '"') // Replace &quot; with "
+      .replace(/&#39;/g, "'") // Replace &#39; with '
+      .trim();
+    return textContent;
+  };
+
   if (loading) {
-    return <div className="p-6">Loading lesson...</div>;
+    return <div className="p-6 text-foreground">Loading lesson...</div>;
   }
 
   if (!lesson) {
-    return <div className="p-6">Lesson not found</div>;
+    return <div className="p-6 text-foreground">Lesson not found</div>;
   }
 
   return (
@@ -115,7 +130,7 @@ const LessonViewer = () => {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Course
             </Button>
-            <h1 className="text-xl font-semibold">{lesson.title}</h1>
+            <h1 className="text-xl font-semibold text-card-foreground">{lesson.title}</h1>
           </div>
           
           <div className="flex items-center space-x-2">
@@ -135,7 +150,7 @@ const LessonViewer = () => {
           {/* PDF Viewer */}
           <Card>
             <CardHeader>
-              <CardTitle>Lesson Content</CardTitle>
+              <CardTitle className="text-card-foreground">Lesson Content</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="w-full h-[600px] border rounded-lg">
@@ -146,8 +161,8 @@ const LessonViewer = () => {
                     title="Lesson PDF"
                   />
                 ) : (
-                  <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg">
-                    <p className="text-gray-500">No PDF content available</p>
+                  <div className="flex items-center justify-center h-full bg-muted rounded-lg">
+                    <p className="text-muted-foreground">No PDF content available</p>
                   </div>
                 )}
               </div>
@@ -158,12 +173,12 @@ const LessonViewer = () => {
           {lesson.instructor_notes && (
             <Card>
               <CardHeader>
-                <CardTitle>Instructor Notes</CardTitle>
+                <CardTitle className="text-card-foreground">Instructor Notes</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="text-gray-700 whitespace-pre-wrap">
-                    {lesson.instructor_notes}
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="text-foreground whitespace-pre-wrap leading-relaxed">
+                    {renderTextContent(lesson.instructor_notes)}
                   </div>
                 </div>
               </CardContent>
