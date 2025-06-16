@@ -205,19 +205,19 @@ const Dashboard = () => {
                   }
                 </p>
                 {stats?.hasEnrolledCourses ? (
-                  <Link to="/courses">
-                    <Button className="w-full">
+                  <Button asChild className="w-full">
+                    <Link to="/courses">
                       <BookOpen className="h-4 w-4 mr-2" />
                       Access Training Materials
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 ) : (
-                  <Link to="/support">
-                    <Button className="w-full" variant="outline">
+                  <Button asChild className="w-full" variant="outline">
+                    <Link to="/support">
                       <MessageSquare className="h-4 w-4 mr-2" />
                       Contact Support for Enrollment
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 )}
               </div>
             </div>
