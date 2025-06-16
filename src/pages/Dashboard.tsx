@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ProgressCircle from '@/components/ProgressCircle';
 import SplitText from '@/components/SplitText';
+import CountUp from '@/components/CountUp';
 import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import { Link } from 'react-router-dom';
@@ -128,7 +130,7 @@ const Dashboard = () => {
                   <ProgressCircle progress={progressPercentage} size={60} strokeWidth={4} />
                   <div>
                     <p className="text-xs text-muted-foreground">
-                      {stats?.completedLessons || 0} of {stats?.totalLessons || 0} lessons
+                      <CountUp to={stats?.completedLessons || 0} duration={1.2} className="font-medium" /> of <CountUp to={stats?.totalLessons || 0} duration={1.2} className="font-medium" /> lessons
                     </p>
                   </div>
                 </div>
@@ -142,7 +144,9 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Active Services</p>
-                <p className="text-2xl font-bold">{stats?.enrolledServices.length || 0}</p>
+                <p className="text-2xl font-bold">
+                  <CountUp to={stats?.enrolledServices.length || 0} duration={1.5} className="text-2xl font-bold" />
+                </p>
               </div>
               <Zap className="h-8 w-8 text-primary" />
             </div>
@@ -154,7 +158,9 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">My Files</p>
-                <p className="text-2xl font-bold">{stats?.totalFiles || 0}</p>
+                <p className="text-2xl font-bold">
+                  <CountUp to={stats?.totalFiles || 0} duration={1.8} separator="," className="text-2xl font-bold" />
+                </p>
               </div>
               <FileText className="h-8 w-8 text-primary" />
             </div>
@@ -166,7 +172,9 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Favorite Prompts</p>
-                <p className="text-2xl font-bold">{stats?.favoritePrompts.length || 0}</p>
+                <p className="text-2xl font-bold">
+                  <CountUp to={stats?.favoritePrompts.length || 0} duration={2} className="text-2xl font-bold" />
+                </p>
               </div>
               <Heart className="h-8 w-8 text-primary" />
             </div>
