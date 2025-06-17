@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -74,28 +73,33 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     return 'other';
   };
 
-  // Normalize file path to ensure it's a proper URL
+  // Fix the file URL construction to handle all path formats
   const getFileUrl = (filePath: string) => {
     console.log('Original file path:', filePath);
     
     // If it's already a full URL, return as is
     if (filePath.startsWith('http')) {
+      console.log('Using full URL:', filePath);
       return filePath;
     }
     
-    // If it's a relative path, construct the full URL
     const baseUrl = 'https://oimqzyfmglyhljjuboek.supabase.co/storage/v1/object/public/student-files/';
     
-    // Remove any leading slashes and ensure proper path structure
-    let normalizedPath = filePath.replace(/^\/+/, '');
+    // Clean up the path by removing any leading slashes
+    let cleanPath = filePath.replace(/^\/+/, '');
     
-    // If the path doesn't start with student_files/, add it
-    if (!normalizedPath.startsWith('student_files/')) {
-      normalizedPath = `student_files/${normalizedPath}`;
+    // Handle different path formats:
+    // 1. Paths that already start with "student-files/" (remove it to avoid double-prefixing)
+    if (cleanPath.startsWith('student-files/')) {
+      cleanPath = cleanPath.replace('student-files/', '');
     }
     
-    const fullUrl = `${baseUrl}${normalizedPath}`;
+    // 2. Paths that already start with "student_files/" (this is correct, keep it)
+    if (!cleanPath.startsWith('student_files/')) {
+      cleanPath = `student_files/${cleanPath}`;
+    }
     
+    const fullUrl = `${baseUrl}${cleanPath}`;
     console.log('Constructed URL:', fullUrl);
     return fullUrl;
   };
@@ -138,8 +142,8 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
               alt={file.name}
               className="max-w-full max-h-96 object-contain rounded"
               onLoad={() => setLoading(false)}
-              onError={() => {
-                console.error('Image failed to load:', fileUrl);
+              onError={(e) => {
+                console.error('Image failed to load:', fileUrl, e);
                 setLoading(false);
                 setError(true);
               }}
@@ -154,8 +158,8 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
               controls
               className="w-full max-h-96 rounded-lg"
               onLoadedData={() => setLoading(false)}
-              onError={() => {
-                console.error('Video failed to load:', fileUrl);
+              onError={(e) => {
+                console.error('Video failed to load:', fileUrl, e);
                 setLoading(false);
                 setError(true);
               }}
@@ -174,8 +178,8 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
               controls
               className="w-full max-w-md"
               onLoadedData={() => setLoading(false)}
-              onError={() => {
-                console.error('Audio failed to load:', fileUrl);
+              onError={(e) => {
+                console.error('Audio failed to load:', fileUrl, e);
                 setLoading(false);
                 setError(true);
               }}
@@ -194,8 +198,8 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
               className="w-full h-full"
               title={file.name}
               onLoad={() => setLoading(false)}
-              onError={() => {
-                console.error('PDF failed to load:', fileUrl);
+              onError={(e) => {
+                console.error('PDF failed to load:', fileUrl, e);
                 setLoading(false);
                 setError(true);
               }}
@@ -256,18 +260,42 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
       const fileUrl = getFileUrl(file.path);
       console.log('Downloading file from:', fileUrl);
       
-      // Create a temporary link for download
+      // Use fetch to download the file properly
+      const response = await fetch(fileUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
       const link = document.createElement('a');
-      link.href = fileUrl;
+      link.href = url;
       link.download = file.name;
-      link.target = '_blank';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
-      console.log('Download initiated successfully');
+      // Clean up the object URL
+      window.URL.revokeObjectURL(url);
+      
+      console.log('Download completed successfully');
     } catch (error) {
       console.error('Download failed:', error);
+      
+      // Fallback: try direct link method
+      try {
+        const fileUrl = getFileUrl(file.path);
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = file.name;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (fallbackError) {
+        console.error('Fallback download also failed:', fallbackError);
+      }
     }
   };
 
