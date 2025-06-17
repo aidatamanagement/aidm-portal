@@ -317,53 +317,45 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Services Overview */}
+{/* Quick Actions */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-primary" />
-                <CardTitle>My Services</CardTitle>
-              </div>
-              <Link to="/services">
-                <Button variant="outline" size="sm">View All</Button>
-              </Link>
+            <div className="flex items-center space-x-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              <CardTitle>Quick Actions</CardTitle>
             </div>
-            <CardDescription>Active and available services</CardDescription>
+            <CardDescription>Access your most-used features</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {(!stats?.enrolledServices || stats.enrolledServices.length === 0) ? (
-                <div className="text-center py-6">
-                  <Zap className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground mb-3">No active services</p>
-                  <Link to="/services">
-                    <Button variant="outline" size="sm">Explore Services</Button>
-                  </Link>
-                </div>
-              ) : (
-                stats.enrolledServices.slice(0, 3).map((userService: any) => (
-                  <div key={userService.service_id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-2 h-2 rounded-full ${
-                        userService.status === 'active' ? 'bg-green-500' : 
-                        userService.status === 'pending' ? 'bg-yellow-500' : 'bg-gray-400'
-                      }`}></div>
-                      <div>
-                        <p className="font-medium text-sm">{userService.services.title}</p>
-                        <Badge variant="outline" className="text-xs capitalize">
-                          {userService.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+            <div className="grid grid-cols-2 gap-3">
+              <Link to="/files">
+                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
+                  <FileText className="h-5 w-5" />
+                  <span className="text-xs">Browse Files</span>
+                </Button>
+              </Link>
+              <Link to="/prompts">
+                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
+                  <MessageSquare className="h-5 w-5" />
+                  <span className="text-xs">Explore Prompts</span>
+                </Button>
+              </Link>
+              <Link to="/services">
+                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
+                  <Zap className="h-5 w-5" />
+                  <span className="text-xs">View Services</span>
+                </Button>
+              </Link>
+              <Link to="/profile">
+                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
+                  <Users className="h-5 w-5" />
+                  <span className="text-xs">My Profile</span>
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
-
+        
         {/* Prompts */}
         <Card>
           <CardHeader>
@@ -413,45 +405,53 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Quick Actions */}
+{/* Services Overview */}
         <Card>
           <CardHeader>
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <CardTitle>Quick Actions</CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Users className="h-5 w-5 text-primary" />
+                <CardTitle>My Services</CardTitle>
+              </div>
+              <Link to="/services">
+                <Button variant="outline" size="sm">View All</Button>
+              </Link>
             </div>
-            <CardDescription>Access your most-used features</CardDescription>
+            <CardDescription>Active and available services</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              <Link to="/files">
-                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
-                  <FileText className="h-5 w-5" />
-                  <span className="text-xs">Browse Files</span>
-                </Button>
-              </Link>
-              <Link to="/prompts">
-                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
-                  <MessageSquare className="h-5 w-5" />
-                  <span className="text-xs">Explore Prompts</span>
-                </Button>
-              </Link>
-              <Link to="/services">
-                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
-                  <Zap className="h-5 w-5" />
-                  <span className="text-xs">View Services</span>
-                </Button>
-              </Link>
-              <Link to="/profile">
-                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
-                  <Users className="h-5 w-5" />
-                  <span className="text-xs">My Profile</span>
-                </Button>
-              </Link>
+            <div className="space-y-3">
+              {(!stats?.enrolledServices || stats.enrolledServices.length === 0) ? (
+                <div className="text-center py-6">
+                  <Zap className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground mb-3">No active services</p>
+                  <Link to="/services">
+                    <Button variant="outline" size="sm">Explore Services</Button>
+                  </Link>
+                </div>
+              ) : (
+                stats.enrolledServices.slice(0, 3).map((userService: any) => (
+                  <div key={userService.service_id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-2 h-2 rounded-full ${
+                        userService.status === 'active' ? 'bg-green-500' : 
+                        userService.status === 'pending' ? 'bg-yellow-500' : 'bg-gray-400'
+                      }`}></div>
+                      <div>
+                        <p className="font-medium text-sm">{userService.services.title}</p>
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {userService.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
+
+        
       </div>
     </div>
   );
