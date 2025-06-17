@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Download, ExternalLink, FileText, Image, Music, Video, Archive, File } from 'lucide-react';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FilePreviewProps {
   file: {
@@ -73,35 +74,53 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     return 'other';
   };
 
-  // Fix the file URL construction to handle all path formats
-  const getFileUrl = (filePath: string) => {
-    console.log('Original file path:', filePath);
-    
-    // If it's already a full URL, return as is
-    if (filePath.startsWith('http')) {
-      console.log('Using full URL:', filePath);
-      return filePath;
+  const getFileUrl = async () => {
+    try {
+      console.log('Getting file URL for path:', file.path);
+      
+      // If it's already a full URL, return as is
+      if (file.path.startsWith('http')) {
+        console.log('Using full URL:', file.path);
+        return file.path;
+      }
+      
+      // Extract the storage path from the file path
+      let storagePath = file.path;
+      
+      // Remove any leading slashes
+      storagePath = storagePath.replace(/^\/+/, '');
+      
+      // Handle different path formats
+      if (storagePath.startsWith('student-files/')) {
+        storagePath = storagePath.replace('student-files/', '');
+      }
+      
+      if (!storagePath.startsWith('student_files/')) {
+        storagePath = `student_files/${storagePath}`;
+      }
+      
+      console.log('Storage path:', storagePath);
+      
+      // Get signed URL for authenticated access
+      const { data, error } = await supabase.storage
+        .from('student-files')
+        .createSignedUrl(storagePath, 3600); // 1 hour expiry
+      
+      if (error) {
+        console.error('Error creating signed URL:', error);
+        // Fallback to public URL
+        const { data: publicData } = supabase.storage
+          .from('student-files')
+          .getPublicUrl(storagePath);
+        return publicData.publicUrl;
+      }
+      
+      console.log('Created signed URL:', data.signedUrl);
+      return data.signedUrl;
+    } catch (error) {
+      console.error('Error in getFileUrl:', error);
+      return null;
     }
-    
-    const baseUrl = 'https://oimqzyfmglyhljjuboek.supabase.co/storage/v1/object/public/student-files/';
-    
-    // Clean up the path by removing any leading slashes
-    let cleanPath = filePath.replace(/^\/+/, '');
-    
-    // Handle different path formats:
-    // 1. Paths that already start with "student-files/" (remove it to avoid double-prefixing)
-    if (cleanPath.startsWith('student-files/')) {
-      cleanPath = cleanPath.replace('student-files/', '');
-    }
-    
-    // 2. Paths that already start with "student_files/" (this is correct, keep it)
-    if (!cleanPath.startsWith('student_files/')) {
-      cleanPath = `student_files/${cleanPath}`;
-    }
-    
-    const fullUrl = `${baseUrl}${cleanPath}`;
-    console.log('Constructed URL:', fullUrl);
-    return fullUrl;
   };
 
   const loadTextContent = async (url: string) => {
@@ -118,7 +137,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
 
   const renderFilePreview = () => {
     const category = getFileCategory(file.type);
-    const fileUrl = getFileUrl(file.path);
     
     if (error) {
       return (
@@ -133,40 +151,42 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
       );
     }
 
+    // Load file URL when dialog opens
+    React.useEffect(() => {
+      if (open && !error) {
+        const loadFile = async () => {
+          setLoading(true);
+          const fileUrl = await getFileUrl();
+          
+          if (!fileUrl) {
+            setError(true);
+            setLoading(false);
+            return;
+          }
+          
+          if (category === 'text' && textContent === null) {
+            await loadTextContent(fileUrl);
+          }
+          
+          setLoading(false);
+        };
+        
+        loadFile();
+      }
+    }, [open, category]);
+
     switch (category) {
       case 'image':
         return (
           <div className="flex justify-center bg-muted rounded-lg p-4">
-            <img
-              src={fileUrl}
-              alt={file.name}
-              className="max-w-full max-h-96 object-contain rounded"
-              onLoad={() => setLoading(false)}
-              onError={(e) => {
-                console.error('Image failed to load:', fileUrl, e);
-                setLoading(false);
-                setError(true);
-              }}
-            />
+            <ImagePreview />
           </div>
         );
 
       case 'video':
         return (
           <div className="bg-black rounded-lg">
-            <video
-              controls
-              className="w-full max-h-96 rounded-lg"
-              onLoadedData={() => setLoading(false)}
-              onError={(e) => {
-                console.error('Video failed to load:', fileUrl, e);
-                setLoading(false);
-                setError(true);
-              }}
-            >
-              <source src={fileUrl} />
-              Your browser does not support the video tag.
-            </video>
+            <VideoPreview />
           </div>
         );
 
@@ -174,47 +194,18 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
         return (
           <div className="flex flex-col items-center justify-center h-48 bg-muted rounded-lg">
             <Music className="h-16 w-16 text-primary mb-4" />
-            <audio
-              controls
-              className="w-full max-w-md"
-              onLoadedData={() => setLoading(false)}
-              onError={(e) => {
-                console.error('Audio failed to load:', fileUrl, e);
-                setLoading(false);
-                setError(true);
-              }}
-            >
-              <source src={fileUrl} />
-              Your browser does not support the audio tag.
-            </audio>
+            <AudioPreview />
           </div>
         );
 
       case 'pdf':
         return (
           <div className="w-full h-96 border rounded-lg overflow-hidden">
-            <iframe
-              src={fileUrl}
-              className="w-full h-full"
-              title={file.name}
-              onLoad={() => setLoading(false)}
-              onError={(e) => {
-                console.error('PDF failed to load:', fileUrl, e);
-                setLoading(false);
-                setError(true);
-              }}
-            />
+            <PDFPreview />
           </div>
         );
 
       case 'text':
-        React.useEffect(() => {
-          if (open && textContent === null) {
-            loadTextContent(fileUrl);
-            setLoading(false);
-          }
-        }, [open, fileUrl, textContent]);
-
         return (
           <div className="w-full h-96 bg-muted rounded-lg p-4 overflow-auto">
             <pre className="text-sm whitespace-pre-wrap font-mono">
@@ -255,9 +246,126 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     }
   };
 
+  // Component for image preview
+  const ImagePreview = () => {
+    const [imageUrl, setImageUrl] = React.useState<string>('');
+    
+    React.useEffect(() => {
+      const loadImage = async () => {
+        const url = await getFileUrl();
+        if (url) setImageUrl(url);
+      };
+      loadImage();
+    }, []);
+
+    return imageUrl ? (
+      <img
+        src={imageUrl}
+        alt={file.name}
+        className="max-w-full max-h-96 object-contain rounded"
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          console.error('Image failed to load:', imageUrl);
+          setLoading(false);
+          setError(true);
+        }}
+      />
+    ) : null;
+  };
+
+  // Component for video preview
+  const VideoPreview = () => {
+    const [videoUrl, setVideoUrl] = React.useState<string>('');
+    
+    React.useEffect(() => {
+      const loadVideo = async () => {
+        const url = await getFileUrl();
+        if (url) setVideoUrl(url);
+      };
+      loadVideo();
+    }, []);
+
+    return videoUrl ? (
+      <video
+        controls
+        className="w-full max-h-96 rounded-lg"
+        onLoadedData={() => setLoading(false)}
+        onError={() => {
+          console.error('Video failed to load:', videoUrl);
+          setLoading(false);
+          setError(true);
+        }}
+      >
+        <source src={videoUrl} />
+        Your browser does not support the video tag.
+      </video>
+    ) : null;
+  };
+
+  // Component for audio preview
+  const AudioPreview = () => {
+    const [audioUrl, setAudioUrl] = React.useState<string>('');
+    
+    React.useEffect(() => {
+      const loadAudio = async () => {
+        const url = await getFileUrl();
+        if (url) setAudioUrl(url);
+      };
+      loadAudio();
+    }, []);
+
+    return audioUrl ? (
+      <audio
+        controls
+        className="w-full max-w-md"
+        onLoadedData={() => setLoading(false)}
+        onError={() => {
+          console.error('Audio failed to load:', audioUrl);
+          setLoading(false);
+          setError(true);
+        }}
+      >
+        <source src={audioUrl} />
+        Your browser does not support the audio tag.
+      </audio>
+    ) : null;
+  };
+
+  // Component for PDF preview
+  const PDFPreview = () => {
+    const [pdfUrl, setPdfUrl] = React.useState<string>('');
+    
+    React.useEffect(() => {
+      const loadPDF = async () => {
+        const url = await getFileUrl();
+        if (url) setPdfUrl(url);
+      };
+      loadPDF();
+    }, []);
+
+    return pdfUrl ? (
+      <iframe
+        src={pdfUrl}
+        className="w-full h-full"
+        title={file.name}
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          console.error('PDF failed to load:', pdfUrl);
+          setLoading(false);
+          setError(true);
+        }}
+      />
+    ) : null;
+  };
+
   const handleDownload = async () => {
     try {
-      const fileUrl = getFileUrl(file.path);
+      const fileUrl = await getFileUrl();
+      if (!fileUrl) {
+        console.error('Unable to get file URL for download');
+        return;
+      }
+      
       console.log('Downloading file from:', fileUrl);
       
       // Use fetch to download the file properly
@@ -282,26 +390,14 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
       console.log('Download completed successfully');
     } catch (error) {
       console.error('Download failed:', error);
-      
-      // Fallback: try direct link method
-      try {
-        const fileUrl = getFileUrl(file.path);
-        const link = document.createElement('a');
-        link.href = fileUrl;
-        link.download = file.name;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } catch (fallbackError) {
-        console.error('Fallback download also failed:', fallbackError);
-      }
     }
   };
 
-  const handleViewFull = () => {
-    const fileUrl = getFileUrl(file.path);
-    window.open(fileUrl, '_blank');
+  const handleViewFull = async () => {
+    const fileUrl = await getFileUrl();
+    if (fileUrl) {
+      window.open(fileUrl, '_blank');
+    }
   };
 
   return (

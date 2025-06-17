@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,7 +75,7 @@ const Files = () => {
           ...file,
           type: fileType
         };
-      });
+      };
       
       setFiles(processedFiles);
       console.log('Fetched and processed files:', processedFiles);
@@ -102,6 +101,62 @@ const Files = () => {
     }
 
     setFilteredFiles(filtered);
+  };
+
+  const handleDownload = async (file: any) => {
+    try {
+      // Extract storage path
+      let storagePath = file.path;
+      
+      if (storagePath.startsWith('http')) {
+        // Extract path from URL
+        const url = new URL(storagePath);
+        storagePath = url.pathname.split('/').pop() || '';
+      }
+      
+      // Clean up the path
+      storagePath = storagePath.replace(/^\/+/, '');
+      if (storagePath.startsWith('student-files/')) {
+        storagePath = storagePath.replace('student-files/', '');
+      }
+      if (!storagePath.startsWith('student_files/')) {
+        storagePath = `student_files/${storagePath}`;
+      }
+
+      console.log('Downloading from storage path:', storagePath);
+
+      // Get signed URL for download
+      const { data, error } = await supabase.storage
+        .from('student-files')
+        .createSignedUrl(storagePath, 60); // 1 minute for download
+
+      if (error) {
+        console.error('Error creating download URL:', error);
+        return;
+      }
+
+      // Download the file
+      const response = await fetch(data.signedUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      window.URL.revokeObjectURL(url);
+      
+      console.log('Download completed successfully');
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
   };
 
   const getFileIcon = (type: string) => {
@@ -216,15 +271,7 @@ const Files = () => {
                     size="sm" 
                     variant="outline" 
                     className="flex-1"
-                    onClick={() => {
-                      const link = document.createElement('a');
-                      link.href = file.path;
-                      link.download = file.name;
-                      link.target = '_blank';
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                    }}
+                    onClick={() => handleDownload(file)}
                   >
                     <Download className="h-4 w-4 mr-2" />
                     Download
