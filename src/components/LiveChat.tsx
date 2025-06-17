@@ -11,79 +11,98 @@ import { useToast } from '@/components/ui/use-toast';
 interface Message {
   id: string;
   content: string;
-  sender: 'user' | 'support';
-  timestamp: Date;
-  user_id?: string;
+  sender_id: string;
+  message_type: 'text' | 'system';
+  created_at: string;
+  sender_profile?: {
+    name: string;
+    role: string;
+  };
+}
+
+interface ChatSession {
+  id: string;
+  user_id: string;
+  assigned_admin_id: string | null;
+  status: 'active' | 'closed' | 'waiting';
+  created_at: string;
+  updated_at: string;
 }
 
 const LiveChat: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [chatId, setChatId] = useState<string | null>(null);
+  const [chatSession, setChatSession] = useState<ChatSession | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Initialize chat session
   useEffect(() => {
-    if (isOpen && user && !chatId) {
+    if (isOpen && user) {
       initializeChatSession();
     }
   }, [isOpen, user]);
 
-  // Real-time message updates
   useEffect(() => {
-    if (!chatId) return;
+    if (chatSession) {
+      subscribeToMessages();
+      fetchMessages();
+    }
+  }, [chatSession]);
 
-    const channel = supabase
-      .channel(`chat-${chatId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `chat_id=eq.${chatId}`
-        },
-        (payload) => {
-          const newMessage = payload.new as any;
-          setMessages(prev => [...prev, {
-            id: newMessage.id,
-            content: newMessage.content,
-            sender: newMessage.sender,
-            timestamp: new Date(newMessage.created_at),
-            user_id: newMessage.user_id
-          }]);
-          scrollToBottom();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [chatId]);
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const initializeChatSession = async () => {
-    try {
-      // Create a new chat session
-      const sessionId = `chat_${user?.id}_${Date.now()}`;
-      setChatId(sessionId);
+    if (!user) return;
 
-      // Add welcome message
-      const welcomeMessage: Message = {
-        id: 'welcome',
-        content: "Hello! I'm here to help you. How can I assist you today?",
-        sender: 'support',
-        timestamp: new Date()
-      };
-      setMessages([welcomeMessage]);
+    try {
+      setIsLoading(true);
+
+      // Check for existing active session
+      const { data: existingSessions, error: fetchError } = await supabase
+        .from('chat_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (fetchError) throw fetchError;
+
+      if (existingSessions && existingSessions.length > 0) {
+        setChatSession(existingSessions[0]);
+      } else {
+        // Create new session
+        const { data: newSession, error: createError } = await supabase
+          .from('chat_sessions')
+          .insert({
+            user_id: user.id,
+            status: 'waiting'
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        setChatSession(newSession);
+
+        // Add welcome message
+        await supabase
+          .from('chat_messages')
+          .insert({
+            chat_session_id: newSession.id,
+            sender_id: user.id,
+            content: "Hello! I need help with something.",
+            message_type: 'system'
+          });
+      }
 
       toast({
         title: "Chat Connected",
@@ -96,47 +115,93 @@ const LiveChat: React.FC = () => {
         description: "Failed to connect to chat. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const sendMessage = async () => {
-    if (!message.trim() || !chatId || !user) return;
+  const fetchMessages = async () => {
+    if (!chatSession) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: message.trim(),
-      sender: 'user',
-      timestamp: new Date(),
-      user_id: user.id
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select(`
+          *,
+          sender_profile:sender_id (
+            name,
+            role
+          )
+        `)
+        .eq('chat_session_id', chatSession.id)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setMessages(data || []);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+  const subscribeToMessages = () => {
+    if (!chatSession) return;
+
+    const channel = supabase
+      .channel(`chat-${chatSession.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `chat_session_id=eq.${chatSession.id}`
+        },
+        async (payload) => {
+          const newMessage = payload.new as any;
+          
+          // Fetch sender profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, role')
+            .eq('id', newMessage.sender_id)
+            .single();
+
+          setMessages(prev => [...prev, {
+            ...newMessage,
+            sender_profile: profile
+          }]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
+  };
 
-    setMessages(prev => [...prev, userMessage]);
-    setMessage('');
-    setIsTyping(true);
+  const sendMessage = async () => {
+    if (!message.trim() || !chatSession || !user) return;
 
-    // Simulate support response
-    setTimeout(() => {
-      const responses = [
-        "Thank you for your message. Let me help you with that.",
-        "I understand your concern. Let me look into this for you.",
-        "That's a great question. Here's what I can tell you...",
-        "I'm checking our system for the best solution to your issue.",
-        "Thanks for reaching out. I'll make sure to get this resolved for you."
-      ];
-      
-      const supportResponse: Message = {
-        id: Date.now().toString(),
-        content: responses[Math.floor(Math.random() * responses.length)],
-        sender: 'support',
-        timestamp: new Date()
-      };
+    try {
+      const { error } = await supabase
+        .from('chat_messages')
+        .insert({
+          chat_session_id: chatSession.id,
+          sender_id: user.id,
+          content: message.trim(),
+          message_type: 'text'
+        });
 
-      setMessages(prev => [...prev, supportResponse]);
-      setIsTyping(false);
-      scrollToBottom();
-    }, 2000);
-
-    scrollToBottom();
+      if (error) throw error;
+      setMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -145,6 +210,15 @@ const LiveChat: React.FC = () => {
       sendMessage();
     }
   };
+
+  const formatTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
+  const isOwnMessage = (senderId: string) => senderId === user?.id;
 
   if (!isOpen) {
     return (
@@ -164,6 +238,9 @@ const LiveChat: React.FC = () => {
         <CardTitle className="text-sm font-medium flex items-center">
           <MessageCircle className="h-4 w-4 mr-2" />
           Live Support Chat
+          {chatSession?.assigned_admin_id && (
+            <span className="ml-2 text-xs bg-green-500 px-2 py-1 rounded">Admin Online</span>
+          )}
         </CardTitle>
         <Button
           variant="ghost"
@@ -176,84 +253,92 @@ const LiveChat: React.FC = () => {
       </CardHeader>
       
       <CardContent className="p-0 flex flex-col flex-1">
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`flex items-start space-x-2 max-w-[80%] ${
-                  msg.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''
-                }`}
-              >
+        {isLoading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-sm text-gray-500">Connecting to support...</div>
+          </div>
+        ) : (
+          <>
+            {/* Chat Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {messages.map((msg) => (
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                    msg.sender === 'user'
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
+                  key={msg.id}
+                  className={`flex ${isOwnMessage(msg.sender_id) ? 'justify-end' : 'justify-start'}`}
                 >
-                  {msg.sender === 'user' ? <User className="h-3 w-3" /> : <Bot className="h-3 w-3" />}
-                </div>
-                <div>
                   <div
-                    className={`px-3 py-2 rounded-lg text-sm ${
-                      msg.sender === 'user'
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-100 text-gray-900'
+                    className={`flex items-start space-x-2 max-w-[80%] ${
+                      isOwnMessage(msg.sender_id) ? 'flex-row-reverse space-x-reverse' : ''
                     }`}
                   >
-                    {msg.content}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                        isOwnMessage(msg.sender_id)
+                          ? 'bg-primary text-white'
+                          : msg.sender_profile?.role === 'admin'
+                          ? 'bg-green-500 text-white'
+                          : 'bg-gray-200 text-gray-600'
+                      }`}
+                    >
+                      {isOwnMessage(msg.sender_id) ? (
+                        <User className="h-3 w-3" />
+                      ) : msg.sender_profile?.role === 'admin' ? (
+                        <Bot className="h-3 w-3" />
+                      ) : (
+                        <User className="h-3 w-3" />
+                      )}
+                    </div>
+                    <div>
+                      <div
+                        className={`px-3 py-2 rounded-lg text-sm ${
+                          isOwnMessage(msg.sender_id)
+                            ? 'bg-primary text-white'
+                            : 'bg-gray-100 text-gray-900'
+                        }`}
+                      >
+                        {msg.content}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1 flex items-center space-x-2">
+                        <span>{formatTime(msg.created_at)}</span>
+                        {msg.sender_profile?.role === 'admin' && (
+                          <span className="text-green-600 font-medium">Admin</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
+              <div ref={messagesEndRef} />
             </div>
-          ))}
-          
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="flex items-start space-x-2">
-                <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs">
-                  <Bot className="h-3 w-3 text-gray-600" />
-                </div>
-                <div className="bg-gray-100 px-3 py-2 rounded-lg">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
 
-        {/* Message Input */}
-        <div className="p-4 border-t bg-gray-50">
-          <div className="flex space-x-2">
-            <Input
-              placeholder="Type your message..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="flex-1"
-            />
-            <Button 
-              onClick={sendMessage} 
-              size="icon" 
-              className="shrink-0"
-              disabled={!message.trim()}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+            {/* Message Input */}
+            <div className="p-4 border-t bg-gray-50">
+              <div className="flex space-x-2">
+                <Input
+                  placeholder="Type your message..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="flex-1"
+                  disabled={!chatSession}
+                />
+                <Button 
+                  onClick={sendMessage} 
+                  size="icon" 
+                  className="shrink-0"
+                  disabled={!message.trim() || !chatSession}
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+              {chatSession?.status === 'waiting' && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Waiting for an admin to join the chat...
+                </p>
+              )}
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

@@ -1,13 +1,11 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Mail, Phone, HelpCircle } from 'lucide-react';
 import LiveChat from '@/components/LiveChat';
 
 const Support = () => {
-  const [showLiveChat, setShowLiveChat] = useState(false);
-
   const faqs = [
     {
       question: "How do I access my courses?",
@@ -42,13 +40,7 @@ const Support = () => {
               <MessageSquare className="h-12 w-12 text-primary mx-auto mb-4" />
               <h3 className="font-semibold mb-2">Live Chat</h3>
               <p className="text-sm text-gray-600 mb-4">Get instant help from our support team</p>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => setShowLiveChat(true)}
-              >
-                Start Chat
-              </Button>
+              <p className="text-xs text-green-600 font-medium">Click the chat button below!</p>
             </CardContent>
           </Card>
 
@@ -135,7 +127,7 @@ const Support = () => {
       </div>
 
       {/* Live Chat Component */}
-      {showLiveChat && <LiveChat />}
+      <LiveChat />
     </>
   );
 };
