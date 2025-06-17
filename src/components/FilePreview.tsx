@@ -25,6 +25,7 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [textContent, setTextContent] = useState<string | null>(null);
 
   const getFileIcon = (type: string) => {
     const iconClass = "h-5 w-5";
@@ -64,11 +65,12 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
   const getFileCategory = (type: string) => {
     const lowerType = type.toLowerCase();
     
-    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(lowerType)) return 'image';
-    if (['mp4', 'avi', 'mov', 'webm'].includes(lowerType)) return 'video';
-    if (['mp3', 'wav', 'flac', 'ogg'].includes(lowerType)) return 'audio';
+    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp', 'tiff'].includes(lowerType)) return 'image';
+    if (['mp4', 'avi', 'mov', 'webm', 'mkv', 'flv'].includes(lowerType)) return 'video';
+    if (['mp3', 'wav', 'flac', 'ogg', 'aac', 'm4a'].includes(lowerType)) return 'audio';
     if (['pdf'].includes(lowerType)) return 'pdf';
-    if (['doc', 'docx', 'txt'].includes(lowerType)) return 'text';
+    if (['txt', 'md', 'json', 'xml', 'csv', 'log'].includes(lowerType)) return 'text';
+    if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(lowerType)) return 'document';
     return 'other';
   };
 
@@ -83,11 +85,31 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     
     // If it's a relative path, construct the full URL
     const baseUrl = 'https://oimqzyfmglyhljjuboek.supabase.co/storage/v1/object/public/student-files/';
-    const normalizedPath = filePath.startsWith('student_files/') ? filePath : `student_files/${filePath}`;
+    
+    // Remove any leading slashes and ensure proper path structure
+    let normalizedPath = filePath.replace(/^\/+/, '');
+    
+    // If the path doesn't start with student_files/, add it
+    if (!normalizedPath.startsWith('student_files/')) {
+      normalizedPath = `student_files/${normalizedPath}`;
+    }
+    
     const fullUrl = `${baseUrl}${normalizedPath}`;
     
     console.log('Constructed URL:', fullUrl);
     return fullUrl;
+  };
+
+  const loadTextContent = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch text content');
+      const text = await response.text();
+      setTextContent(text);
+    } catch (error) {
+      console.error('Error loading text content:', error);
+      setTextContent('Unable to load text content');
+    }
   };
 
   const renderFilePreview = () => {
@@ -101,7 +123,7 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
           <p className="text-muted-foreground text-center">
             Unable to preview this file
             <br />
-            <span className="text-sm">You can still download it using the button below</span>
+            <span className="text-sm">Error loading file. You can still download it using the button below.</span>
           </p>
         </div>
       );
@@ -138,7 +160,7 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
                 setError(true);
               }}
             >
-              <source src={fileUrl} type={`video/${file.type}`} />
+              <source src={fileUrl} />
               Your browser does not support the video tag.
             </video>
           </div>
@@ -158,7 +180,7 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
                 setError(true);
               }}
             >
-              <source src={fileUrl} type={`audio/${file.type}`} />
+              <source src={fileUrl} />
               Your browser does not support the audio tag.
             </audio>
           </div>
@@ -181,6 +203,40 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
           </div>
         );
 
+      case 'text':
+        React.useEffect(() => {
+          if (open && textContent === null) {
+            loadTextContent(fileUrl);
+            setLoading(false);
+          }
+        }, [open, fileUrl, textContent]);
+
+        return (
+          <div className="w-full h-96 bg-muted rounded-lg p-4 overflow-auto">
+            <pre className="text-sm whitespace-pre-wrap font-mono">
+              {textContent === null ? 'Loading text content...' : textContent}
+            </pre>
+          </div>
+        );
+
+      case 'document':
+        return (
+          <div className="flex flex-col items-center justify-center h-96 bg-muted rounded-lg">
+            <FileText className="h-16 w-16 text-primary mb-4" />
+            <p className="text-muted-foreground text-center mb-4">
+              Document preview not available
+              <br />
+              <span className="text-sm">Click "View Full" to open in a new tab or download the file</span>
+            </p>
+            <div className="flex gap-2">
+              <Button onClick={handleViewFull} variant="outline">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Open Document
+              </Button>
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="flex flex-col items-center justify-center h-96 bg-muted rounded-lg">
@@ -200,29 +256,18 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
       const fileUrl = getFileUrl(file.path);
       console.log('Downloading file from:', fileUrl);
       
-      // Fetch the file
-      const response = await fetch(fileUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      // Create blob and download
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      // Create a temporary link for download
       const link = document.createElement('a');
-      link.href = url;
+      link.href = fileUrl;
       link.download = file.name;
+      link.target = '_blank';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
       
-      console.log('Download completed successfully');
+      console.log('Download initiated successfully');
     } catch (error) {
       console.error('Download failed:', error);
-      // Fallback to direct link opening
-      const fileUrl = getFileUrl(file.path);
-      window.open(fileUrl, '_blank');
     }
   };
 
