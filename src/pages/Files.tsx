@@ -158,10 +158,6 @@ const Files = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-gray-900 truncate">{file.name}</h3>
-                    <div className="flex items-center mt-1">
-                      {getFileIcon(file.type)}
-                      <span className="ml-2 text-sm text-gray-500">{file.type.toUpperCase()}</span>
-                    </div>
                     {file.description && (
                       <p className="text-sm text-gray-600 mt-2 line-clamp-2">{file.description}</p>
                     )}
