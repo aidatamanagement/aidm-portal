@@ -78,26 +78,21 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
   const extractStoragePath = (filePath: string) => {
     console.log('Original file path:', filePath);
     
-    // If it's already a direct storage path, return as is
     if (!filePath.startsWith('http')) {
       return filePath;
     }
     
     try {
-      // If it's a full URL, extract the path after '/object/public/student-files/'
       const url = new URL(filePath);
       const pathParts = url.pathname.split('/');
       
-      // Find the index of 'student-files' in the path
       const bucketIndex = pathParts.indexOf('student-files');
       if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
-        // Get everything after 'student-files'
         const storagePath = pathParts.slice(bucketIndex + 1).join('/');
         console.log('Extracted storage path:', storagePath);
         return decodeURIComponent(storagePath);
       }
       
-      // Fallback: try to get the last part of the URL
       const lastPart = pathParts[pathParts.length - 1];
       console.log('Fallback storage path:', lastPart);
       return decodeURIComponent(lastPart);
@@ -112,14 +107,12 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
       const storagePath = extractStoragePath(file.path);
       console.log('Getting file URL for path:', storagePath);
       
-      // Get signed URL for authenticated access
       const { data, error } = await supabase.storage
         .from('student-files')
-        .createSignedUrl(storagePath, 3600); // 1 hour expiry
+        .createSignedUrl(storagePath, 3600);
       
       if (error) {
         console.error('Error creating signed URL:', error);
-        // Fallback to public URL
         const { data: publicData } = supabase.storage
           .from('student-files')
           .getPublicUrl(storagePath);
@@ -167,7 +160,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
       );
     }
 
-    // Load file URL when dialog opens
     React.useEffect(() => {
       if (open && !error) {
         const loadFile = async () => {
@@ -251,7 +243,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     }
   };
 
-  // Component for image preview
   const ImagePreview = () => {
     const [imageUrl, setImageUrl] = React.useState<string>('');
     
@@ -278,7 +269,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     ) : null;
   };
 
-  // Component for video preview
   const VideoPreview = () => {
     const [videoUrl, setVideoUrl] = React.useState<string>('');
     
@@ -307,7 +297,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     ) : null;
   };
 
-  // Component for audio preview
   const AudioPreview = () => {
     const [audioUrl, setAudioUrl] = React.useState<string>('');
     
@@ -336,7 +325,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     ) : null;
   };
 
-  // Component for PDF preview
   const PDFPreview = () => {
     const [pdfUrl, setPdfUrl] = React.useState<string>('');
     
@@ -363,7 +351,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     ) : null;
   };
 
-  // Component for Microsoft Office files preview
   const OfficePreview = () => {
     const [fileUrl, setFileUrl] = React.useState<string>('');
     
@@ -377,7 +364,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
 
     if (!fileUrl) return null;
 
-    // Microsoft Office Online Viewer URL
     const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
 
     return (
@@ -406,7 +392,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
       
       console.log('Downloading file from:', fileUrl);
       
-      // Use Chrome-friendly download approach
       try {
         const response = await fetch(fileUrl, {
           headers: {
@@ -431,7 +416,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
         document.body.appendChild(a);
         a.click();
         
-        // Clean up
         setTimeout(() => {
           document.body.removeChild(a);
           URL.revokeObjectURL(blobUrl);
@@ -440,7 +424,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
         console.log('Download completed successfully');
       } catch (fetchError) {
         console.error('Fetch failed, trying direct link:', fetchError);
-        // Fallback - open in new tab
         window.open(fileUrl, '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
@@ -453,7 +436,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     if (fileUrl) {
       const category = getFileCategory(file.type);
       if (category === 'office') {
-        // For Office files, use Microsoft's viewer in a new tab
         const officeViewerUrl = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fileUrl)}`;
         window.open(officeViewerUrl, '_blank', 'noopener,noreferrer');
       } else {
@@ -489,7 +471,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
             
             <DialogDescription asChild>
               <div className="space-y-3">
-                {/* File Metadata */}
                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     {getFileIcon(file.type)}
@@ -522,7 +503,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
             </DialogDescription>
           </DialogHeader>
 
-          {/* File Preview */}
           <div className="flex-1 overflow-auto">
             {loading && !error && (
               <div className="flex items-center justify-center h-96">
@@ -535,7 +515,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t">
             <Button
               variant="outline"

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,12 +56,55 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
         .order('uploaded_at', { ascending: false });
 
       if (error) throw error;
-      setFiles(data || []);
+      
+      // Process and normalize file types
+      const processedFiles = (data || []).map(file => ({
+        ...file,
+        type: normalizeFileType(file.type, file.name)
+      }));
+      
+      console.log('Fetched and processed files:', processedFiles);
+      setFiles(processedFiles);
     } catch (error) {
       console.error('Error fetching files:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const normalizeFileType = (fileType: string, fileName: string) => {
+    // If type is already normalized (no slashes), return as is
+    if (!fileType.includes('/')) {
+      return fileType.toLowerCase();
+    }
+    
+    // Extract file extension from name as fallback
+    const extension = fileName.split('.').pop()?.toLowerCase() || '';
+    
+    // Normalize common MIME types to simple extensions
+    const mimeTypeMap: { [key: string]: string } = {
+      'image/png': 'png',
+      'image/jpeg': 'jpg',
+      'image/jpg': 'jpg',
+      'image/gif': 'gif',
+      'image/svg+xml': 'svg',
+      'application/pdf': 'pdf',
+      'text/plain': 'txt',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
+      'application/msword': 'doc',
+      'application/vnd.ms-excel': 'xls',
+      'application/vnd.ms-powerpoint': 'ppt',
+      'video/mp4': 'mp4',
+      'video/avi': 'avi',
+      'video/mov': 'mov',
+      'audio/mp3': 'mp3',
+      'audio/mpeg': 'mp3',
+      'audio/wav': 'wav'
+    };
+    
+    return mimeTypeMap[fileType] || extension || fileType.split('/')[1] || 'unknown';
   };
 
   const filterFiles = () => {
@@ -237,6 +279,11 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
       case 'rar':
       case '7z':
         return <Archive className={iconClass} />;
+      case 'xls':
+      case 'xlsx':
+      case 'ppt':
+      case 'pptx':
+        return <FileText className={iconClass} />;
       default:
         return <File className={iconClass} />;
     }
