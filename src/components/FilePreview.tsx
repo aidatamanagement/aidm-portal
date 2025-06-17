@@ -82,23 +82,28 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
       return filePath;
     }
     
-    // If it's a full URL, extract the path after '/object/public/student-files/'
-    const url = new URL(filePath);
-    const pathParts = url.pathname.split('/');
-    
-    // Find the index of 'student-files' in the path
-    const bucketIndex = pathParts.indexOf('student-files');
-    if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
-      // Get everything after 'student-files'
-      const storagePath = pathParts.slice(bucketIndex + 1).join('/');
-      console.log('Extracted storage path:', storagePath);
-      return decodeURIComponent(storagePath);
+    try {
+      // If it's a full URL, extract the path after '/object/public/student-files/'
+      const url = new URL(filePath);
+      const pathParts = url.pathname.split('/');
+      
+      // Find the index of 'student-files' in the path
+      const bucketIndex = pathParts.indexOf('student-files');
+      if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+        // Get everything after 'student-files'
+        const storagePath = pathParts.slice(bucketIndex + 1).join('/');
+        console.log('Extracted storage path:', storagePath);
+        return decodeURIComponent(storagePath);
+      }
+      
+      // Fallback: try to get the last part of the URL
+      const lastPart = pathParts[pathParts.length - 1];
+      console.log('Fallback storage path:', lastPart);
+      return decodeURIComponent(lastPart);
+    } catch (error) {
+      console.error('Error parsing file path:', error);
+      return filePath;
     }
-    
-    // Fallback: try to get the last part of the URL
-    const lastPart = pathParts[pathParts.length - 1];
-    console.log('Fallback storage path:', lastPart);
-    return decodeURIComponent(lastPart);
   };
 
   const getFileUrl = async () => {
@@ -130,7 +135,12 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
 
   const loadTextContent = async (url: string) => {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          'Accept': 'text/plain,*/*',
+          'Cache-Control': 'no-cache'
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch text content');
       const text = await response.text();
       setTextContent(text);
@@ -373,26 +383,43 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
       
       console.log('Downloading file from:', fileUrl);
       
-      // Use fetch to download the file properly
-      const response = await fetch(fileUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Use Chrome-friendly download approach
+      try {
+        const response = await fetch(fileUrl, {
+          headers: {
+            'Accept': '*/*',
+            'Cache-Control': 'no-cache'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = file.name;
+        a.style.display = 'none';
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(blobUrl);
+        }, 100);
+        
+        console.log('Download completed successfully');
+      } catch (fetchError) {
+        console.error('Fetch failed, trying direct link:', fetchError);
+        // Fallback - open in new tab
+        window.open(fileUrl, '_blank', 'noopener,noreferrer');
       }
-      
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = file.name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up the object URL
-      window.URL.revokeObjectURL(url);
-      
-      console.log('Download completed successfully');
     } catch (error) {
       console.error('Download failed:', error);
     }
@@ -401,7 +428,7 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
   const handleViewFull = async () => {
     const fileUrl = await getFileUrl();
     if (fileUrl) {
-      window.open(fileUrl, '_blank');
+      window.open(fileUrl, '_blank', 'noopener,noreferrer');
     }
   };
 

@@ -111,23 +111,28 @@ const Files = () => {
       return filePath;
     }
     
-    // If it's a full URL, extract the path after '/object/public/student-files/'
-    const url = new URL(filePath);
-    const pathParts = url.pathname.split('/');
-    
-    // Find the index of 'student-files' in the path
-    const bucketIndex = pathParts.indexOf('student-files');
-    if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
-      // Get everything after 'student-files'
-      const storagePath = pathParts.slice(bucketIndex + 1).join('/');
-      console.log('Extracted storage path:', storagePath);
-      return decodeURIComponent(storagePath);
+    try {
+      // If it's a full URL, extract the path after '/object/public/student-files/'
+      const url = new URL(filePath);
+      const pathParts = url.pathname.split('/');
+      
+      // Find the index of 'student-files' in the path
+      const bucketIndex = pathParts.indexOf('student-files');
+      if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+        // Get everything after 'student-files'
+        const storagePath = pathParts.slice(bucketIndex + 1).join('/');
+        console.log('Extracted storage path:', storagePath);
+        return decodeURIComponent(storagePath);
+      }
+      
+      // Fallback: try to get the last part of the URL
+      const lastPart = pathParts[pathParts.length - 1];
+      console.log('Fallback storage path:', lastPart);
+      return decodeURIComponent(lastPart);
+    } catch (error) {
+      console.error('Error parsing file path:', error);
+      return filePath;
     }
-    
-    // Fallback: try to get the last part of the URL
-    const lastPart = pathParts[pathParts.length - 1];
-    console.log('Fallback storage path:', lastPart);
-    return decodeURIComponent(lastPart);
   };
 
   const handleDownload = async (file: any) => {
@@ -135,10 +140,10 @@ const Files = () => {
       const storagePath = extractStoragePath(file.path);
       console.log('Downloading from storage path:', storagePath);
 
-      // Get signed URL for download
+      // Create a more secure download approach
       const { data, error } = await supabase.storage
         .from('student-files')
-        .createSignedUrl(storagePath, 60); // 1 minute for download
+        .createSignedUrl(storagePath, 300); // 5 minutes for download
 
       if (error) {
         console.error('Error creating download URL:', error);
@@ -148,37 +153,58 @@ const Files = () => {
           .getPublicUrl(storagePath);
         
         if (publicData.publicUrl) {
-          const link = document.createElement('a');
-          link.href = publicData.publicUrl;
-          link.download = file.name;
-          link.target = '_blank';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          // Use a more Chrome-friendly download approach
+          const a = document.createElement('a');
+          a.href = publicData.publicUrl;
+          a.download = file.name;
+          a.style.display = 'none';
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => document.body.removeChild(a), 100);
           return;
         }
         return;
       }
 
-      // Download the file
-      const response = await fetch(data.signedUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // Use fetch with proper headers to avoid Chrome blocking
+      try {
+        const response = await fetch(data.signedUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': '*/*',
+            'Cache-Control': 'no-cache'
+          }
+        });
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = file.name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      window.URL.revokeObjectURL(url);
-      
-      console.log('Download completed successfully');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        
+        // Create blob URL and download using Chrome-friendly method
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = file.name;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(blobUrl);
+        }, 100);
+        
+        console.log('Download completed successfully');
+      } catch (fetchError) {
+        console.error('Fetch failed, trying direct link:', fetchError);
+        // Final fallback - open in new tab
+        window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+      }
     } catch (error) {
       console.error('Download failed:', error);
     }
