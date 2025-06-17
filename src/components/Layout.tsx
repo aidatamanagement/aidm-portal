@@ -14,6 +14,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/components/ThemeProvider';
 import { Moon, Sun } from 'lucide-react';
+import ChatSupport from './ChatSupport';
 import { supabase } from '@/integrations/supabase/client';
 
 const Layout = () => {
@@ -155,6 +156,9 @@ const Layout = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Outlet />
       </main>
+
+      {/* Chat Support */}
+      <ChatSupport />
     </div>
   );
 };

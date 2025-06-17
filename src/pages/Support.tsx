@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Mail, Phone, HelpCircle } from 'lucide-react';
-import LiveChat from '@/components/LiveChat';
 
 const Support = () => {
   const faqs = [
@@ -39,7 +38,9 @@ const Support = () => {
             <MessageSquare className="h-12 w-12 text-primary mx-auto mb-4" />
             <h3 className="font-semibold mb-2">Live Chat</h3>
             <p className="text-sm text-gray-600 mb-4">Get instant help from our support team</p>
-            <LiveChat />
+            <Button variant="outline" className="w-full">
+              Start Chat
+            </Button>
           </CardContent>
         </Card>
 
