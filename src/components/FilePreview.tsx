@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -70,7 +71,7 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     if (['mp3', 'wav', 'flac', 'ogg', 'aac', 'm4a'].includes(lowerType)) return 'audio';
     if (['pdf'].includes(lowerType)) return 'pdf';
     if (['txt', 'md', 'json', 'xml', 'csv', 'log'].includes(lowerType)) return 'text';
-    if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(lowerType)) return 'document';
+    if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(lowerType)) return 'office';
     return 'other';
   };
 
@@ -229,21 +230,10 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
           </div>
         );
 
-      case 'document':
+      case 'office':
         return (
-          <div className="flex flex-col items-center justify-center h-96 bg-muted rounded-lg">
-            <FileText className="h-16 w-16 text-primary mb-4" />
-            <p className="text-muted-foreground text-center mb-4">
-              Document preview not available
-              <br />
-              <span className="text-sm">Click "View Full" to open in a new tab or download the file</span>
-            </p>
-            <div className="flex gap-2">
-              <Button onClick={handleViewFull} variant="outline">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Open Document
-              </Button>
-            </div>
+          <div className="w-full h-96 border rounded-lg overflow-hidden">
+            <OfficePreview />
           </div>
         );
 
@@ -373,6 +363,39 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     ) : null;
   };
 
+  // Component for Microsoft Office files preview
+  const OfficePreview = () => {
+    const [fileUrl, setFileUrl] = React.useState<string>('');
+    
+    React.useEffect(() => {
+      const loadOfficeFile = async () => {
+        const url = await getFileUrl();
+        if (url) setFileUrl(url);
+      };
+      loadOfficeFile();
+    }, []);
+
+    if (!fileUrl) return null;
+
+    // Microsoft Office Online Viewer URL
+    const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+
+    return (
+      <iframe
+        src={officeViewerUrl}
+        className="w-full h-full"
+        title={file.name}
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          console.error('Office file failed to load:', officeViewerUrl);
+          setLoading(false);
+          setError(true);
+        }}
+        allow="fullscreen"
+      />
+    );
+  };
+
   const handleDownload = async () => {
     try {
       const fileUrl = await getFileUrl();
@@ -428,7 +451,14 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
   const handleViewFull = async () => {
     const fileUrl = await getFileUrl();
     if (fileUrl) {
-      window.open(fileUrl, '_blank', 'noopener,noreferrer');
+      const category = getFileCategory(file.type);
+      if (category === 'office') {
+        // For Office files, use Microsoft's viewer in a new tab
+        const officeViewerUrl = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fileUrl)}`;
+        window.open(officeViewerUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        window.open(fileUrl, '_blank', 'noopener,noreferrer');
+      }
     }
   };
 
