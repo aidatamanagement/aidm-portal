@@ -83,7 +83,7 @@ const AdminChatDashboard: React.FC = () => {
         .from('chat_sessions')
         .select(`
           *,
-          user_profile:user_id (
+          user_profile:profiles!chat_sessions_user_id_fkey (
             name,
             email
           ),
@@ -98,10 +98,11 @@ const AdminChatDashboard: React.FC = () => {
 
       const sessionsWithLatestMessage = data?.map(session => ({
         ...session,
+        status: session.status as 'active' | 'closed' | 'waiting',
         latest_message: session.latest_message?.[0]
       })) || [];
 
-      setChatSessions(sessionsWithLatestMessage);
+      setChatSessions(sessionsWithLatestMessage as ChatSession[]);
     } catch (error) {
       console.error('Error fetching chat sessions:', error);
     }
@@ -115,7 +116,7 @@ const AdminChatDashboard: React.FC = () => {
         .from('chat_messages')
         .select(`
           *,
-          sender_profile:sender_id (
+          sender_profile:profiles!chat_messages_sender_id_fkey (
             name,
             role
           )
@@ -124,7 +125,13 @@ const AdminChatDashboard: React.FC = () => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      const typedMessages = data?.map(msg => ({
+        ...msg,
+        message_type: msg.message_type as 'text' | 'system'
+      })) || [];
+      
+      setMessages(typedMessages as Message[]);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -136,14 +143,20 @@ const AdminChatDashboard: React.FC = () => {
         .from('chat_takeover_requests')
         .select(`
           *,
-          requesting_admin_profile:requesting_admin_id (
+          requesting_admin_profile:profiles!chat_takeover_requests_requesting_admin_id_fkey (
             name
           )
         `)
         .eq('status', 'pending');
 
       if (error) throw error;
-      setTakeoverRequests(data || []);
+      
+      const typedRequests = data?.map(request => ({
+        ...request,
+        status: request.status as 'pending' | 'approved' | 'denied'
+      })) || [];
+      
+      setTakeoverRequests(typedRequests as TakeoverRequest[]);
     } catch (error) {
       console.error('Error fetching takeover requests:', error);
     }

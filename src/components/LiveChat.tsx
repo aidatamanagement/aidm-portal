@@ -78,7 +78,11 @@ const LiveChat: React.FC = () => {
       if (fetchError) throw fetchError;
 
       if (existingSessions && existingSessions.length > 0) {
-        setChatSession(existingSessions[0]);
+        const typedSession = {
+          ...existingSessions[0],
+          status: existingSessions[0].status as 'active' | 'closed' | 'waiting'
+        };
+        setChatSession(typedSession as ChatSession);
       } else {
         // Create new session
         const { data: newSession, error: createError } = await supabase
@@ -91,7 +95,12 @@ const LiveChat: React.FC = () => {
           .single();
 
         if (createError) throw createError;
-        setChatSession(newSession);
+        
+        const typedNewSession = {
+          ...newSession,
+          status: newSession.status as 'active' | 'closed' | 'waiting'
+        };
+        setChatSession(typedNewSession as ChatSession);
 
         // Add welcome message
         await supabase
@@ -128,7 +137,7 @@ const LiveChat: React.FC = () => {
         .from('chat_messages')
         .select(`
           *,
-          sender_profile:sender_id (
+          sender_profile:profiles!chat_messages_sender_id_fkey (
             name,
             role
           )
@@ -137,7 +146,13 @@ const LiveChat: React.FC = () => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      const typedMessages = data?.map(msg => ({
+        ...msg,
+        message_type: msg.message_type as 'text' | 'system'
+      })) || [];
+      
+      setMessages(typedMessages as Message[]);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -166,10 +181,13 @@ const LiveChat: React.FC = () => {
             .eq('id', newMessage.sender_id)
             .single();
 
-          setMessages(prev => [...prev, {
+          const typedMessage = {
             ...newMessage,
+            message_type: newMessage.message_type as 'text' | 'system',
             sender_profile: profile
-          }]);
+          };
+
+          setMessages(prev => [...prev, typedMessage as Message]);
         }
       )
       .subscribe();
