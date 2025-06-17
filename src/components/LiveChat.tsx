@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { X, MessageCircle, Send, User, Bot } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -236,127 +236,130 @@ const LiveChat: React.FC = () => {
 
   const isOwnMessage = (senderId: string) => senderId === user?.id;
 
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (open && user) {
+      initializeChatSession();
+    }
+  };
+
   if (!isOpen) {
     return (
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50"
-        size="icon"
-      >
-        <MessageCircle className="h-6 w-6" />
-      </Button>
+      <DialogTrigger asChild>
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50"
+          size="icon"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </Button>
+      </DialogTrigger>
     );
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-96 h-[500px] shadow-xl border-0 bg-white z-50 flex flex-col">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-primary text-white rounded-t-lg">
-        <CardTitle className="text-sm font-medium flex items-center">
-          <MessageCircle className="h-4 w-4 mr-2" />
-          Live Support Chat
-          {chatSession?.assigned_admin_id && (
-            <span className="ml-2 text-xs bg-green-500 px-2 py-1 rounded">Admin Online</span>
-          )}
-        </CardTitle>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsOpen(false)}
-          className="h-6 w-6 text-white hover:bg-white/20"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </CardHeader>
-      
-      <CardContent className="p-0 flex flex-col flex-1">
-        {isLoading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-sm text-gray-500">Connecting to support...</div>
-          </div>
-        ) : (
-          <>
-            {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${isOwnMessage(msg.sender_id) ? 'justify-end' : 'justify-start'}`}
-                >
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-md w-full h-[600px] p-0 flex flex-col">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-primary text-white rounded-t-lg px-6 py-4">
+          <DialogTitle className="text-sm font-medium flex items-center text-white">
+            <MessageCircle className="h-4 w-4 mr-2" />
+            Live Support Chat
+            {chatSession?.assigned_admin_id && (
+              <span className="ml-2 text-xs bg-green-500 px-2 py-1 rounded">Admin Online</span>
+            )}
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="flex flex-col flex-1">
+          {isLoading ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-sm text-gray-500">Connecting to support...</div>
+            </div>
+          ) : (
+            <>
+              {/* Chat Messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {messages.map((msg) => (
                   <div
-                    className={`flex items-start space-x-2 max-w-[80%] ${
-                      isOwnMessage(msg.sender_id) ? 'flex-row-reverse space-x-reverse' : ''
-                    }`}
+                    key={msg.id}
+                    className={`flex ${isOwnMessage(msg.sender_id) ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                        isOwnMessage(msg.sender_id)
-                          ? 'bg-primary text-white'
-                          : msg.sender_profile?.role === 'admin'
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-200 text-gray-600'
+                      className={`flex items-start space-x-2 max-w-[80%] ${
+                        isOwnMessage(msg.sender_id) ? 'flex-row-reverse space-x-reverse' : ''
                       }`}
                     >
-                      {isOwnMessage(msg.sender_id) ? (
-                        <User className="h-3 w-3" />
-                      ) : msg.sender_profile?.role === 'admin' ? (
-                        <Bot className="h-3 w-3" />
-                      ) : (
-                        <User className="h-3 w-3" />
-                      )}
-                    </div>
-                    <div>
                       <div
-                        className={`px-3 py-2 rounded-lg text-sm ${
+                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
                           isOwnMessage(msg.sender_id)
                             ? 'bg-primary text-white'
-                            : 'bg-gray-100 text-gray-900'
+                            : msg.sender_profile?.role === 'admin'
+                            ? 'bg-green-500 text-white'
+                            : 'bg-gray-200 text-gray-600'
                         }`}
                       >
-                        {msg.content}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1 flex items-center space-x-2">
-                        <span>{formatTime(msg.created_at)}</span>
-                        {msg.sender_profile?.role === 'admin' && (
-                          <span className="text-green-600 font-medium">Admin</span>
+                        {isOwnMessage(msg.sender_id) ? (
+                          <User className="h-3 w-3" />
+                        ) : msg.sender_profile?.role === 'admin' ? (
+                          <Bot className="h-3 w-3" />
+                        ) : (
+                          <User className="h-3 w-3" />
                         )}
+                      </div>
+                      <div>
+                        <div
+                          className={`px-3 py-2 rounded-lg text-sm ${
+                            isOwnMessage(msg.sender_id)
+                              ? 'bg-primary text-white'
+                              : 'bg-gray-100 text-gray-900'
+                          }`}
+                        >
+                          {msg.content}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1 flex items-center space-x-2">
+                          <span>{formatTime(msg.created_at)}</span>
+                          {msg.sender_profile?.role === 'admin' && (
+                            <span className="text-green-600 font-medium">Admin</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Message Input */}
-            <div className="p-4 border-t bg-gray-50">
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="Type your message..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="flex-1"
-                  disabled={!chatSession}
-                />
-                <Button 
-                  onClick={sendMessage} 
-                  size="icon" 
-                  className="shrink-0"
-                  disabled={!message.trim() || !chatSession}
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
+                ))}
+                <div ref={messagesEndRef} />
               </div>
-              {chatSession?.status === 'waiting' && (
-                <p className="text-xs text-gray-500 mt-2">
-                  Waiting for an admin to join the chat...
-                </p>
-              )}
-            </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
+
+              {/* Message Input */}
+              <div className="p-4 border-t bg-gray-50">
+                <div className="flex space-x-2">
+                  <Input
+                    placeholder="Type your message..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="flex-1"
+                    disabled={!chatSession}
+                  />
+                  <Button 
+                    onClick={sendMessage} 
+                    size="icon" 
+                    className="shrink-0"
+                    disabled={!message.trim() || !chatSession}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+                {chatSession?.status === 'waiting' && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Waiting for an admin to join the chat...
+                  </p>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
