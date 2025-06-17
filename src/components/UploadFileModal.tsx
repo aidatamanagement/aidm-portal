@@ -33,6 +33,7 @@ const UploadFileModal = ({ open, onOpenChange, studentId }: UploadFileModalProps
     mutationFn: async ({ file, description }: { file: File; description: string }) => {
       // Generate a unique file path
       const timestamp = Date.now();
+      const fileExtension = file.name.split('.').pop() || '';
       const fileName = `${timestamp}_${file.name}`;
       const filePath = `student_files/${studentId}/${fileName}`;
 
@@ -58,7 +59,7 @@ const UploadFileModal = ({ open, onOpenChange, studentId }: UploadFileModalProps
           student_id: studentId,
           uploader_id: user?.id,
           name: file.name,
-          type: file.type,
+          type: fileExtension.toLowerCase(),
           path: publicUrl,
           description: description || null
         });
@@ -102,7 +103,7 @@ const UploadFileModal = ({ open, onOpenChange, studentId }: UploadFileModalProps
               id="file"
               type="file"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+              accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.mp3,.mp4,.zip"
             />
           </div>
           <div>

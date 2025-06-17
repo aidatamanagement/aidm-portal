@@ -4,24 +4,39 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { FileText, Download, Search, Filter, File, Image, Music, Video, Archive } from 'lucide-react';
+import { FileText, Download, Search, Upload, File, Image, Music, Video, Archive, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import FilePreview from '@/components/FilePreview';
+import UploadFileModal from '@/components/UploadFileModal';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
-const Files = () => {
-  const { user } = useAuth();
+interface AdminFilesListProps {
+  studentId: string;
+  studentName?: string;
+}
+
+const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
   const [files, setFiles] = useState<any[]>([]);
   const [filteredFiles, setFilteredFiles] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      fetchFiles();
-    }
-  }, [user]);
+    fetchFiles();
+  }, [studentId]);
 
   useEffect(() => {
     filterFiles();
@@ -31,8 +46,11 @@ const Files = () => {
     try {
       const { data, error } = await supabase
         .from('files')
-        .select('*')
-        .eq('student_id', user?.id)
+        .select(`
+          *,
+          uploader:profiles!files_uploader_id_fkey(name)
+        `)
+        .eq('student_id', studentId)
         .order('uploaded_at', { ascending: false });
 
       if (error) throw error;
@@ -59,6 +77,39 @@ const Files = () => {
     }
 
     setFilteredFiles(filtered);
+  };
+
+  const handleDeleteFile = async (fileId: string, filePath: string) => {
+    try {
+      // Extract the file path from the public URL for storage deletion
+      const pathMatch = filePath.match(/student_files\/[^?]+/);
+      const storagePath = pathMatch ? pathMatch[0] : null;
+
+      // Delete from storage if we have a valid path
+      if (storagePath) {
+        const { error: storageError } = await supabase.storage
+          .from('student-files')
+          .remove([storagePath]);
+        
+        if (storageError) {
+          console.error('Storage deletion error:', storageError);
+        }
+      }
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('files')
+        .delete()
+        .eq('id', fileId);
+
+      if (dbError) throw dbError;
+
+      toast.success('File deleted successfully');
+      fetchFiles();
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      toast.error('Failed to delete file');
+    }
   };
 
   const getFileIcon = (type: string) => {
@@ -102,7 +153,13 @@ const Files = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">My Files</h1>
+        <h2 className="text-xl font-semibold">
+          Files {studentName && `for ${studentName}`}
+        </h2>
+        <Button onClick={() => setUploadModalOpen(true)}>
+          <Upload className="h-4 w-4 mr-2" />
+          Upload File
+        </Button>
       </div>
 
       {/* Filters */}
@@ -144,7 +201,7 @@ const Files = () => {
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No files found</h3>
             <p className="text-gray-600">
-              {files.length === 0 ? "You don't have any files yet." : "Try adjusting your search or filters."}
+              {files.length === 0 ? "No files uploaded yet." : "Try adjusting your search or filters."}
             </p>
           </CardContent>
         </Card>
@@ -162,9 +219,12 @@ const Files = () => {
                     {file.description && (
                       <p className="text-sm text-gray-600 mt-2 line-clamp-2">{file.description}</p>
                     )}
-                    <p className="text-xs text-gray-400 mt-2">
-                      Uploaded {format(new Date(file.uploaded_at), 'MMM d, yyyy')}
-                    </p>
+                    <div className="text-xs text-gray-400 mt-2 space-y-1">
+                      <p>Uploaded {format(new Date(file.uploaded_at), 'MMM d, yyyy')}</p>
+                      {file.uploader && (
+                        <p>By {file.uploader.name}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="mt-4 flex space-x-2">
@@ -173,14 +233,44 @@ const Files = () => {
                     <Download className="h-4 w-4 mr-2" />
                     Download
                   </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button size="sm" variant="outline" className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete File</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{file.name}"? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteFile(file.id, file.path)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      <UploadFileModal
+        open={uploadModalOpen}
+        onOpenChange={setUploadModalOpen}
+        studentId={studentId}
+      />
     </div>
   );
 };
 
-export default Files;
+export default AdminFilesList;
