@@ -186,6 +186,34 @@ const LessonViewer = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Next Lesson Card - Shows after completion */}
+          {userProgress?.completed && nextLesson && (
+            <Card className="border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
+              <CardHeader>
+                <CardTitle className="text-green-800 dark:text-green-200 flex items-center">
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Lesson Complete!
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-green-700 dark:text-green-300 mb-2">
+                      Great job! You've completed this lesson.
+                    </p>
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                      Ready for the next lesson: <strong>{nextLesson.title}</strong>
+                    </p>
+                  </div>
+                  <Button onClick={goToNextLesson} className="bg-green-600 hover:bg-green-700">
+                    Next Lesson
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
@@ -198,13 +226,6 @@ const LessonViewer = () => {
             {!userProgress?.completed && (
               <Button onClick={markComplete}>
                 Mark Complete
-              </Button>
-            )}
-            
-            {nextLesson && userProgress?.completed && (
-              <Button onClick={goToNextLesson}>
-                Next Lesson
-                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             )}
             

@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Heart, MessageSquare } from 'lucide-react';
+import { Heart, MessageSquare, Copy, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Prompts = () => {
@@ -12,6 +13,7 @@ const Prompts = () => {
   const [prompts, setPrompts] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -81,9 +83,31 @@ const Prompts = () => {
     }
   };
 
-  const filteredPrompts = showFavoritesOnly
-    ? prompts.filter(prompt => favorites.some(fav => fav.prompt_id === prompt.id))
-    : prompts;
+  const copyPrompt = async (prompt: any) => {
+    const promptText = `Role: ${prompt.role}\n\nContext: ${prompt.context}\n\nTask: ${prompt.task}${prompt.boundaries ? `\n\nBoundaries: ${prompt.boundaries}` : ''}${prompt.reasoning ? `\n\nReasoning: ${prompt.reasoning}` : ''}`;
+    
+    try {
+      await navigator.clipboard.writeText(promptText);
+      toast.success('Prompt copied to clipboard');
+    } catch (error) {
+      console.error('Error copying prompt:', error);
+      toast.error('Failed to copy prompt');
+    }
+  };
+
+  const filteredPrompts = prompts.filter(prompt => {
+    const matchesSearch = searchTerm === '' || 
+      prompt.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      prompt.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      prompt.context.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      prompt.task.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesFavorites = showFavoritesOnly 
+      ? favorites.some(fav => fav.prompt_id === prompt.id)
+      : true;
+    
+    return matchesSearch && matchesFavorites;
+  });
 
   const isFavorited = (promptId: number) => {
     return favorites.some(fav => fav.prompt_id === promptId);
@@ -114,17 +138,34 @@ const Prompts = () => {
         </div>
       </div>
 
+      {/* Search Bar */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search prompts by title, role, context, or task..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {filteredPrompts.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
             <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {showFavoritesOnly ? 'No favorite prompts yet' : 'No prompts available'}
+              {showFavoritesOnly ? 'No favorite prompts found' : 'No prompts found'}
             </h3>
             <p className="text-gray-600">
               {showFavoritesOnly 
                 ? 'Start adding prompts to your favorites by clicking the heart icon.'
-                : 'Check back later for new writing prompts.'
+                : searchTerm 
+                  ? 'Try adjusting your search terms.'
+                  : 'Check back later for new writing prompts.'
               }
             </p>
           </CardContent>
@@ -136,20 +177,30 @@ const Prompts = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-lg leading-6">{prompt.title}</CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleFavorite(prompt.id)}
-                    className="flex-shrink-0 ml-2"
-                  >
-                    <Heart 
-                      className={`h-5 w-5 ${
-                        isFavorited(prompt.id) 
-                          ? 'fill-red-500 text-red-500' 
-                          : 'text-gray-400 hover:text-red-500'
-                      }`} 
-                    />
-                  </Button>
+                  <div className="flex items-center space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyPrompt(prompt)}
+                      className="flex-shrink-0"
+                    >
+                      <Copy className="h-4 w-4 text-gray-400 hover:text-blue-500" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleFavorite(prompt.id)}
+                      className="flex-shrink-0"
+                    >
+                      <Heart 
+                        className={`h-5 w-5 ${
+                          isFavorited(prompt.id) 
+                            ? 'fill-red-500 text-red-500' 
+                            : 'text-gray-400 hover:text-red-500'
+                        }`} 
+                      />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">

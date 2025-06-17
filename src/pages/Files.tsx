@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { FileText, Download, Search, Filter } from 'lucide-react';
+import { FileText, Download, Search, Filter, File, Image, Music, Video, Archive } from 'lucide-react';
 import { format } from 'date-fns';
 
 const Files = () => {
@@ -61,7 +61,35 @@ const Files = () => {
   };
 
   const getFileIcon = (type: string) => {
-    return <FileText className="h-8 w-8 text-primary" />;
+    const iconClass = "h-8 w-8 text-primary";
+    
+    switch (type.toLowerCase()) {
+      case 'pdf':
+      case 'doc':
+      case 'docx':
+      case 'txt':
+        return <FileText className={iconClass} />;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'svg':
+        return <Image className={iconClass} />;
+      case 'mp3':
+      case 'wav':
+      case 'flac':
+        return <Music className={iconClass} />;
+      case 'mp4':
+      case 'avi':
+      case 'mov':
+        return <Video className={iconClass} />;
+      case 'zip':
+      case 'rar':
+      case '7z':
+        return <Archive className={iconClass} />;
+      default:
+        return <File className={iconClass} />;
+    }
   };
 
   const uniqueTypes = ['all', ...new Set(files.map(file => file.type))];
@@ -130,7 +158,10 @@ const Files = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-gray-900 truncate">{file.name}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{file.type.toUpperCase()}</p>
+                    <div className="flex items-center mt-1">
+                      {getFileIcon(file.type)}
+                      <span className="ml-2 text-sm text-gray-500">{file.type.toUpperCase()}</span>
+                    </div>
                     {file.description && (
                       <p className="text-sm text-gray-600 mt-2 line-clamp-2">{file.description}</p>
                     )}
