@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -310,16 +311,16 @@ const Dashboard = () => {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* AI Leadership Training */}
-        <Card className="relative overflow-hidden bg-white hover:shadow-lg transition-shadow duration-300 border-2">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
-          <CardHeader className="pb-4">
+        <Card className="relative overflow-hidden bg-white hover:shadow-lg transition-shadow duration-300 border-2 cursor-pointer">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
+          <CardHeader className="pb-4 relative z-10">
             <div className="flex items-center space-x-2">
               <Award className="h-5 w-5 text-primary" />
               <CardTitle className="text-foreground">AI Leadership Training</CardTitle>
             </div>
             <CardDescription className="text-muted-foreground">Advance your AI leadership skills</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="relative z-10">
             <div className="space-y-4">
               <div className="p-4 bg-card/50 rounded-lg border">
                 <h3 className="font-semibold text-lg mb-2 text-foreground">Ready to Lead the AI Revolution?</h3>
@@ -327,19 +328,19 @@ const Dashboard = () => {
                   {getTrainingDescription()}
                 </p>
                 {stats?.hasEnrolledCourses ? (
-                  <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                    <Link to={getTrainingMaterialsLink()}>
+                  <Link to={getTrainingMaterialsLink()} className="block w-full">
+                    <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground relative z-20">
                       <BookOpen className="h-4 w-4 mr-2" />
                       {getTrainingMaterialsText()}
-                    </Link>
-                  </Button>
+                    </Button>
+                  </Link>
                 ) : (
-                  <Button asChild className="w-full" variant="outline">
-                    <Link to="/support">
+                  <Link to="/support" className="block w-full">
+                    <Button variant="outline" className="w-full relative z-20">
                       <MessageSquare className="h-4 w-4 mr-2" />
                       Contact Support for Enrollment
-                    </Link>
-                  </Button>
+                    </Button>
+                  </Link>
                 )}
               </div>
             </div>
