@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -138,7 +139,7 @@ const LiveChat: React.FC = () => {
         .from('chat_messages')
         .select(`
           *,
-          sender_profile:sender_id(name, role)
+          profiles!chat_messages_sender_id_fkey(name, role)
         `)
         .eq('chat_session_id', chatSession.id)
         .order('created_at', { ascending: true });
@@ -148,7 +149,7 @@ const LiveChat: React.FC = () => {
       const typedMessages = data?.map(msg => ({
         ...msg,
         message_type: msg.message_type as 'text' | 'system',
-        sender_profile: msg.sender_profile as { name: string; role: string } | null || undefined
+        sender_profile: msg.profiles as { name: string; role: string } | null || undefined
       })) || [];
       
       setMessages(typedMessages);
