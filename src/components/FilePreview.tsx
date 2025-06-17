@@ -74,32 +74,37 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     return 'other';
   };
 
+  const extractStoragePath = (filePath: string) => {
+    console.log('Original file path:', filePath);
+    
+    // If it's already a direct storage path, return as is
+    if (!filePath.startsWith('http')) {
+      return filePath;
+    }
+    
+    // If it's a full URL, extract the path after '/object/public/student-files/'
+    const url = new URL(filePath);
+    const pathParts = url.pathname.split('/');
+    
+    // Find the index of 'student-files' in the path
+    const bucketIndex = pathParts.indexOf('student-files');
+    if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+      // Get everything after 'student-files'
+      const storagePath = pathParts.slice(bucketIndex + 1).join('/');
+      console.log('Extracted storage path:', storagePath);
+      return decodeURIComponent(storagePath);
+    }
+    
+    // Fallback: try to get the last part of the URL
+    const lastPart = pathParts[pathParts.length - 1];
+    console.log('Fallback storage path:', lastPart);
+    return decodeURIComponent(lastPart);
+  };
+
   const getFileUrl = async () => {
     try {
-      console.log('Getting file URL for path:', file.path);
-      
-      // If it's already a full URL, return as is
-      if (file.path.startsWith('http')) {
-        console.log('Using full URL:', file.path);
-        return file.path;
-      }
-      
-      // Extract the storage path from the file path
-      let storagePath = file.path;
-      
-      // Remove any leading slashes
-      storagePath = storagePath.replace(/^\/+/, '');
-      
-      // Handle different path formats
-      if (storagePath.startsWith('student-files/')) {
-        storagePath = storagePath.replace('student-files/', '');
-      }
-      
-      if (!storagePath.startsWith('student_files/')) {
-        storagePath = `student_files/${storagePath}`;
-      }
-      
-      console.log('Storage path:', storagePath);
+      const storagePath = extractStoragePath(file.path);
+      console.log('Getting file URL for path:', storagePath);
       
       // Get signed URL for authenticated access
       const { data, error } = await supabase.storage

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -104,26 +103,36 @@ const Files = () => {
     setFilteredFiles(filtered);
   };
 
+  const extractStoragePath = (filePath: string) => {
+    console.log('Original file path:', filePath);
+    
+    // If it's already a direct storage path, return as is
+    if (!filePath.startsWith('http')) {
+      return filePath;
+    }
+    
+    // If it's a full URL, extract the path after '/object/public/student-files/'
+    const url = new URL(filePath);
+    const pathParts = url.pathname.split('/');
+    
+    // Find the index of 'student-files' in the path
+    const bucketIndex = pathParts.indexOf('student-files');
+    if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+      // Get everything after 'student-files'
+      const storagePath = pathParts.slice(bucketIndex + 1).join('/');
+      console.log('Extracted storage path:', storagePath);
+      return decodeURIComponent(storagePath);
+    }
+    
+    // Fallback: try to get the last part of the URL
+    const lastPart = pathParts[pathParts.length - 1];
+    console.log('Fallback storage path:', lastPart);
+    return decodeURIComponent(lastPart);
+  };
+
   const handleDownload = async (file: any) => {
     try {
-      // Extract storage path
-      let storagePath = file.path;
-      
-      if (storagePath.startsWith('http')) {
-        // Extract path from URL
-        const url = new URL(storagePath);
-        storagePath = url.pathname.split('/').pop() || '';
-      }
-      
-      // Clean up the path
-      storagePath = storagePath.replace(/^\/+/, '');
-      if (storagePath.startsWith('student-files/')) {
-        storagePath = storagePath.replace('student-files/', '');
-      }
-      if (!storagePath.startsWith('student_files/')) {
-        storagePath = `student_files/${storagePath}`;
-      }
-
+      const storagePath = extractStoragePath(file.path);
       console.log('Downloading from storage path:', storagePath);
 
       // Get signed URL for download
@@ -133,6 +142,21 @@ const Files = () => {
 
       if (error) {
         console.error('Error creating download URL:', error);
+        // Try with public URL as fallback
+        const { data: publicData } = supabase.storage
+          .from('student-files')
+          .getPublicUrl(storagePath);
+        
+        if (publicData.publicUrl) {
+          const link = document.createElement('a');
+          link.href = publicData.publicUrl;
+          link.download = file.name;
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          return;
+        }
         return;
       }
 
