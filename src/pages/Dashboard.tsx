@@ -310,24 +310,24 @@ const Dashboard = () => {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* AI Leadership Training */}
-        <Card className="relative overflow-hidden">
+        <Card className="relative overflow-hidden bg-white hover:shadow-lg transition-shadow duration-300 border-2">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
-          <CardHeader>
+          <CardHeader className="pb-4">
             <div className="flex items-center space-x-2">
               <Award className="h-5 w-5 text-primary" />
-              <CardTitle>AI Leadership Training</CardTitle>
+              <CardTitle className="text-foreground">AI Leadership Training</CardTitle>
             </div>
-            <CardDescription>Advance your AI leadership skills</CardDescription>
+            <CardDescription className="text-muted-foreground">Advance your AI leadership skills</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="p-4 bg-card/50 rounded-lg border">
-                <h3 className="font-semibold text-lg mb-2">Ready to Lead the AI Revolution?</h3>
+                <h3 className="font-semibold text-lg mb-2 text-foreground">Ready to Lead the AI Revolution?</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   {getTrainingDescription()}
                 </p>
                 {stats?.hasEnrolledCourses ? (
-                  <Button asChild className="w-full">
+                  <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                     <Link to={getTrainingMaterialsLink()}>
                       <BookOpen className="h-4 w-4 mr-2" />
                       {getTrainingMaterialsText()}
