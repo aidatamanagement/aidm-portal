@@ -175,13 +175,8 @@ const Dashboard = () => {
     
     if (!nextLessonInfo) return '/courses';
     
-    if (nextLessonInfo.allLessonsCompleted) {
-      // All lessons completed, link to course page
-      return `/courses/${nextLessonInfo.courseId}`;
-    } else {
-      // Has incomplete lessons, link to next lesson
-      return `/courses/${nextLessonInfo.courseId}/lessons/${nextLessonInfo.lessonId}`;
-    }
+    // Always link to the course page instead of individual lessons
+    return `/courses/${nextLessonInfo.courseId}`;
   };
 
   const getTrainingMaterialsText = () => {
