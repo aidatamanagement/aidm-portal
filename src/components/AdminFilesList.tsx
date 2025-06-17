@@ -4,10 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { FileText, Download, Search, Upload, File, Image, Music, Video, Archive, Trash2 } from 'lucide-react';
+import { FileText, Download, Search, Upload, File, Image, Music, Video, Archive, Trash2, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import FilePreview from '@/components/FilePreview';
 import UploadFileModal from '@/components/UploadFileModal';
+import EditFileModal from '@/components/EditFileModal';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -33,6 +34,8 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
   const [selectedType, setSelectedType] = useState('all');
   const [loading, setLoading] = useState(true);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<any>(null);
 
   useEffect(() => {
     fetchFiles();
@@ -79,13 +82,104 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
     setFilteredFiles(filtered);
   };
 
+  const extractStoragePath = (filePath: string) => {
+    console.log('Original file path:', filePath);
+    
+    if (!filePath.startsWith('http')) {
+      return filePath;
+    }
+    
+    try {
+      const url = new URL(filePath);
+      const pathParts = url.pathname.split('/');
+      
+      const bucketIndex = pathParts.indexOf('student-files');
+      if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+        const storagePath = pathParts.slice(bucketIndex + 1).join('/');
+        console.log('Extracted storage path:', storagePath);
+        return decodeURIComponent(storagePath);
+      }
+      
+      const lastPart = pathParts[pathParts.length - 1];
+      console.log('Fallback storage path:', lastPart);
+      return decodeURIComponent(lastPart);
+    } catch (error) {
+      console.error('Error parsing file path:', error);
+      return filePath;
+    }
+  };
+
+  const handleDownload = async (file: any) => {
+    try {
+      const storagePath = extractStoragePath(file.path);
+      console.log('Downloading from storage path:', storagePath);
+
+      const { data, error } = await supabase.storage
+        .from('student-files')
+        .createSignedUrl(storagePath, 300);
+
+      if (error) {
+        console.error('Error creating download URL:', error);
+        const { data: publicData } = supabase.storage
+          .from('student-files')
+          .getPublicUrl(storagePath);
+        
+        if (publicData.publicUrl) {
+          const a = document.createElement('a');
+          a.href = publicData.publicUrl;
+          a.download = file.name;
+          a.style.display = 'none';
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => document.body.removeChild(a), 100);
+          return;
+        }
+        return;
+      }
+
+      try {
+        const response = await fetch(data.signedUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': '*/*',
+            'Cache-Control': 'no-cache'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = file.name;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(blobUrl);
+        }, 100);
+        
+        console.log('Download completed successfully');
+      } catch (fetchError) {
+        console.error('Fetch failed, trying direct link:', fetchError);
+        window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
+  };
+
   const handleDeleteFile = async (fileId: string, filePath: string) => {
     try {
-      // Extract the file path from the public URL for storage deletion
-      const pathMatch = filePath.match(/student_files\/[^?]+/);
-      const storagePath = pathMatch ? pathMatch[0] : null;
+      const storagePath = extractStoragePath(filePath);
 
-      // Delete from storage if we have a valid path
       if (storagePath) {
         const { error: storageError } = await supabase.storage
           .from('student-files')
@@ -96,7 +190,6 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
         }
       }
 
-      // Delete from database
       const { error: dbError } = await supabase
         .from('files')
         .delete()
@@ -110,6 +203,11 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
       console.error('Error deleting file:', error);
       toast.error('Failed to delete file');
     }
+  };
+
+  const handleEditFile = (file: any) => {
+    setSelectedFile(file);
+    setEditModalOpen(true);
   };
 
   const getFileIcon = (type: string) => {
@@ -229,9 +327,21 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
                 </div>
                 <div className="mt-4 flex space-x-2">
                   <FilePreview file={file} />
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => handleDownload(file)}
+                    className="flex-1"
+                  >
                     <Download className="h-4 w-4 mr-2" />
                     Download
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEditFile(file)}
+                  >
+                    <Edit className="h-4 w-4" />
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -268,7 +378,17 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
         open={uploadModalOpen}
         onOpenChange={setUploadModalOpen}
         studentId={studentId}
+        onFileUploaded={fetchFiles}
       />
+
+      {selectedFile && (
+        <EditFileModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          file={selectedFile}
+          onFileUpdated={fetchFiles}
+        />
+      )}
     </div>
   );
 };

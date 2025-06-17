@@ -21,9 +21,10 @@ interface UploadFileModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   studentId: string;
+  onFileUploaded?: () => void;
 }
 
-const UploadFileModal = ({ open, onOpenChange, studentId }: UploadFileModalProps) => {
+const UploadFileModal = ({ open, onOpenChange, studentId, onFileUploaded }: UploadFileModalProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [description, setDescription] = useState('');
   const { user } = useAuth();
@@ -37,7 +38,7 @@ const UploadFileModal = ({ open, onOpenChange, studentId }: UploadFileModalProps
       const fileName = `${timestamp}_${file.name}`;
       const filePath = `student_files/${studentId}/${fileName}`;
 
-      // Upload file to Supabase storage (we'll need to create the bucket)
+      // Upload file to Supabase storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('student-files')
         .upload(filePath, file);
@@ -72,6 +73,7 @@ const UploadFileModal = ({ open, onOpenChange, studentId }: UploadFileModalProps
       setFile(null);
       setDescription('');
       queryClient.invalidateQueries({ queryKey: ['admin-student-files', studentId] });
+      onFileUploaded?.();
     },
     onError: (error) => {
       toast.error('Failed to upload file');
@@ -103,7 +105,7 @@ const UploadFileModal = ({ open, onOpenChange, studentId }: UploadFileModalProps
               id="file"
               type="file"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.mp3,.mp4,.zip"
+              accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.mp3,.mp4,.zip,.xls,.xlsx,.ppt,.pptx"
             />
           </div>
           <div>
