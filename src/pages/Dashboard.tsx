@@ -47,6 +47,8 @@ const Dashboard = () => {
 
   const findNextLesson = async () => {
     try {
+      console.log('Finding next lesson for user:', user?.id);
+      
       // Get user's enrolled courses
       const { data: enrolledCourses } = await supabase
         .from('user_course_assignments')
@@ -56,11 +58,17 @@ const Dashboard = () => {
         `)
         .eq('user_id', user?.id);
 
-      if (!enrolledCourses || enrolledCourses.length === 0) return;
+      console.log('Enrolled courses:', enrolledCourses);
+
+      if (!enrolledCourses || enrolledCourses.length === 0) {
+        setNextLessonInfo(null);
+        return;
+      }
 
       // For each course, find the next incomplete lesson
       for (const enrollment of enrolledCourses) {
         const courseId = enrollment.course_id;
+        console.log('Processing course:', courseId);
 
         // Get all lessons for this course ordered by order
         const { data: lessons } = await supabase
@@ -68,6 +76,8 @@ const Dashboard = () => {
           .select('id, title, order, course_id')
           .eq('course_id', courseId)
           .order('order');
+
+        console.log('Lessons for course:', lessons);
 
         if (!lessons || lessons.length === 0) continue;
 
@@ -78,29 +88,37 @@ const Dashboard = () => {
           .eq('user_id', user?.id)
           .eq('course_id', courseId);
 
+        console.log('User progress for course:', progress);
+
         const completedLessonIds = progress?.filter(p => p.completed).map(p => p.lesson_id) || [];
+        console.log('Completed lesson IDs:', completedLessonIds);
 
         // Find first incomplete lesson
         const nextLesson = lessons.find(lesson => !completedLessonIds.includes(lesson.id));
+        console.log('Next incomplete lesson:', nextLesson);
 
         if (nextLesson) {
-          setNextLessonInfo({
+          const lessonInfo = {
             courseId,
             courseName: enrollment.courses.title,
             lessonId: nextLesson.id,
             lessonTitle: nextLesson.title,
             allLessonsCompleted: false
-          });
+          };
+          console.log('Setting next lesson info:', lessonInfo);
+          setNextLessonInfo(lessonInfo);
           return;
         } else {
           // All lessons completed for this course
-          setNextLessonInfo({
+          const completedInfo = {
             courseId,
             courseName: enrollment.courses.title,
             lessonId: null,
             lessonTitle: null,
             allLessonsCompleted: true
-          });
+          };
+          console.log('All lessons completed, setting info:', completedInfo);
+          setNextLessonInfo(completedInfo);
           return;
         }
       }
@@ -153,6 +171,8 @@ const Dashboard = () => {
   }
 
   const getTrainingMaterialsLink = () => {
+    console.log('Getting training materials link, nextLessonInfo:', nextLessonInfo);
+    
     if (!nextLessonInfo) return '/courses';
     
     if (nextLessonInfo.allLessonsCompleted) {
@@ -165,12 +185,30 @@ const Dashboard = () => {
   };
 
   const getTrainingMaterialsText = () => {
+    console.log('Getting training materials text, nextLessonInfo:', nextLessonInfo);
+    
     if (!nextLessonInfo) return 'Access Training Materials';
     
     if (nextLessonInfo.allLessonsCompleted) {
       return 'Review Course';
     } else {
       return 'Continue Learning';
+    }
+  };
+
+  const getTrainingDescription = () => {
+    if (!stats?.hasEnrolledCourses) {
+      return 'Contact us to get enrolled in exclusive AI leadership training courses.';
+    }
+    
+    if (!nextLessonInfo) {
+      return 'Loading your course progress...';
+    }
+    
+    if (nextLessonInfo.allLessonsCompleted) {
+      return 'Congratulations! You\'ve completed all lessons. Review your courses or explore new content.';
+    } else {
+      return `Continue with your next lesson: ${nextLessonInfo.lessonTitle}`;
     }
   };
 
@@ -291,12 +329,7 @@ const Dashboard = () => {
               <div className="p-4 bg-card/50 rounded-lg border">
                 <h3 className="font-semibold text-lg mb-2">Ready to Lead the AI Revolution?</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  {stats?.hasEnrolledCourses 
-                    ? nextLessonInfo?.allLessonsCompleted 
-                      ? 'Congratulations! You\'ve completed all lessons. Review your courses or explore new content.'
-                      : `Continue with your next lesson: ${nextLessonInfo?.lessonTitle || 'Loading...'}`
-                    : 'Contact us to get enrolled in exclusive AI leadership training courses.'
-                  }
+                  {getTrainingDescription()}
                 </p>
                 {stats?.hasEnrolledCourses ? (
                   <Button asChild className="w-full">
@@ -317,7 +350,8 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-{/* Quick Actions */}
+
+        {/* Quick Actions */}
         <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
@@ -405,7 +439,8 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-{/* Services Overview */}
+        
+        {/* Services Overview */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -450,8 +485,6 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-
-        
       </div>
     </div>
   );
