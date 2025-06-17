@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Download, ExternalLink, X, FileText, Image, Music, Video, Archive, File } from 'lucide-react';
+import { Eye, Download, ExternalLink, FileText, Image, Music, Video, Archive, File } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface FilePreviewProps {
@@ -72,8 +72,27 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     return 'other';
   };
 
+  // Normalize file path to ensure it's a proper URL
+  const getFileUrl = (filePath: string) => {
+    console.log('Original file path:', filePath);
+    
+    // If it's already a full URL, return as is
+    if (filePath.startsWith('http')) {
+      return filePath;
+    }
+    
+    // If it's a relative path, construct the full URL
+    const baseUrl = 'https://oimqzyfmglyhljjuboek.supabase.co/storage/v1/object/public/student-files/';
+    const normalizedPath = filePath.startsWith('student_files/') ? filePath : `student_files/${filePath}`;
+    const fullUrl = `${baseUrl}${normalizedPath}`;
+    
+    console.log('Constructed URL:', fullUrl);
+    return fullUrl;
+  };
+
   const renderFilePreview = () => {
     const category = getFileCategory(file.type);
+    const fileUrl = getFileUrl(file.path);
     
     if (error) {
       return (
@@ -93,11 +112,12 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
         return (
           <div className="flex justify-center bg-muted rounded-lg p-4">
             <img
-              src={file.path}
+              src={fileUrl}
               alt={file.name}
               className="max-w-full max-h-96 object-contain rounded"
               onLoad={() => setLoading(false)}
               onError={() => {
+                console.error('Image failed to load:', fileUrl);
                 setLoading(false);
                 setError(true);
               }}
@@ -113,11 +133,12 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
               className="w-full max-h-96 rounded-lg"
               onLoadedData={() => setLoading(false)}
               onError={() => {
+                console.error('Video failed to load:', fileUrl);
                 setLoading(false);
                 setError(true);
               }}
             >
-              <source src={file.path} type={`video/${file.type}`} />
+              <source src={fileUrl} type={`video/${file.type}`} />
               Your browser does not support the video tag.
             </video>
           </div>
@@ -132,11 +153,12 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
               className="w-full max-w-md"
               onLoadedData={() => setLoading(false)}
               onError={() => {
+                console.error('Audio failed to load:', fileUrl);
                 setLoading(false);
                 setError(true);
               }}
             >
-              <source src={file.path} type={`audio/${file.type}`} />
+              <source src={fileUrl} type={`audio/${file.type}`} />
               Your browser does not support the audio tag.
             </audio>
           </div>
@@ -146,11 +168,12 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
         return (
           <div className="w-full h-96 border rounded-lg overflow-hidden">
             <iframe
-              src={file.path}
+              src={fileUrl}
               className="w-full h-full"
               title={file.name}
               onLoad={() => setLoading(false)}
               onError={() => {
+                console.error('PDF failed to load:', fileUrl);
                 setLoading(false);
                 setError(true);
               }}
@@ -172,18 +195,40 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     }
   };
 
-  const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = file.path;
-    link.download = file.name;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async () => {
+    try {
+      const fileUrl = getFileUrl(file.path);
+      console.log('Downloading file from:', fileUrl);
+      
+      // Fetch the file
+      const response = await fetch(fileUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      // Create blob and download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      console.log('Download completed successfully');
+    } catch (error) {
+      console.error('Download failed:', error);
+      // Fallback to direct link opening
+      const fileUrl = getFileUrl(file.path);
+      window.open(fileUrl, '_blank');
+    }
   };
 
   const handleViewFull = () => {
-    window.open(file.path, '_blank');
+    const fileUrl = getFileUrl(file.path);
+    window.open(fileUrl, '_blank');
   };
 
   return (
@@ -207,49 +252,43 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
           <DialogHeader className="space-y-3">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl font-semibold truncate pr-4">
-                {file.name}
-              </DialogTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setOpen(false)}
-                className="h-8 w-8"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+            <DialogTitle className="text-xl font-semibold truncate pr-4">
+              {file.name}
+            </DialogTitle>
             
-            {/* File Metadata */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                {getFileIcon(file.type)}
-                <Badge variant="secondary" className="uppercase">
-                  {file.type}
-                </Badge>
-              </div>
-              
-              <div className="flex items-center gap-1">
-                <span>Uploaded:</span>
-                <span className="font-medium">
-                  {format(new Date(file.uploaded_at), 'MMM d, yyyy')}
-                </span>
-              </div>
-              
-              {file.uploader && (
-                <div className="flex items-center gap-1">
-                  <span>By:</span>
-                  <span className="font-medium">{file.uploader.name}</span>
+            <DialogDescription asChild>
+              <div className="space-y-3">
+                {/* File Metadata */}
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    {getFileIcon(file.type)}
+                    <Badge variant="secondary" className="uppercase">
+                      {file.type}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <span>Uploaded:</span>
+                    <span className="font-medium">
+                      {format(new Date(file.uploaded_at), 'MMM d, yyyy')}
+                    </span>
+                  </div>
+                  
+                  {file.uploader && (
+                    <div className="flex items-center gap-1">
+                      <span>By:</span>
+                      <span className="font-medium">{file.uploader.name}</span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {file.description && (
-              <div className="bg-muted/50 rounded-lg p-3">
-                <p className="text-sm">{file.description}</p>
+                {file.description && (
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <p className="text-sm">{file.description}</p>
+                  </div>
+                )}
               </div>
-            )}
+            </DialogDescription>
           </DialogHeader>
 
           {/* File Preview */}

@@ -36,7 +36,50 @@ const Files = () => {
         .order('uploaded_at', { ascending: false });
 
       if (error) throw error;
-      setFiles(data || []);
+      
+      // Process files to extract proper file type from name if type is not set correctly
+      const processedFiles = (data || []).map(file => {
+        let fileType = file.type;
+        
+        // If type is a full MIME type, extract just the extension
+        if (fileType && fileType.includes('/')) {
+          const mimeToExt = {
+            'image/png': 'png',
+            'image/jpeg': 'jpg',
+            'image/jpg': 'jpg',
+            'image/gif': 'gif',
+            'image/svg+xml': 'svg',
+            'application/pdf': 'pdf',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
+            'text/plain': 'txt',
+            'video/mp4': 'mp4',
+            'video/avi': 'avi',
+            'video/mov': 'mov',
+            'audio/mp3': 'mp3',
+            'audio/wav': 'wav',
+            'application/zip': 'zip',
+            'application/x-rar-compressed': 'rar'
+          };
+          
+          fileType = mimeToExt[fileType] || fileType.split('/')[1] || 'file';
+        }
+        
+        // If still no proper type, try to extract from filename
+        if (!fileType || fileType === 'file') {
+          const extension = file.name.split('.').pop()?.toLowerCase();
+          fileType = extension || 'file';
+        }
+        
+        return {
+          ...file,
+          type: fileType
+        };
+      });
+      
+      setFiles(processedFiles);
+      console.log('Fetched and processed files:', processedFiles);
     } catch (error) {
       console.error('Error fetching files:', error);
     } finally {
@@ -169,7 +212,20 @@ const Files = () => {
                 </div>
                 <div className="mt-4 flex space-x-2">
                   <FilePreview file={file} />
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = file.path;
+                      link.download = file.name;
+                      link.target = '_blank';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                  >
                     <Download className="h-4 w-4 mr-2" />
                     Download
                   </Button>
