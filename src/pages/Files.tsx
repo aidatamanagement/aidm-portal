@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,7 +76,7 @@ const Files = () => {
           ...file,
           type: fileType
         };
-      };
+      });
       
       setFiles(processedFiles);
       console.log('Fetched and processed files:', processedFiles);
