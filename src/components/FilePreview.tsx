@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,37 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [textContent, setTextContent] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [videoUrl, setVideoUrl] = useState<string>('');
+  const [audioUrl, setAudioUrl] = useState<string>('');
+  const [pdfUrl, setPdfUrl] = useState<string>('');
+  const [fileUrl, setFileUrl] = useState<string>('');
+
+  // All hooks must be called before any conditional returns
+  useEffect(() => {
+    if (open && !error) {
+      const loadFile = async () => {
+        setLoading(true);
+        const url = await getFileUrl();
+        
+        if (!url) {
+          setError(true);
+          setLoading(false);
+          return;
+        }
+        
+        const category = getFileCategory(file.type);
+        
+        if (category === 'text' && textContent === null) {
+          await loadTextContent(url);
+        }
+        
+        setLoading(false);
+      };
+      
+      loadFile();
+    }
+  }, [open, file.type, textContent, error]);
 
   const getFileIcon = (type: string) => {
     const iconClass = "h-5 w-5";
@@ -144,6 +175,143 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     }
   };
 
+  const ImagePreview = () => {
+    useEffect(() => {
+      const loadImage = async () => {
+        const url = await getFileUrl();
+        if (url) setImageUrl(url);
+      };
+      loadImage();
+    }, []);
+
+    if (!imageUrl) return null;
+
+    return (
+      <img
+        src={imageUrl}
+        alt={file.name}
+        className="max-w-full max-h-96 object-contain rounded"
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          console.error('Image failed to load:', imageUrl);
+          setLoading(false);
+          setError(true);
+        }}
+      />
+    );
+  };
+
+  const VideoPreview = () => {
+    useEffect(() => {
+      const loadVideo = async () => {
+        const url = await getFileUrl();
+        if (url) setVideoUrl(url);
+      };
+      loadVideo();
+    }, []);
+
+    if (!videoUrl) return null;
+
+    return (
+      <video
+        controls
+        className="w-full max-h-96 rounded-lg"
+        onLoadedData={() => setLoading(false)}
+        onError={() => {
+          console.error('Video failed to load:', videoUrl);
+          setLoading(false);
+          setError(true);
+        }}
+      >
+        <source src={videoUrl} />
+        Your browser does not support the video tag.
+      </video>
+    );
+  };
+
+  const AudioPreview = () => {
+    useEffect(() => {
+      const loadAudio = async () => {
+        const url = await getFileUrl();
+        if (url) setAudioUrl(url);
+      };
+      loadAudio();
+    }, []);
+
+    if (!audioUrl) return null;
+
+    return (
+      <audio
+        controls
+        className="w-full max-w-md"
+        onLoadedData={() => setLoading(false)}
+        onError={() => {
+          console.error('Audio failed to load:', audioUrl);
+          setLoading(false);
+          setError(true);
+        }}
+      >
+        <source src={audioUrl} />
+        Your browser does not support the audio tag.
+      </audio>
+    );
+  };
+
+  const PDFPreview = () => {
+    useEffect(() => {
+      const loadPDF = async () => {
+        const url = await getFileUrl();
+        if (url) setPdfUrl(url);
+      };
+      loadPDF();
+    }, []);
+
+    if (!pdfUrl) return null;
+
+    return (
+      <iframe
+        src={pdfUrl}
+        className="w-full h-full"
+        title={file.name}
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          console.error('PDF failed to load:', pdfUrl);
+          setLoading(false);
+          setError(true);
+        }}
+      />
+    );
+  };
+
+  const OfficePreview = () => {
+    useEffect(() => {
+      const loadOfficeFile = async () => {
+        const url = await getFileUrl();
+        if (url) setFileUrl(url);
+      };
+      loadOfficeFile();
+    }, []);
+
+    if (!fileUrl) return null;
+
+    const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+
+    return (
+      <iframe
+        src={officeViewerUrl}
+        className="w-full h-full"
+        title={file.name}
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          console.error('Office file failed to load:', officeViewerUrl);
+          setLoading(false);
+          setError(true);
+        }}
+        allow="fullscreen"
+      />
+    );
+  };
+
   const renderFilePreview = () => {
     const category = getFileCategory(file.type);
     
@@ -159,29 +327,6 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
         </div>
       );
     }
-
-    React.useEffect(() => {
-      if (open && !error) {
-        const loadFile = async () => {
-          setLoading(true);
-          const fileUrl = await getFileUrl();
-          
-          if (!fileUrl) {
-            setError(true);
-            setLoading(false);
-            return;
-          }
-          
-          if (category === 'text' && textContent === null) {
-            await loadTextContent(fileUrl);
-          }
-          
-          setLoading(false);
-        };
-        
-        loadFile();
-      }
-    }, [open, category]);
 
     switch (category) {
       case 'image':
@@ -243,157 +388,18 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
     }
   };
 
-  const ImagePreview = () => {
-    const [imageUrl, setImageUrl] = React.useState<string>('');
-    
-    React.useEffect(() => {
-      const loadImage = async () => {
-        const url = await getFileUrl();
-        if (url) setImageUrl(url);
-      };
-      loadImage();
-    }, []);
-
-    return imageUrl ? (
-      <img
-        src={imageUrl}
-        alt={file.name}
-        className="max-w-full max-h-96 object-contain rounded"
-        onLoad={() => setLoading(false)}
-        onError={() => {
-          console.error('Image failed to load:', imageUrl);
-          setLoading(false);
-          setError(true);
-        }}
-      />
-    ) : null;
-  };
-
-  const VideoPreview = () => {
-    const [videoUrl, setVideoUrl] = React.useState<string>('');
-    
-    React.useEffect(() => {
-      const loadVideo = async () => {
-        const url = await getFileUrl();
-        if (url) setVideoUrl(url);
-      };
-      loadVideo();
-    }, []);
-
-    return videoUrl ? (
-      <video
-        controls
-        className="w-full max-h-96 rounded-lg"
-        onLoadedData={() => setLoading(false)}
-        onError={() => {
-          console.error('Video failed to load:', videoUrl);
-          setLoading(false);
-          setError(true);
-        }}
-      >
-        <source src={videoUrl} />
-        Your browser does not support the video tag.
-      </video>
-    ) : null;
-  };
-
-  const AudioPreview = () => {
-    const [audioUrl, setAudioUrl] = React.useState<string>('');
-    
-    React.useEffect(() => {
-      const loadAudio = async () => {
-        const url = await getFileUrl();
-        if (url) setAudioUrl(url);
-      };
-      loadAudio();
-    }, []);
-
-    return audioUrl ? (
-      <audio
-        controls
-        className="w-full max-w-md"
-        onLoadedData={() => setLoading(false)}
-        onError={() => {
-          console.error('Audio failed to load:', audioUrl);
-          setLoading(false);
-          setError(true);
-        }}
-      >
-        <source src={audioUrl} />
-        Your browser does not support the audio tag.
-      </audio>
-    ) : null;
-  };
-
-  const PDFPreview = () => {
-    const [pdfUrl, setPdfUrl] = React.useState<string>('');
-    
-    React.useEffect(() => {
-      const loadPDF = async () => {
-        const url = await getFileUrl();
-        if (url) setPdfUrl(url);
-      };
-      loadPDF();
-    }, []);
-
-    return pdfUrl ? (
-      <iframe
-        src={pdfUrl}
-        className="w-full h-full"
-        title={file.name}
-        onLoad={() => setLoading(false)}
-        onError={() => {
-          console.error('PDF failed to load:', pdfUrl);
-          setLoading(false);
-          setError(true);
-        }}
-      />
-    ) : null;
-  };
-
-  const OfficePreview = () => {
-    const [fileUrl, setFileUrl] = React.useState<string>('');
-    
-    React.useEffect(() => {
-      const loadOfficeFile = async () => {
-        const url = await getFileUrl();
-        if (url) setFileUrl(url);
-      };
-      loadOfficeFile();
-    }, []);
-
-    if (!fileUrl) return null;
-
-    const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
-
-    return (
-      <iframe
-        src={officeViewerUrl}
-        className="w-full h-full"
-        title={file.name}
-        onLoad={() => setLoading(false)}
-        onError={() => {
-          console.error('Office file failed to load:', officeViewerUrl);
-          setLoading(false);
-          setError(true);
-        }}
-        allow="fullscreen"
-      />
-    );
-  };
-
   const handleDownload = async () => {
     try {
-      const fileUrl = await getFileUrl();
-      if (!fileUrl) {
+      const url = await getFileUrl();
+      if (!url) {
         console.error('Unable to get file URL for download');
         return;
       }
       
-      console.log('Downloading file from:', fileUrl);
+      console.log('Downloading file from:', url);
       
       try {
-        const response = await fetch(fileUrl, {
+        const response = await fetch(url, {
           headers: {
             'Accept': '*/*',
             'Cache-Control': 'no-cache'
@@ -424,7 +430,7 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
         console.log('Download completed successfully');
       } catch (fetchError) {
         console.error('Fetch failed, trying direct link:', fetchError);
-        window.open(fileUrl, '_blank', 'noopener,noreferrer');
+        window.open(url, '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
       console.error('Download failed:', error);
@@ -432,14 +438,14 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
   };
 
   const handleViewFull = async () => {
-    const fileUrl = await getFileUrl();
-    if (fileUrl) {
+    const url = await getFileUrl();
+    if (url) {
       const category = getFileCategory(file.type);
       if (category === 'office') {
-        const officeViewerUrl = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fileUrl)}`;
+        const officeViewerUrl = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`;
         window.open(officeViewerUrl, '_blank', 'noopener,noreferrer');
       } else {
-        window.open(fileUrl, '_blank', 'noopener,noreferrer');
+        window.open(url, '_blank', 'noopener,noreferrer');
       }
     }
   };
