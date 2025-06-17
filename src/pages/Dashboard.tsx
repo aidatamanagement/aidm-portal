@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,12 +16,19 @@ const Dashboard = () => {
   const { user } = useAuth();
   const { data: stats, isLoading, error, isFetching } = useRealtimeDashboard();
   const [profile, setProfile] = useState<any>(null);
+  const [nextLessonInfo, setNextLessonInfo] = useState<any>(null);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (user && stats?.hasEnrolledCourses) {
+      findNextLesson();
+    }
+  }, [user, stats]);
 
   const fetchProfile = async () => {
     try {
@@ -36,6 +42,70 @@ const Dashboard = () => {
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
+    }
+  };
+
+  const findNextLesson = async () => {
+    try {
+      // Get user's enrolled courses
+      const { data: enrolledCourses } = await supabase
+        .from('user_course_assignments')
+        .select(`
+          course_id,
+          courses (id, title)
+        `)
+        .eq('user_id', user?.id);
+
+      if (!enrolledCourses || enrolledCourses.length === 0) return;
+
+      // For each course, find the next incomplete lesson
+      for (const enrollment of enrolledCourses) {
+        const courseId = enrollment.course_id;
+
+        // Get all lessons for this course ordered by order
+        const { data: lessons } = await supabase
+          .from('lessons')
+          .select('id, title, order, course_id')
+          .eq('course_id', courseId)
+          .order('order');
+
+        if (!lessons || lessons.length === 0) continue;
+
+        // Get user progress for this course
+        const { data: progress } = await supabase
+          .from('user_progress')
+          .select('lesson_id, completed')
+          .eq('user_id', user?.id)
+          .eq('course_id', courseId);
+
+        const completedLessonIds = progress?.filter(p => p.completed).map(p => p.lesson_id) || [];
+
+        // Find first incomplete lesson
+        const nextLesson = lessons.find(lesson => !completedLessonIds.includes(lesson.id));
+
+        if (nextLesson) {
+          setNextLessonInfo({
+            courseId,
+            courseName: enrollment.courses.title,
+            lessonId: nextLesson.id,
+            lessonTitle: nextLesson.title,
+            allLessonsCompleted: false
+          });
+          return;
+        } else {
+          // All lessons completed for this course
+          setNextLessonInfo({
+            courseId,
+            courseName: enrollment.courses.title,
+            lessonId: null,
+            lessonTitle: null,
+            allLessonsCompleted: true
+          });
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Error finding next lesson:', error);
     }
   };
 
@@ -81,6 +151,28 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  const getTrainingMaterialsLink = () => {
+    if (!nextLessonInfo) return '/courses';
+    
+    if (nextLessonInfo.allLessonsCompleted) {
+      // All lessons completed, link to course page
+      return `/courses/${nextLessonInfo.courseId}`;
+    } else {
+      // Has incomplete lessons, link to next lesson
+      return `/courses/${nextLessonInfo.courseId}/lessons/${nextLessonInfo.lessonId}`;
+    }
+  };
+
+  const getTrainingMaterialsText = () => {
+    if (!nextLessonInfo) return 'Access Training Materials';
+    
+    if (nextLessonInfo.allLessonsCompleted) {
+      return 'Review Course';
+    } else {
+      return 'Continue Learning';
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -200,15 +292,17 @@ const Dashboard = () => {
                 <h3 className="font-semibold text-lg mb-2">Ready to Lead the AI Revolution?</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   {stats?.hasEnrolledCourses 
-                    ? 'Continue your learning journey with your enrolled courses.'
+                    ? nextLessonInfo?.allLessonsCompleted 
+                      ? 'Congratulations! You\'ve completed all lessons. Review your courses or explore new content.'
+                      : `Continue with your next lesson: ${nextLessonInfo?.lessonTitle || 'Loading...'}`
                     : 'Contact us to get enrolled in exclusive AI leadership training courses.'
                   }
                 </p>
                 {stats?.hasEnrolledCourses ? (
                   <Button asChild className="w-full">
-                    <Link to="/courses">
+                    <Link to={getTrainingMaterialsLink()}>
                       <BookOpen className="h-4 w-4 mr-2" />
-                      Access Training Materials
+                      {getTrainingMaterialsText()}
                     </Link>
                   </Button>
                 ) : (
