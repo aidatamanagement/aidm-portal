@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import AdminNotifications from './AdminNotifications';
 
 interface ChatSession {
   id: string;
@@ -343,222 +343,230 @@ const AdminChatDashboard: React.FC = () => {
     chat.assigned_admin_id && chat.assigned_admin_id !== user?.id;
 
   return (
-    <div className="h-[600px] flex border rounded-lg overflow-hidden">
-      {/* Chat Sessions List */}
-      <div className="w-1/3 border-r bg-gray-50">
-        <div className="p-4 border-b bg-white">
-          <h3 className="font-semibold flex items-center">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Chat Sessions
-          </h3>
-        </div>
-        
-        {/* Takeover Requests */}
-        {takeoverRequests.length > 0 && (
-          <div className="p-3 bg-yellow-50 border-b">
-            <h4 className="text-sm font-medium text-yellow-800 mb-2 flex items-center">
-              <AlertCircle className="h-4 w-4 mr-1" />
-              Takeover Requests
-            </h4>
-            {takeoverRequests.map((request) => (
-              <div key={request.id} className="text-xs bg-white p-2 rounded mb-2">
-                <p>{request.requesting_admin_profile?.name} wants to take over a chat</p>
-                <div className="flex space-x-1 mt-1">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="h-6 text-xs"
-                    onClick={() => handleTakeoverRequest(request.id, true)}
-                  >
-                    Approve
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="destructive" 
-                    className="h-6 text-xs"
-                    onClick={() => handleTakeoverRequest(request.id, false)}
-                  >
-                    Deny
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+    <div className="space-y-4">
+      {/* Header with Notifications */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Support Chat Dashboard</h2>
+        <AdminNotifications />
+      </div>
 
-        <ScrollArea className="flex-1">
-          {chatSessions.map((chat) => (
-            <div
-              key={chat.id}
-              className={`p-3 border-b cursor-pointer hover:bg-white transition-colors ${
-                selectedChat?.id === chat.id ? 'bg-white border-l-4 border-l-primary' : ''
-              }`}
-              onClick={() => setSelectedChat(chat)}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="text-xs">
-                      {chat.user_profile?.name?.charAt(0) || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {chat.user_profile?.name || 'Anonymous'}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">
-                      {chat.latest_message?.content || 'No messages yet'}
-                    </p>
+      <div className="h-[600px] flex border rounded-lg overflow-hidden">
+        {/* Chat Sessions List */}
+        <div className="w-1/3 border-r bg-gray-50">
+          <div className="p-4 border-b bg-white">
+            <h3 className="font-semibold flex items-center">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Chat Sessions
+            </h3>
+          </div>
+          
+          {/* Takeover Requests */}
+          {takeoverRequests.length > 0 && (
+            <div className="p-3 bg-yellow-50 border-b">
+              <h4 className="text-sm font-medium text-yellow-800 mb-2 flex items-center">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                Takeover Requests
+              </h4>
+              {takeoverRequests.map((request) => (
+                <div key={request.id} className="text-xs bg-white p-2 rounded mb-2">
+                  <p>{request.requesting_admin_profile?.name} wants to take over a chat</p>
+                  <div className="flex space-x-1 mt-1">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="h-6 text-xs"
+                      onClick={() => handleTakeoverRequest(request.id, true)}
+                    >
+                      Approve
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive" 
+                      className="h-6 text-xs"
+                      onClick={() => handleTakeoverRequest(request.id, false)}
+                    >
+                      Deny
+                    </Button>
                   </div>
                 </div>
-                <div className="flex flex-col items-end space-y-1">
-                  <Badge 
-                    variant={chat.status === 'waiting' ? 'destructive' : 'default'}
-                    className="text-xs"
-                  >
-                    {chat.status}
-                  </Badge>
-                  {chat.assigned_admin_id === user?.id && (
-                    <Badge variant="secondary" className="text-xs">You</Badge>
+              ))}
+            </div>
+          )}
+
+          <ScrollArea className="flex-1">
+            {chatSessions.map((chat) => (
+              <div
+                key={chat.id}
+                className={`p-3 border-b cursor-pointer hover:bg-white transition-colors ${
+                  selectedChat?.id === chat.id ? 'bg-white border-l-4 border-l-primary' : ''
+                }`}
+                onClick={() => setSelectedChat(chat)}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="text-xs">
+                        {chat.user_profile?.name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {chat.user_profile?.name || 'Anonymous'}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {chat.latest_message?.content || 'No messages yet'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end space-y-1">
+                    <Badge 
+                      variant={chat.status === 'waiting' ? 'destructive' : 'default'}
+                      className="text-xs"
+                    >
+                      {chat.status}
+                    </Badge>
+                    {chat.assigned_admin_id === user?.id && (
+                      <Badge variant="secondary" className="text-xs">You</Badge>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="mt-2 flex items-center justify-between">
+                  <div className="flex items-center text-xs text-gray-500">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {new Date(chat.updated_at).toLocaleTimeString()}
+                  </div>
+                  
+                  {chat.status === 'waiting' && (
+                    <Button 
+                      size="sm" 
+                      className="h-6 text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        assignChatToSelf(chat.id);
+                      }}
+                    >
+                      Join
+                    </Button>
+                  )}
+                  
+                  {canTakeOver(chat) && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="h-6 text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        requestTakeover(chat.id, chat.assigned_admin_id!);
+                      }}
+                    >
+                      Request
+                    </Button>
                   )}
                 </div>
               </div>
-              
-              <div className="mt-2 flex items-center justify-between">
-                <div className="flex items-center text-xs text-gray-500">
-                  <Clock className="h-3 w-3 mr-1" />
-                  {new Date(chat.updated_at).toLocaleTimeString()}
-                </div>
-                
-                {chat.status === 'waiting' && (
-                  <Button 
-                    size="sm" 
-                    className="h-6 text-xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      assignChatToSelf(chat.id);
-                    }}
-                  >
-                    Join
-                  </Button>
-                )}
-                
-                {canTakeOver(chat) && (
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="h-6 text-xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      requestTakeover(chat.id, chat.assigned_admin_id!);
-                    }}
-                  >
-                    Request
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))}
-        </ScrollArea>
-      </div>
+            ))}
+          </ScrollArea>
+        </div>
 
-      {/* Chat Messages */}
-      <div className="flex-1 flex flex-col">
-        {selectedChat ? (
-          <>
-            {/* Chat Header */}
-            <div className="p-4 border-b bg-white">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Avatar>
-                    <AvatarFallback>
-                      {selectedChat.user_profile?.name?.charAt(0) || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-semibold">
-                      {selectedChat.user_profile?.name || 'Anonymous User'}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {selectedChat.user_profile?.email}
-                    </p>
-                  </div>
-                </div>
-                <Badge variant={selectedChat.status === 'active' ? 'default' : 'destructive'}>
-                  {selectedChat.status}
-                </Badge>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <ScrollArea className="flex-1 p-4">
-              <div className="space-y-3">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${isOwnMessage(message.sender_id) ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[70%] ${
-                        isOwnMessage(message.sender_id) ? 'text-right' : 'text-left'
-                      }`}
-                    >
-                      <div
-                        className={`px-3 py-2 rounded-lg text-sm ${
-                          isOwnMessage(message.sender_id)
-                            ? 'bg-primary text-white'
-                            : message.message_type === 'system'
-                            ? 'bg-gray-100 text-gray-600 italic'
-                            : 'bg-gray-100 text-gray-900'
-                        }`}
-                      >
-                        {message.content}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {new Date(message.created_at).toLocaleTimeString()} 
-                        {message.sender_profile?.role === 'admin' && ' • Admin'}
-                      </div>
+        {/* Chat Messages */}
+        <div className="flex-1 flex flex-col">
+          {selectedChat ? (
+            <>
+              {/* Chat Header */}
+              <div className="p-4 border-b bg-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Avatar>
+                      <AvatarFallback>
+                        {selectedChat.user_profile?.name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-semibold">
+                        {selectedChat.user_profile?.name || 'Anonymous User'}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {selectedChat.user_profile?.email}
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </ScrollArea>
-
-            {/* Message Input */}
-            {selectedChat.assigned_admin_id === user?.id && (
-              <div className="p-4 border-t bg-gray-50">
-                <div className="flex space-x-2">
-                  <Input
-                    placeholder="Type your message..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                      }
-                    }}
-                    className="flex-1"
-                  />
-                  <Button 
-                    onClick={sendMessage} 
-                    size="icon"
-                    disabled={!newMessage.trim()}
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
+                  <Badge variant={selectedChat.status === 'active' ? 'default' : 'destructive'}>
+                    {selectedChat.status}
+                  </Badge>
                 </div>
               </div>
-            )}
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-500">
-            <div className="text-center">
-              <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>Select a chat session to start messaging</p>
+
+              {/* Messages */}
+              <ScrollArea className="flex-1 p-4">
+                <div className="space-y-3">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${isOwnMessage(message.sender_id) ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[70%] ${
+                          isOwnMessage(message.sender_id) ? 'text-right' : 'text-left'
+                        }`}
+                      >
+                        <div
+                          className={`px-3 py-2 rounded-lg text-sm ${
+                            isOwnMessage(message.sender_id)
+                              ? 'bg-primary text-white'
+                              : message.message_type === 'system'
+                              ? 'bg-gray-100 text-gray-600 italic'
+                              : 'bg-gray-100 text-gray-900'
+                          }`}
+                        >
+                          {message.content}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {new Date(message.created_at).toLocaleTimeString()} 
+                          {message.sender_profile?.role === 'admin' && ' • Admin'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+
+              {/* Message Input */}
+              {selectedChat.assigned_admin_id === user?.id && (
+                <div className="p-4 border-t bg-gray-50">
+                  <div className="flex space-x-2">
+                    <Input
+                      placeholder="Type your message..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          sendMessage();
+                        }
+                      }}
+                      className="flex-1"
+                    />
+                    <Button 
+                      onClick={sendMessage} 
+                      size="icon"
+                      disabled={!newMessage.trim()}
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-gray-500">
+              <div className="text-center">
+                <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>Select a chat session to start messaging</p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

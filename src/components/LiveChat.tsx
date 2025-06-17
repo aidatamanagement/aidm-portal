@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,7 +29,11 @@ interface ChatSession {
   updated_at: string;
 }
 
-const LiveChat: React.FC = () => {
+interface LiveChatProps {
+  triggerComponent?: React.ReactNode;
+}
+
+const LiveChat: React.FC<LiveChatProps> = ({ triggerComponent }) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatSession, setChatSession] = useState<ChatSession | null>(null);
@@ -58,6 +61,32 @@ const LiveChat: React.FC = () => {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const notifyAdmins = async (chatSessionId: string, messageContent: string) => {
+    try {
+      // Get all admin users
+      const { data: admins } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('role', 'admin');
+
+      if (admins && admins.length > 0) {
+        // Create notifications for all admins
+        const notifications = admins.map(admin => ({
+          admin_id: admin.id,
+          chat_session_id: chatSessionId,
+          message: `New message from student: "${messageContent.substring(0, 50)}${messageContent.length > 50 ? '...' : ''}"`,
+          type: 'new_message'
+        }));
+
+        await supabase
+          .from('admin_notifications')
+          .insert(notifications);
+      }
+    } catch (error) {
+      console.error('Error notifying admins:', error);
+    }
   };
 
   const initializeChatSession = async () => {
@@ -102,15 +131,19 @@ const LiveChat: React.FC = () => {
         };
         setChatSession(typedNewSession);
 
-        // Add welcome message
+        // Add welcome message and notify admins
+        const welcomeMessage = "Hello! I need help with something.";
         await supabase
           .from('chat_messages')
           .insert({
             chat_session_id: newSession.id,
             sender_id: user.id,
-            content: "Hello! I need help with something.",
+            content: welcomeMessage,
             message_type: 'system'
           });
+
+        // Notify admins about new chat session
+        await notifyAdmins(newSession.id, "New support chat started");
       }
 
       toast({
@@ -218,6 +251,10 @@ const LiveChat: React.FC = () => {
         });
 
       if (error) throw error;
+
+      // Notify admins about new message
+      await notifyAdmins(chatSession.id, message.trim());
+      
       setMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
@@ -248,12 +285,15 @@ const LiveChat: React.FC = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50"
-          size="icon"
-        >
-          <MessageCircle className="h-6 w-6" />
-        </Button>
+        {triggerComponent || (
+          <Button
+            className="w-full"
+            size="lg"
+          >
+            <MessageCircle className="h-5 w-5 mr-2" />
+            Live Chat - Get instant help from our support team
+          </Button>
+        )}
       </DialogTrigger>
       
       <DialogContent className="sm:max-w-md w-full h-[600px] p-0 flex flex-col">

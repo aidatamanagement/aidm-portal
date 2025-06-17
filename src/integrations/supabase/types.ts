@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_notifications: {
+        Row: {
+          admin_id: string | null
+          chat_session_id: string | null
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          type: string
+        }
+        Insert: {
+          admin_id?: string | null
+          chat_session_id?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          type?: string
+        }
+        Update: {
+          admin_id?: string | null
+          chat_session_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notifications_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_notifications_chat_session_id_fkey"
+            columns: ["chat_session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           chat_session_id: string
