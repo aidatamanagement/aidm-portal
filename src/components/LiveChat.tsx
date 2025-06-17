@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -137,7 +138,7 @@ const LiveChat: React.FC = () => {
         .from('chat_messages')
         .select(`
           *,
-          sender_profile:profiles(name, role)
+          sender_profile:sender_id(name, role)
         `)
         .eq('chat_session_id', chatSession.id)
         .order('created_at', { ascending: true });
@@ -147,7 +148,7 @@ const LiveChat: React.FC = () => {
       const typedMessages = data?.map(msg => ({
         ...msg,
         message_type: msg.message_type as 'text' | 'system',
-        sender_profile: Array.isArray(msg.sender_profile) ? msg.sender_profile[0] : msg.sender_profile
+        sender_profile: msg.sender_profile as { name: string; role: string } | null || undefined
       })) || [];
       
       setMessages(typedMessages);
@@ -243,22 +244,17 @@ const LiveChat: React.FC = () => {
     }
   };
 
-  if (!isOpen) {
-    return (
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button
-          onClick={() => setIsOpen(true)}
           className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50"
           size="icon"
         >
           <MessageCircle className="h-6 w-6" />
         </Button>
       </DialogTrigger>
-    );
-  }
-
-  return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      
       <DialogContent className="sm:max-w-md w-full h-[600px] p-0 flex flex-col">
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-primary text-white rounded-t-lg px-6 py-4">
           <DialogTitle className="text-sm font-medium flex items-center text-white">
@@ -364,3 +360,4 @@ const LiveChat: React.FC = () => {
 };
 
 export default LiveChat;
+
