@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +31,6 @@ interface ChatSession {
 }
 
 const LiveChat: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatSession, setChatSession] = useState<ChatSession | null>(null);
@@ -42,10 +40,10 @@ const LiveChat: React.FC = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isOpen && user) {
+    if (user) {
       initializeChatSession();
     }
-  }, [isOpen, user]);
+  }, [user]);
 
   useEffect(() => {
     if (chatSession) {
@@ -137,19 +135,28 @@ const LiveChat: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('chat_messages')
-        .select(`
-          *,
-          profiles!chat_messages_sender_id_fkey(name, role)
-        `)
+        .select('*')
         .eq('chat_session_id', chatSession.id)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
       
+      // Fetch profiles separately for each unique sender
+      const senderIds = [...new Set(data?.map(msg => msg.sender_id) || [])];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, name, role')
+        .in('id', senderIds);
+
+      const profileMap = profiles?.reduce((acc, profile) => {
+        acc[profile.id] = { name: profile.name, role: profile.role };
+        return acc;
+      }, {} as Record<string, { name: string; role: string }>) || {};
+      
       const typedMessages = data?.map(msg => ({
         ...msg,
         message_type: msg.message_type as 'text' | 'system',
-        sender_profile: msg.profiles as { name: string; role: string } | null || undefined
+        sender_profile: profileMap[msg.sender_id]
       })) || [];
       
       setMessages(typedMessages);
@@ -184,7 +191,7 @@ const LiveChat: React.FC = () => {
           const typedMessage = {
             ...newMessage,
             message_type: newMessage.message_type as 'text' | 'system',
-            sender_profile: profile
+            sender_profile: profile || undefined
           };
 
           setMessages(prev => [...prev, typedMessage]);
@@ -238,15 +245,8 @@ const LiveChat: React.FC = () => {
 
   const isOwnMessage = (senderId: string) => senderId === user?.id;
 
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    if (open && user) {
-      initializeChatSession();
-    }
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog>
       <DialogTrigger asChild>
         <Button
           className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50"
@@ -361,4 +361,3 @@ const LiveChat: React.FC = () => {
 };
 
 export default LiveChat;
-
