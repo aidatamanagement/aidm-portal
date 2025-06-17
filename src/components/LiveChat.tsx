@@ -82,7 +82,7 @@ const LiveChat: React.FC = () => {
           ...existingSessions[0],
           status: existingSessions[0].status as 'active' | 'closed' | 'waiting'
         };
-        setChatSession(typedSession as ChatSession);
+        setChatSession(typedSession);
       } else {
         // Create new session
         const { data: newSession, error: createError } = await supabase
@@ -100,7 +100,7 @@ const LiveChat: React.FC = () => {
           ...newSession,
           status: newSession.status as 'active' | 'closed' | 'waiting'
         };
-        setChatSession(typedNewSession as ChatSession);
+        setChatSession(typedNewSession);
 
         // Add welcome message
         await supabase
@@ -137,10 +137,7 @@ const LiveChat: React.FC = () => {
         .from('chat_messages')
         .select(`
           *,
-          sender_profile:profiles!chat_messages_sender_id_fkey (
-            name,
-            role
-          )
+          sender_profile:profiles(name, role)
         `)
         .eq('chat_session_id', chatSession.id)
         .order('created_at', { ascending: true });
@@ -149,10 +146,11 @@ const LiveChat: React.FC = () => {
       
       const typedMessages = data?.map(msg => ({
         ...msg,
-        message_type: msg.message_type as 'text' | 'system'
+        message_type: msg.message_type as 'text' | 'system',
+        sender_profile: Array.isArray(msg.sender_profile) ? msg.sender_profile[0] : msg.sender_profile
       })) || [];
       
-      setMessages(typedMessages as Message[]);
+      setMessages(typedMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -187,7 +185,7 @@ const LiveChat: React.FC = () => {
             sender_profile: profile
           };
 
-          setMessages(prev => [...prev, typedMessage as Message]);
+          setMessages(prev => [...prev, typedMessage]);
         }
       )
       .subscribe();

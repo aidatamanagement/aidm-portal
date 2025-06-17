@@ -83,14 +83,8 @@ const AdminChatDashboard: React.FC = () => {
         .from('chat_sessions')
         .select(`
           *,
-          user_profile:profiles!chat_sessions_user_id_fkey (
-            name,
-            email
-          ),
-          latest_message:chat_messages (
-            content,
-            created_at
-          )
+          user_profile:profiles(name, email),
+          latest_message:chat_messages(content, created_at)
         `)
         .order('updated_at', { ascending: false });
 
@@ -99,10 +93,11 @@ const AdminChatDashboard: React.FC = () => {
       const sessionsWithLatestMessage = data?.map(session => ({
         ...session,
         status: session.status as 'active' | 'closed' | 'waiting',
-        latest_message: session.latest_message?.[0]
+        user_profile: Array.isArray(session.user_profile) ? session.user_profile[0] : session.user_profile,
+        latest_message: Array.isArray(session.latest_message) ? session.latest_message[0] : session.latest_message
       })) || [];
 
-      setChatSessions(sessionsWithLatestMessage as ChatSession[]);
+      setChatSessions(sessionsWithLatestMessage);
     } catch (error) {
       console.error('Error fetching chat sessions:', error);
     }
@@ -116,10 +111,7 @@ const AdminChatDashboard: React.FC = () => {
         .from('chat_messages')
         .select(`
           *,
-          sender_profile:profiles!chat_messages_sender_id_fkey (
-            name,
-            role
-          )
+          sender_profile:profiles(name, role)
         `)
         .eq('chat_session_id', selectedChat.id)
         .order('created_at', { ascending: true });
@@ -128,10 +120,11 @@ const AdminChatDashboard: React.FC = () => {
       
       const typedMessages = data?.map(msg => ({
         ...msg,
-        message_type: msg.message_type as 'text' | 'system'
+        message_type: msg.message_type as 'text' | 'system',
+        sender_profile: Array.isArray(msg.sender_profile) ? msg.sender_profile[0] : msg.sender_profile
       })) || [];
       
-      setMessages(typedMessages as Message[]);
+      setMessages(typedMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -143,9 +136,7 @@ const AdminChatDashboard: React.FC = () => {
         .from('chat_takeover_requests')
         .select(`
           *,
-          requesting_admin_profile:profiles!chat_takeover_requests_requesting_admin_id_fkey (
-            name
-          )
+          requesting_admin_profile:profiles(name)
         `)
         .eq('status', 'pending');
 
@@ -153,10 +144,11 @@ const AdminChatDashboard: React.FC = () => {
       
       const typedRequests = data?.map(request => ({
         ...request,
-        status: request.status as 'pending' | 'approved' | 'denied'
+        status: request.status as 'pending' | 'approved' | 'denied',
+        requesting_admin_profile: Array.isArray(request.requesting_admin_profile) ? request.requesting_admin_profile[0] : request.requesting_admin_profile
       })) || [];
       
-      setTakeoverRequests(typedRequests as TakeoverRequest[]);
+      setTakeoverRequests(typedRequests);
     } catch (error) {
       console.error('Error fetching takeover requests:', error);
     }
