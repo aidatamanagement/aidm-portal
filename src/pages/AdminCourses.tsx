@@ -21,8 +21,10 @@ const AdminCourses = () => {
 
   // Set up real-time subscription for course assignments
   useEffect(() => {
-    const channel = supabase
-      .channel('course-assignments-changes')
+    console.log('Setting up real-time subscriptions for AdminCourses');
+    
+    const courseAssignmentsChannel = supabase
+      .channel('admin-course-assignments-changes')
       .on(
         'postgres_changes',
         {
@@ -32,10 +34,13 @@ const AdminCourses = () => {
         },
         (payload) => {
           console.log('Real-time course assignment change:', payload);
-          // Invalidate and refetch course assignments data
           queryClient.invalidateQueries({ queryKey: ['admin-course-assignments'] });
         }
       )
+      .subscribe();
+
+    const lessonLocksChannel = supabase
+      .channel('admin-lesson-locks-changes')
       .on(
         'postgres_changes',
         {
@@ -45,14 +50,32 @@ const AdminCourses = () => {
         },
         (payload) => {
           console.log('Real-time lesson lock change:', payload);
-          // Invalidate and refetch lesson locks data
           queryClient.invalidateQueries({ queryKey: ['admin-lesson-locks'] });
         }
       )
       .subscribe();
 
+    const coursesChannel = supabase
+      .channel('admin-courses-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'courses'
+        },
+        (payload) => {
+          console.log('Real-time courses change:', payload);
+          queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      console.log('Cleaning up AdminCourses real-time subscriptions');
+      supabase.removeChannel(courseAssignmentsChannel);
+      supabase.removeChannel(lessonLocksChannel);
+      supabase.removeChannel(coursesChannel);
     };
   }, [queryClient]);
 
@@ -93,8 +116,8 @@ const AdminCourses = () => {
         .from('user_course_assignments')
         .select(`
           *,
-          profiles (name, email),
-          courses (title)
+          profiles!user_course_assignments_user_id_fkey(name, email),
+          courses!user_course_assignments_course_id_fkey(title)
         `);
 
       if (error) throw error;
@@ -109,8 +132,8 @@ const AdminCourses = () => {
         .from('user_lesson_locks')
         .select(`
           *,
-          profiles (name),
-          lessons (title)
+          profiles!user_lesson_locks_user_id_fkey(name),
+          lessons!user_lesson_locks_lesson_id_fkey(title)
         `);
 
       if (error) throw error;

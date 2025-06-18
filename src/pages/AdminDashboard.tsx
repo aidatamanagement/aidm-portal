@@ -3,12 +3,12 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useAdminStats } from '@/hooks/useAdminStats';
+import { useRealtimeAdminStats } from '@/hooks/useRealtimeAdminStats';
 import { Link } from 'react-router-dom';
 import { Users, Zap, BookOpen, FileText, TrendingUp, Award, Calendar } from 'lucide-react';
 
 const AdminDashboard = () => {
-  const { data: stats, isLoading, error } = useAdminStats();
+  const { data: stats, isLoading, error, isFetching } = useRealtimeAdminStats();
 
   if (isLoading) {
     return (
@@ -31,6 +31,13 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-8">
+      {/* Real-time indicator */}
+      {isFetching && (
+        <div className="fixed top-20 right-4 z-50 bg-[#0D5C4B] text-white px-3 py-1 rounded-full text-xs animate-pulse">
+          Live Updates
+        </div>
+      )}
+
       {/* Welcome Header */}
       <div className="relative bg-gradient-to-r from-[#0D5C4B] to-green-600 rounded-2xl p-8 text-white overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
@@ -52,7 +59,7 @@ const AdminDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Students</p>
-                <p className="text-3xl font-bold text-[#0D5C4B]">{stats?.totalStudents}</p>
+                <p className="text-3xl font-bold text-[#0D5C4B]">{stats?.totalStudents || 0}</p>
                 <p className="text-xs text-green-600 mt-1">Active learners</p>
               </div>
               <Users className="h-12 w-12 text-[#0D5C4B] opacity-80" />
@@ -65,7 +72,7 @@ const AdminDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Active Services</p>
-                <p className="text-3xl font-bold text-blue-600">{stats?.activeServices}</p>
+                <p className="text-3xl font-bold text-blue-600">{stats?.activeServices || 0}</p>
                 <p className="text-xs text-blue-500 mt-1">Available offerings</p>
               </div>
               <Zap className="h-12 w-12 text-blue-500 opacity-80" />
@@ -78,7 +85,7 @@ const AdminDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Courses</p>
-                <p className="text-3xl font-bold text-purple-600">{stats?.totalCourses}</p>
+                <p className="text-3xl font-bold text-purple-600">{stats?.totalCourses || 0}</p>
                 <p className="text-xs text-purple-500 mt-1">Learning paths</p>
               </div>
               <BookOpen className="h-12 w-12 text-purple-500 opacity-80" />
@@ -91,7 +98,7 @@ const AdminDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Files Shared</p>
-                <p className="text-3xl font-bold text-orange-600">{stats?.totalFiles}</p>
+                <p className="text-3xl font-bold text-orange-600">{stats?.totalFiles || 0}</p>
                 <p className="text-xs text-orange-500 mt-1">Resources available</p>
               </div>
               <FileText className="h-12 w-12 text-orange-500 opacity-80" />
@@ -127,8 +134,8 @@ const AdminDashboard = () => {
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium text-sm">{enrollment.profiles?.name}</p>
-                      <p className="text-xs text-muted-foreground">{enrollment.services?.title}</p>
+                      <p className="font-medium text-sm">{enrollment.profiles?.name || 'Unknown User'}</p>
+                      <p className="text-xs text-muted-foreground">{enrollment.services?.title || 'Unknown Service'}</p>
                     </div>
                   </div>
                   <Badge variant="outline" className="text-xs capitalize">
@@ -159,14 +166,14 @@ const AdminDashboard = () => {
             <div className="space-y-6">
               <div className="text-center p-6 bg-gradient-to-r from-[#0D5C4B]/10 to-green-100 rounded-lg">
                 <Award className="h-8 w-8 text-[#0D5C4B] mx-auto mb-2" />
-                <p className="text-2xl font-bold text-[#0D5C4B]">{stats?.completionRate}%</p>
+                <p className="text-2xl font-bold text-[#0D5C4B]">{stats?.completionRate || 0}%</p>
                 <p className="text-sm text-muted-foreground">Course Completion Rate</p>
               </div>
               
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Completed Lessons</span>
-                  <span className="text-sm text-[#0D5C4B] font-semibold">{stats?.completedLessons}</span>
+                  <span className="text-sm text-[#0D5C4B] font-semibold">{stats?.completedLessons || 0}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 

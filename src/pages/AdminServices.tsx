@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,50 @@ const AdminServices = () => {
   const [selectedService, setSelectedService] = useState<string>('');
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+
+  // Set up real-time subscriptions
+  useEffect(() => {
+    console.log('Setting up real-time subscriptions for AdminServices');
+
+    const userServicesChannel = supabase
+      .channel('admin-user-services-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_services'
+        },
+        (payload) => {
+          console.log('Real-time user services change:', payload);
+          queryClient.invalidateQueries({ queryKey: ['admin-services'] });
+          queryClient.invalidateQueries({ queryKey: ['admin-user-services'] });
+        }
+      )
+      .subscribe();
+
+    const servicesChannel = supabase
+      .channel('admin-services-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'services'
+        },
+        (payload) => {
+          console.log('Real-time services change:', payload);
+          queryClient.invalidateQueries({ queryKey: ['admin-services'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up AdminServices real-time subscriptions');
+      supabase.removeChannel(userServicesChannel);
+      supabase.removeChannel(servicesChannel);
+    };
+  }, [queryClient]);
 
   const { data: services, isLoading: servicesLoading } = useQuery({
     queryKey: ['admin-services'],
@@ -53,8 +97,8 @@ const AdminServices = () => {
         .from('user_services')
         .select(`
           *,
-          profiles (name, email),
-          services (title)
+          profiles!user_services_user_id_fkey(name, email),
+          services!user_services_service_id_fkey(title)
         `);
 
       if (error) throw error;
@@ -279,11 +323,11 @@ const AdminServices = () => {
                 <TableRow key={assignment.id}>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{assignment.profiles?.name}</p>
-                      <p className="text-sm text-muted-foreground">{assignment.profiles?.email}</p>
+                      <p className="font-medium">{assignment.profiles?.name || 'Unknown User'}</p>
+                      <p className="text-sm text-muted-foreground">{assignment.profiles?.email || 'No email'}</p>
                     </div>
                   </TableCell>
-                  <TableCell>{assignment.services?.title}</TableCell>
+                  <TableCell>{assignment.services?.title || 'Unknown Service'}</TableCell>
                   <TableCell>
                     <Badge variant={assignment.status === 'active' ? 'default' : 'secondary'}>
                       {assignment.status}
