@@ -26,7 +26,7 @@ export const useRealtimeDashboard = () => {
         .from('user_course_assignments')
         .select(`
           course_id,
-          courses (id, title, description)
+          courses!user_course_assignments_course_id_fkey (id, title, description)
         `)
         .eq('user_id', user.id),
       
