@@ -19,10 +19,12 @@ const AdminCourses = () => {
   const [selectedLesson, setSelectedLesson] = useState<any>(null);
   const [formMode, setFormMode] = useState<'add' | 'edit'>('add');
 
-  // Set up real-time subscription for course assignments
+  // Set up real-time subscription for course assignments and lesson locks
   useEffect(() => {
-    const channel = supabase
-      .channel('course-assignments-changes')
+    console.log('Setting up real-time subscriptions for AdminCourses');
+
+    const courseAssignmentsChannel = supabase
+      .channel('admin_courses_assignments')
       .on(
         'postgres_changes',
         {
@@ -32,10 +34,13 @@ const AdminCourses = () => {
         },
         (payload) => {
           console.log('Real-time course assignment change:', payload);
-          // Invalidate and refetch course assignments data
           queryClient.invalidateQueries({ queryKey: ['admin-course-assignments'] });
         }
       )
+      .subscribe();
+
+    const lessonLocksChannel = supabase
+      .channel('admin_courses_lesson_locks')
       .on(
         'postgres_changes',
         {
@@ -45,14 +50,49 @@ const AdminCourses = () => {
         },
         (payload) => {
           console.log('Real-time lesson lock change:', payload);
-          // Invalidate and refetch lesson locks data
           queryClient.invalidateQueries({ queryKey: ['admin-lesson-locks'] });
         }
       )
       .subscribe();
 
+    const coursesChannel = supabase
+      .channel('admin_courses_courses')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'courses'
+        },
+        (payload) => {
+          console.log('Real-time courses change:', payload);
+          queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
+        }
+      )
+      .subscribe();
+
+    const lessonsChannel = supabase
+      .channel('admin_courses_lessons')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'lessons'
+        },
+        (payload) => {
+          console.log('Real-time lessons change:', payload);
+          queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      console.log('Cleaning up AdminCourses real-time subscriptions');
+      supabase.removeChannel(courseAssignmentsChannel);
+      supabase.removeChannel(lessonLocksChannel);
+      supabase.removeChannel(coursesChannel);
+      supabase.removeChannel(lessonsChannel);
     };
   }, [queryClient]);
 
@@ -100,6 +140,7 @@ const AdminCourses = () => {
       if (error) throw error;
       return data || [];
     },
+    refetchInterval: 2000, // Backup polling every 2 seconds
   });
 
   const { data: lessonLocks } = useQuery({
@@ -116,6 +157,7 @@ const AdminCourses = () => {
       if (error) throw error;
       return data || [];
     },
+    refetchInterval: 2000, // Backup polling every 2 seconds
   });
 
   const toggleLessonLockMutation = useMutation({
@@ -227,7 +269,10 @@ const AdminCourses = () => {
 
   return (
     <div className="space-y-6">
-      <CourseManagementHeader onAddCourse={handleAddCourse} />
+      <div className="flex items-center space-x-2">
+        <CourseManagementHeader onAddCourse={handleAddCourse} />
+        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+      </div>
 
       <CourseOverviewCards
         courses={courses || []}
