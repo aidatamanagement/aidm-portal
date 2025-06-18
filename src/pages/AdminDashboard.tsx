@@ -3,12 +3,12 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useRealtimeAdminStats } from '@/hooks/useRealtimeAdminStats';
+import { useAdminStats } from '@/hooks/useAdminStats';
 import { Link } from 'react-router-dom';
 import { Users, Zap, BookOpen, FileText, TrendingUp, Award, Calendar } from 'lucide-react';
 
 const AdminDashboard = () => {
-  const { data: stats, isLoading, error } = useRealtimeAdminStats();
+  const { data: stats, isLoading, error } = useAdminStats();
 
   if (isLoading) {
     return (
@@ -39,10 +39,6 @@ const AdminDashboard = () => {
           <p className="text-green-100 text-lg max-w-2xl">
             Manage students, courses, services, and monitor platform performance from your central command center.
           </p>
-          <div className="flex items-center mt-4 space-x-2">
-            <div className="w-2 h-2 bg-green-300 rounded-full animate-pulse"></div>
-            <span className="text-green-100 text-sm">Real-time updates enabled</span>
-          </div>
         </div>
         <div className="absolute top-4 right-4 opacity-20">
           <div className="w-32 h-32 rounded-full border-4 border-white/30"></div>
@@ -51,7 +47,7 @@ const AdminDashboard = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="border-l-4 border-l-[#0D5C4B] transition-all duration-300 hover:shadow-lg">
+        <Card className="border-l-4 border-l-[#0D5C4B]">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -64,7 +60,7 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-blue-500 transition-all duration-300 hover:shadow-lg">
+        <Card className="border-l-4 border-l-blue-500">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -77,7 +73,7 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-purple-500 transition-all duration-300 hover:shadow-lg">
+        <Card className="border-l-4 border-l-purple-500">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -90,7 +86,7 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-orange-500 transition-all duration-300 hover:shadow-lg">
+        <Card className="border-l-4 border-l-orange-500">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -113,16 +109,15 @@ const AdminDashboard = () => {
               <div className="flex items-center space-x-2">
                 <Calendar className="h-5 w-5 text-[#0D5C4B]" />
                 <CardTitle>Recent Enrollments</CardTitle>
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               </div>
               <Link to="/admin/students">
                 <Button variant="outline" size="sm">View All</Button>
               </Link>
             </div>
-            <CardDescription>Latest student service assignments (real-time)</CardDescription>
+            <CardDescription>Latest student service assignments</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4 max-h-80 overflow-y-auto">
+            <div className="space-y-4">
               {stats?.recentEnrollments?.slice(0, 5).map((enrollment: any) => (
                 <div key={enrollment.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
                   <div className="flex items-center space-x-3">
@@ -151,19 +146,18 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Performance Overview */}
+        {/* Quick Stats */}
         <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
               <TrendingUp className="h-5 w-5 text-[#0D5C4B]" />
               <CardTitle>Performance Overview</CardTitle>
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             </div>
-            <CardDescription>Key metrics at a glance (real-time)</CardDescription>
+            <CardDescription>Key metrics at a glance</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              <div className="text-center p-6 bg-gradient-to-r from-[#0D5C4B]/10 to-green-100 rounded-lg transition-all duration-300">
+              <div className="text-center p-6 bg-gradient-to-r from-[#0D5C4B]/10 to-green-100 rounded-lg">
                 <Award className="h-8 w-8 text-[#0D5C4B] mx-auto mb-2" />
                 <p className="text-2xl font-bold text-[#0D5C4B]">{stats?.completionRate}%</p>
                 <p className="text-sm text-muted-foreground">Course Completion Rate</p>
@@ -176,7 +170,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
-                    className="bg-[#0D5C4B] h-2 rounded-full transition-all duration-500" 
+                    className="bg-[#0D5C4B] h-2 rounded-full transition-all duration-300" 
                     style={{ width: `${Math.min(stats?.completionRate || 0, 100)}%` }}
                   ></div>
                 </div>

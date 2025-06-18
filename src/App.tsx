@@ -33,7 +33,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light">
+      <ThemeProvider attribute="class" defaultTheme="light">
         <TooltipProvider>
           <Toaster />
           <BrowserRouter>
