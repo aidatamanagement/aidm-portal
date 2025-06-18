@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,12 +49,12 @@ const Dashboard = () => {
     try {
       console.log('Finding next lesson for user:', user?.id);
       
-      // Get user's enrolled courses
+      // Get user's enrolled courses with explicit foreign key hint
       const { data: enrolledCourses } = await supabase
         .from('user_course_assignments')
         .select(`
           course_id,
-          courses (id, title)
+          courses!user_course_assignments_course_id_fkey (id, title)
         `)
         .eq('user_id', user?.id);
 
