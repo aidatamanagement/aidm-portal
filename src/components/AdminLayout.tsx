@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -13,9 +13,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/components/ThemeProvider';
-import { Moon, Sun, Users, BookOpen, Zap, BarChart3 } from 'lucide-react';
+import { Moon, Sun, Users, BookOpen, Zap, BarChart3, FileText } from 'lucide-react';
 
-const AdminLayout = () => {
+interface AdminLayoutProps {
+  children: React.ReactNode;
+}
+
+const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -26,6 +30,7 @@ const AdminLayout = () => {
     { name: 'Students', href: '/admin/students', icon: Users },
     { name: 'Courses', href: '/admin/courses', icon: BookOpen },
     { name: 'Services', href: '/admin/services', icon: Zap },
+    { name: 'Files', href: '/admin/files', icon: FileText },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -125,7 +130,7 @@ const AdminLayout = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Outlet />
+        {children}
       </main>
     </div>
   );
