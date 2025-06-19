@@ -63,36 +63,47 @@ const AdminServices = () => {
     };
   }, [queryClient]);
 
-  const { data: services, isLoading: servicesLoading } = useQuery({
+  const { data: services, isLoading: servicesLoading, error: servicesError } = useQuery({
     queryKey: ['admin-services'],
     queryFn: async () => {
+      console.log('Fetching services for admin...');
       const { data, error } = await supabase
         .from('services')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching services:', error);
+        throw error;
+      }
+      console.log('Services fetched:', data);
       return data || [];
     },
   });
 
-  const { data: students } = useQuery({
+  const { data: students, error: studentsError } = useQuery({
     queryKey: ['admin-students-list'],
     queryFn: async () => {
+      console.log('Fetching students list...');
       const { data, error } = await supabase
         .from('profiles')
         .select('id, name, email')
         .eq('role', 'student')
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching students:', error);
+        throw error;
+      }
+      console.log('Students fetched:', data);
       return data || [];
     },
   });
 
-  const { data: userServices } = useQuery({
+  const { data: userServices, error: userServicesError } = useQuery({
     queryKey: ['admin-user-services'],
     queryFn: async () => {
+      console.log('Fetching user services with explicit relationships...');
       const { data, error } = await supabase
         .from('user_services')
         .select(`
@@ -101,13 +112,23 @@ const AdminServices = () => {
           services!user_services_service_id_fkey(title)
         `);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching user services:', error);
+        throw error;
+      }
+      console.log('User services fetched:', data);
       return data || [];
     },
   });
 
+  // Log any query errors
+  if (servicesError) console.error('Services query error:', servicesError);
+  if (studentsError) console.error('Students query error:', studentsError);
+  if (userServicesError) console.error('User services query error:', userServicesError);
+
   const assignServiceMutation = useMutation({
     mutationFn: async ({ serviceId, studentId }: { serviceId: string; studentId: string }) => {
+      console.log('Assigning service:', { serviceId, studentId });
       const { error } = await supabase
         .from('user_services')
         .insert({
@@ -116,34 +137,47 @@ const AdminServices = () => {
           status: 'active'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error assigning service:', error);
+        throw error;
+      }
+      console.log('Service assigned successfully');
     },
     onSuccess: () => {
       toast.success('Service assigned successfully');
       queryClient.invalidateQueries({ queryKey: ['admin-user-services'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats-realtime'] });
       setAssignDialogOpen(false);
       setSelectedService('');
       setSelectedStudent('');
     },
     onError: (error: any) => {
+      console.error('Assign service mutation error:', error);
       toast.error(`Failed to assign service: ${error.message}`);
     },
   });
 
   const unassignServiceMutation = useMutation({
     mutationFn: async (userServiceId: string) => {
+      console.log('Unassigning service:', userServiceId);
       const { error } = await supabase
         .from('user_services')
         .delete()
         .eq('id', userServiceId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error unassigning service:', error);
+        throw error;
+      }
+      console.log('Service unassigned successfully');
     },
     onSuccess: () => {
       toast.success('Service unassigned successfully');
       queryClient.invalidateQueries({ queryKey: ['admin-user-services'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats-realtime'] });
     },
     onError: (error: any) => {
+      console.error('Unassign service mutation error:', error);
       toast.error(`Failed to unassign service: ${error.message}`);
     },
   });
@@ -169,6 +203,17 @@ const AdminServices = () => {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D5C4B]"></div>
+      </div>
+    );
+  }
+
+  if (servicesError || studentsError || userServicesError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-destructive mb-4">Error loading data</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
       </div>
     );
   }

@@ -48,10 +48,20 @@ export const useRealtimeAdminStats = () => {
         .eq('completed', true)
     ]);
 
+    // Check for errors
+    if (studentsResult.error) throw studentsResult.error;
+    if (servicesResult.error) throw servicesResult.error;
+    if (coursesResult.error) throw coursesResult.error;
+    if (filesResult.error) throw filesResult.error;
+    if (enrollmentsResult.error) throw enrollmentsResult.error;
+    if (progressResult.error) throw progressResult.error;
+
     // Calculate completion rate
     const totalProgressResult = await supabase
       .from('user_progress')
       .select('*', { count: 'exact', head: true });
+
+    if (totalProgressResult.error) throw totalProgressResult.error;
 
     const completedLessons = progressResult.data?.length || 0;
     const totalLessons = totalProgressResult.count || 0;
@@ -72,6 +82,8 @@ export const useRealtimeAdminStats = () => {
     queryKey: ['admin-stats-realtime'],
     queryFn: fetchAdminStats,
     refetchInterval: 5000, // Refetch every 5 seconds
+    retry: 3,
+    retryDelay: 1000,
   });
 
   // Set up real-time subscriptions
