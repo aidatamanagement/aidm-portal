@@ -111,18 +111,48 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Debug Information Card - Remove this after testing */}
+      {/* Enhanced Debug Information Card */}
       <Card className="border-2 border-yellow-500">
         <CardHeader>
-          <CardTitle className="text-yellow-700">Debug Information</CardTitle>
-          <CardDescription>This shows the raw data being fetched (remove after testing)</CardDescription>
+          <CardTitle className="text-yellow-700">Enhanced Debug Information</CardTitle>
+          <CardDescription>Complete debugging data (check console for more details)</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2 text-sm">
-            <p><strong>Assigned Services Count:</strong> {stats?.assignedServices?.length || 0}</p>
-            <p><strong>Assigned Courses Count:</strong> {stats?.assignedCourses?.length || 0}</p>
-            <p><strong>Services Data:</strong> {JSON.stringify(stats?.assignedServices?.slice(0, 2), null, 2)}</p>
-            <p><strong>Courses Data:</strong> {JSON.stringify(stats?.assignedCourses?.slice(0, 2), null, 2)}</p>
+          <div className="space-y-4 text-sm">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h4 className="font-semibold mb-2">Counts:</h4>
+                <p><strong>Students:</strong> {stats?.totalStudents || 0}</p>
+                <p><strong>Active Services:</strong> {stats?.activeServices || 0}</p>
+                <p><strong>Total Courses:</strong> {stats?.totalCourses || 0}</p>
+                <p><strong>Files:</strong> {stats?.totalFiles || 0}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">Assignments:</h4>
+                <p><strong>Assigned Services:</strong> {stats?.assignedServices?.length || 0}</p>
+                <p><strong>Assigned Courses:</strong> {stats?.assignedCourses?.length || 0}</p>
+                <p><strong>Recent Enrollments:</strong> {stats?.recentEnrollments?.length || 0}</p>
+                <p><strong>Completion Rate:</strong> {stats?.completionRate || 0}%</p>
+              </div>
+            </div>
+            
+            {stats?.assignedServices && stats.assignedServices.length > 0 && (
+              <div className="mt-4">
+                <h4 className="font-semibold mb-2">Sample Assigned Service:</h4>
+                <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
+                  {JSON.stringify(stats.assignedServices[0], null, 2)}
+                </pre>
+              </div>
+            )}
+            
+            {stats?.assignedCourses && stats.assignedCourses.length > 0 && (
+              <div className="mt-4">
+                <h4 className="font-semibold mb-2">Sample Assigned Course:</h4>
+                <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
+                  {JSON.stringify(stats.assignedCourses[0], null, 2)}
+                </pre>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -167,7 +197,10 @@ const AdminDashboard = () => {
               ) : (
                 <div className="text-center py-6">
                   <Zap className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No services assigned</p>
+                  <p className="text-sm text-muted-foreground">No services assigned yet</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Go to Services page to assign services to students
+                  </p>
                 </div>
               )}
             </div>
@@ -212,7 +245,10 @@ const AdminDashboard = () => {
               ) : (
                 <div className="text-center py-6">
                   <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No courses assigned</p>
+                  <p className="text-sm text-muted-foreground">No courses assigned yet</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Go to Courses page to assign courses to students
+                  </p>
                 </div>
               )}
             </div>

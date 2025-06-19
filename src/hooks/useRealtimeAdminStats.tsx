@@ -7,85 +7,121 @@ export const useRealtimeAdminStats = () => {
   const queryClient = useQueryClient();
 
   const fetchAdminStats = async () => {
-    const [
-      studentsResult,
-      servicesResult,
-      coursesResult,
-      filesResult,
-      assignedServicesResult,
-      assignedCoursesResult,
-      progressResult
-    ] = await Promise.all([
-      supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'student'),
-      
-      supabase
-        .from('services')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active'),
-      
-      supabase
-        .from('courses')
-        .select('*', { count: 'exact', head: true }),
-      
-      supabase
-        .from('files')
-        .select('*', { count: 'exact', head: true }),
-      
-      // Get all assigned services with user and service details
-      supabase
-        .from('user_services')
-        .select(`
-          *,
-          profiles!user_services_user_id_fkey(id, name, email),
-          services!user_services_service_id_fkey(id, title, description, type, status)
-        `)
-        .eq('status', 'active')
-        .order('assigned_at', { ascending: false }),
+    console.log('Starting admin stats fetch...');
 
-      // Get all assigned courses with user and course details
-      supabase
-        .from('user_course_assignments')
-        .select(`
-          *,
-          profiles!user_course_assignments_user_id_fkey(id, name, email),
-          courses!user_course_assignments_course_id_fkey(id, title, description)
-        `)
-        .order('created_at', { ascending: false }),
+    try {
+      // First, let's check what data exists in the tables
+      const [
+        studentsResult,
+        servicesResult,
+        coursesResult,
+        filesResult,
+        userServicesCheck,
+        userCoursesCheck,
+        progressResult
+      ] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', 'student'),
+        
+        supabase
+          .from('services')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active'),
+        
+        supabase
+          .from('courses')
+          .select('*', { count: 'exact', head: true }),
+        
+        supabase
+          .from('files')
+          .select('*', { count: 'exact', head: true }),
+        
+        // Check if user_services table has any data
+        supabase
+          .from('user_services')
+          .select('*')
+          .limit(10),
 
-      supabase
+        // Check if user_course_assignments table has any data  
+        supabase
+          .from('user_course_assignments')
+          .select('*')
+          .limit(10),
+
+        supabase
+          .from('user_progress')
+          .select('*')
+          .eq('completed', true)
+      ]);
+
+      console.log('Raw data check:');
+      console.log('Students count:', studentsResult.count);
+      console.log('Services count:', servicesResult.count);
+      console.log('Courses count:', coursesResult.count);
+      console.log('Files count:', filesResult.count);
+      console.log('User services raw:', userServicesCheck.data);
+      console.log('User courses raw:', userCoursesCheck.data);
+      console.log('User services error:', userServicesCheck.error);
+      console.log('User courses error:', userCoursesCheck.error);
+
+      // Now get the detailed assigned services and courses
+      const [assignedServicesResult, assignedCoursesResult] = await Promise.all([
+        // Get assigned services with user and service details
+        supabase
+          .from('user_services')
+          .select(`
+            *,
+            profiles:user_id(id, name, email),
+            services:service_id(id, title, description, type, status)
+          `)
+          .eq('status', 'active')
+          .order('assigned_at', { ascending: false }),
+
+        // Get assigned courses with user and course details
+        supabase
+          .from('user_course_assignments')
+          .select(`
+            *,
+            profiles:user_id(id, name, email),
+            courses:course_id(id, title, description)
+          `)
+          .order('created_at', { ascending: false })
+      ]);
+
+      console.log('Detailed queries:');
+      console.log('Assigned services result:', assignedServicesResult);
+      console.log('Assigned courses result:', assignedCoursesResult);
+
+      // Calculate completion rate
+      const totalProgressResult = await supabase
         .from('user_progress')
-        .select('*')
-        .eq('completed', true)
-    ]);
+        .select('*', { count: 'exact', head: true });
 
-    // Calculate completion rate
-    const totalProgressResult = await supabase
-      .from('user_progress')
-      .select('*', { count: 'exact', head: true });
+      const completedLessons = progressResult.data?.length || 0;
+      const totalLessons = totalProgressResult.count || 0;
+      const completionRate = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
-    const completedLessons = progressResult.data?.length || 0;
-    const totalLessons = totalProgressResult.count || 0;
-    const completionRate = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+      const result = {
+        totalStudents: studentsResult.count || 0,
+        activeServices: servicesResult.count || 0,
+        totalCourses: coursesResult.count || 0,
+        totalFiles: filesResult.count || 0,
+        recentEnrollments: assignedServicesResult.data || [],
+        completedLessons,
+        completionRate,
+        assignedServices: assignedServicesResult.data || [],
+        assignedCourses: assignedCoursesResult.data || []
+      };
 
-    console.log('Admin stats - assigned services:', assignedServicesResult.data);
-    console.log('Admin stats - assigned courses:', assignedCoursesResult.data);
-    console.log('Admin stats - services error:', assignedServicesResult.error);
-    console.log('Admin stats - courses error:', assignedCoursesResult.error);
+      console.log('Final admin stats result:', result);
+      return result;
 
-    return {
-      totalStudents: studentsResult.count || 0,
-      activeServices: servicesResult.count || 0,
-      totalCourses: coursesResult.count || 0,
-      totalFiles: filesResult.count || 0,
-      recentEnrollments: assignedServicesResult.data || [], // Using services as enrollments for now
-      completedLessons,
-      completionRate,
-      assignedServices: assignedServicesResult.data || [],
-      assignedCourses: assignedCoursesResult.data || []
-    };
+    } catch (error) {
+      console.error('Error fetching admin stats:', error);
+      throw error;
+    }
   };
 
   const query = useQuery({
