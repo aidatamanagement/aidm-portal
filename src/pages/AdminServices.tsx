@@ -148,6 +148,10 @@ const AdminServices = () => {
     },
   });
 
+  const getAssignedStudentCount = (serviceId: string) => {
+    return userServices?.filter(us => us.service_id === serviceId && us.status === 'active').length || 0;
+  };
+
   const filteredServices = services?.filter(service =>
     service.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     service.type?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -264,7 +268,7 @@ const AdminServices = () => {
       {/* Services Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredServices?.map((service) => {
-          const assignedCount = userServices?.filter(us => us.service_id === service.id).length || 0;
+          const assignedCount = getAssignedStudentCount(service.id);
           
           return (
             <Card key={service.id} className="hover:shadow-md transition-shadow">
@@ -288,7 +292,7 @@ const AdminServices = () => {
                     <span className="text-sm text-muted-foreground">Assigned Students:</span>
                     <div className="flex items-center space-x-1">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{assignedCount}</span>
+                      <span className="font-medium text-[#0D5C4B] text-lg">{assignedCount}</span>
                     </div>
                   </div>
                   <Badge variant={service.status === 'active' ? 'default' : 'secondary'}>

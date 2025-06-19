@@ -17,10 +17,14 @@ const CourseOverviewCards: React.FC<CourseOverviewCardsProps> = ({
   onEditCourse,
   onAddLesson
 }) => {
+  const getAssignedStudentCount = (courseId: string) => {
+    return courseAssignments?.filter(assignment => assignment.course_id === courseId).length || 0;
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {courses?.map((course) => {
-        const assignedCount = courseAssignments?.filter(ca => ca.course_id === course.id).length || 0;
+        const assignedCount = getAssignedStudentCount(course.id);
         const lessonCount = course.lessons?.length || 0;
         
         return (
@@ -51,7 +55,7 @@ const CourseOverviewCards: React.FC<CourseOverviewCardsProps> = ({
                   <span className="text-sm text-muted-foreground">Assigned Students:</span>
                   <div className="flex items-center space-x-1">
                     <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{assignedCount}</span>
+                    <span className="font-medium text-[#0D5C4B]">{assignedCount}</span>
                   </div>
                 </div>
                 <Button
