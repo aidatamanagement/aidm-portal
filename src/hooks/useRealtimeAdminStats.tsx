@@ -12,10 +12,9 @@ export const useRealtimeAdminStats = () => {
       servicesResult,
       coursesResult,
       filesResult,
-      enrollmentsResult,
-      progressResult,
       assignedServicesResult,
-      assignedCoursesResult
+      assignedCoursesResult,
+      progressResult
     ] = await Promise.all([
       supabase
         .from('profiles')
@@ -35,21 +34,7 @@ export const useRealtimeAdminStats = () => {
         .from('files')
         .select('*', { count: 'exact', head: true }),
       
-      supabase
-        .from('user_services')
-        .select(`
-          *,
-          profiles!user_services_user_id_fkey(name, email),
-          services!user_services_service_id_fkey(title)
-        `)
-        .order('assigned_at', { ascending: false }),
-      
-      supabase
-        .from('user_progress')
-        .select('*')
-        .eq('completed', true),
-
-      // Get all assigned services with full details
+      // Get all assigned services with user and service details
       supabase
         .from('user_services')
         .select(`
@@ -57,9 +42,10 @@ export const useRealtimeAdminStats = () => {
           profiles!user_services_user_id_fkey(id, name, email),
           services!user_services_service_id_fkey(id, title, description, type, status)
         `)
-        .eq('status', 'active'),
+        .eq('status', 'active')
+        .order('assigned_at', { ascending: false }),
 
-      // Get all assigned courses with full details
+      // Get all assigned courses with user and course details
       supabase
         .from('user_course_assignments')
         .select(`
@@ -67,6 +53,12 @@ export const useRealtimeAdminStats = () => {
           profiles!user_course_assignments_user_id_fkey(id, name, email),
           courses!user_course_assignments_course_id_fkey(id, title, description)
         `)
+        .order('created_at', { ascending: false }),
+
+      supabase
+        .from('user_progress')
+        .select('*')
+        .eq('completed', true)
     ]);
 
     // Calculate completion rate
@@ -80,13 +72,15 @@ export const useRealtimeAdminStats = () => {
 
     console.log('Admin stats - assigned services:', assignedServicesResult.data);
     console.log('Admin stats - assigned courses:', assignedCoursesResult.data);
+    console.log('Admin stats - services error:', assignedServicesResult.error);
+    console.log('Admin stats - courses error:', assignedCoursesResult.error);
 
     return {
       totalStudents: studentsResult.count || 0,
       activeServices: servicesResult.count || 0,
       totalCourses: coursesResult.count || 0,
       totalFiles: filesResult.count || 0,
-      recentEnrollments: enrollmentsResult.data || [],
+      recentEnrollments: assignedServicesResult.data || [], // Using services as enrollments for now
       completedLessons,
       completionRate,
       assignedServices: assignedServicesResult.data || [],
