@@ -108,9 +108,97 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Assigned Services Overview */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Zap className="h-5 w-5 text-[#0D5C4B]" />
+                <CardTitle>Assigned Services</CardTitle>
+              </div>
+              <Link to="/admin/services">
+                <Button variant="outline" size="sm">View All</Button>
+              </Link>
+            </div>
+            <CardDescription>Services currently assigned to students</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {stats?.assignedServices?.slice(0, 5).map((assignment: any) => (
+                <div key={assignment.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                      <Zap className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{assignment.services?.title || 'Unknown Service'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Assigned to: {assignment.profiles?.name || 'Unknown User'}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-xs capitalize">
+                    {assignment.services?.type || 'N/A'}
+                  </Badge>
+                </div>
+              ))}
+              {(!stats?.assignedServices || stats.assignedServices.length === 0) && (
+                <div className="text-center py-6">
+                  <Zap className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground">No services assigned</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Assigned Courses Overview */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <BookOpen className="h-5 w-5 text-[#0D5C4B]" />
+                <CardTitle>Assigned Courses</CardTitle>
+              </div>
+              <Link to="/admin/courses">
+                <Button variant="outline" size="sm">View All</Button>
+              </Link>
+            </div>
+            <CardDescription>Courses currently assigned to students</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {stats?.assignedCourses?.slice(0, 5).map((assignment: any) => (
+                <div key={assignment.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                      <BookOpen className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{assignment.courses?.title || 'Unknown Course'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Assigned to: {assignment.profiles?.name || 'Unknown User'}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={assignment.locked ? "destructive" : "default"} className="text-xs">
+                    {assignment.locked ? 'Locked' : 'Active'}
+                  </Badge>
+                </div>
+              ))}
+              {(!stats?.assignedCourses || stats.assignedCourses.length === 0) && (
+                <div className="text-center py-6">
+                  <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground">No courses assigned</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Recent Activity */}
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
@@ -180,6 +268,17 @@ const AdminDashboard = () => {
                     className="bg-[#0D5C4B] h-2 rounded-full transition-all duration-300" 
                     style={{ width: `${Math.min(stats?.completionRate || 0, 100)}%` }}
                   ></div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="text-center">
+                  <p className="text-lg font-bold text-blue-600">{stats?.assignedServices?.length || 0}</p>
+                  <p className="text-xs text-muted-foreground">Services Assigned</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-bold text-purple-600">{stats?.assignedCourses?.length || 0}</p>
+                  <p className="text-xs text-muted-foreground">Courses Assigned</p>
                 </div>
               </div>
             </div>

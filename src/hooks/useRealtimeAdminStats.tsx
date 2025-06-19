@@ -13,7 +13,9 @@ export const useRealtimeAdminStats = () => {
       coursesResult,
       filesResult,
       enrollmentsResult,
-      progressResult
+      progressResult,
+      assignedServicesResult,
+      assignedCoursesResult
     ] = await Promise.all([
       supabase
         .from('profiles')
@@ -45,7 +47,26 @@ export const useRealtimeAdminStats = () => {
       supabase
         .from('user_progress')
         .select('*')
-        .eq('completed', true)
+        .eq('completed', true),
+
+      // Get all assigned services with full details
+      supabase
+        .from('user_services')
+        .select(`
+          *,
+          profiles!user_services_user_id_fkey(id, name, email),
+          services!user_services_service_id_fkey(id, title, description, type, status)
+        `)
+        .eq('status', 'active'),
+
+      // Get all assigned courses with full details
+      supabase
+        .from('user_course_assignments')
+        .select(`
+          *,
+          profiles!user_course_assignments_user_id_fkey(id, name, email),
+          courses!user_course_assignments_course_id_fkey(id, title, description)
+        `)
     ]);
 
     // Calculate completion rate
@@ -57,6 +78,9 @@ export const useRealtimeAdminStats = () => {
     const totalLessons = totalProgressResult.count || 0;
     const completionRate = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
+    console.log('Admin stats - assigned services:', assignedServicesResult.data);
+    console.log('Admin stats - assigned courses:', assignedCoursesResult.data);
+
     return {
       totalStudents: studentsResult.count || 0,
       activeServices: servicesResult.count || 0,
@@ -64,7 +88,9 @@ export const useRealtimeAdminStats = () => {
       totalFiles: filesResult.count || 0,
       recentEnrollments: enrollmentsResult.data || [],
       completedLessons,
-      completionRate
+      completionRate,
+      assignedServices: assignedServicesResult.data || [],
+      assignedCourses: assignedCoursesResult.data || []
     };
   };
 
@@ -126,6 +152,22 @@ export const useRealtimeAdminStats = () => {
       )
       .subscribe();
 
+    const userCoursesChannel = supabase
+      .channel('user-courses-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_course_assignments'
+        },
+        (payload) => {
+          console.log('User course assignments change detected:', payload);
+          queryClient.invalidateQueries({ queryKey: ['admin-stats-realtime'] });
+        }
+      )
+      .subscribe();
+
     const progressChannel = supabase
       .channel('progress-changes')
       .on(
@@ -147,6 +189,7 @@ export const useRealtimeAdminStats = () => {
       supabase.removeChannel(profilesChannel);
       supabase.removeChannel(servicesChannel);
       supabase.removeChannel(userServicesChannel);
+      supabase.removeChannel(userCoursesChannel);
       supabase.removeChannel(progressChannel);
     };
   }, [queryClient]);
