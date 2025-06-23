@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,22 +34,7 @@ const AdminCourses = () => {
         (payload) => {
           console.log('Real-time course assignment change:', payload);
           queryClient.invalidateQueries({ queryKey: ['admin-course-assignments'] });
-        }
-      )
-      .subscribe();
-
-    const lessonLocksChannel = supabase
-      .channel('admin-lesson-locks-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_lesson_locks'
-        },
-        (payload) => {
-          console.log('Real-time lesson lock change:', payload);
-          queryClient.invalidateQueries({ queryKey: ['admin-lesson-locks'] });
+          queryClient.invalidateQueries({ queryKey: ['admin-course-assignment-counts'] });
         }
       )
       .subscribe();
@@ -74,7 +58,6 @@ const AdminCourses = () => {
     return () => {
       console.log('Cleaning up AdminCourses real-time subscriptions');
       supabase.removeChannel(courseAssignmentsChannel);
-      supabase.removeChannel(lessonLocksChannel);
       supabase.removeChannel(coursesChannel);
     };
   }, [queryClient]);
@@ -95,20 +78,6 @@ const AdminCourses = () => {
     },
   });
 
-  const { data: students } = useQuery({
-    queryKey: ['admin-students-list'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name, email')
-        .eq('role', 'student')
-        .order('name');
-
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
   const { data: courseAssignments } = useQuery({
     queryKey: ['admin-course-assignments'],
     queryFn: async () => {
@@ -116,8 +85,8 @@ const AdminCourses = () => {
         .from('user_course_assignments')
         .select(`
           *,
-          profiles!user_course_assignments_user_id_fkey(name, email),
-          courses!user_course_assignments_course_id_fkey(title)
+          profiles:fk_user_course_assignments_user_id(name, email),
+          courses:user_course_assignments_course_id_fkey(title)
         `);
 
       if (error) throw error;
@@ -125,61 +94,26 @@ const AdminCourses = () => {
     },
   });
 
-  const { data: lessonLocks } = useQuery({
-    queryKey: ['admin-lesson-locks'],
+  // Get assignment counts for each course
+  const { data: assignmentCounts } = useQuery({
+    queryKey: ['admin-course-assignment-counts'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('user_lesson_locks')
-        .select(`
-          *,
-          profiles!user_lesson_locks_user_id_fkey(name),
-          lessons!user_lesson_locks_lesson_id_fkey(title)
-        `);
+        .from('user_course_assignments')
+        .select('course_id');
 
       if (error) throw error;
-      return data || [];
+      
+      // Count assignments per course
+      const counts: { [key: string]: number } = {};
+      data?.forEach((assignment) => {
+        const courseId = assignment.course_id;
+        counts[courseId] = (counts[courseId] || 0) + 1;
+      });
+      
+      return counts;
     },
   });
-
-  const toggleLessonLockMutation = useMutation({
-    mutationFn: async ({ lessonId, studentId, locked }: { lessonId: string; studentId: string; locked: boolean }) => {
-      if (locked) {
-        // Create lock
-        const { error } = await supabase
-          .from('user_lesson_locks')
-          .insert({
-            lesson_id: lessonId,
-            user_id: studentId,
-            course_id: courses?.find(c => c.lessons?.some(l => l.id === lessonId))?.id,
-            locked: true
-          });
-        if (error) throw error;
-      } else {
-        // Remove lock
-        const { error } = await supabase
-          .from('user_lesson_locks')
-          .delete()
-          .eq('lesson_id', lessonId)
-          .eq('user_id', studentId);
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      toast.success('Lesson lock updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['admin-lesson-locks'] });
-    },
-    onError: (error: any) => {
-      toast.error(`Failed to update lesson lock: ${error.message}`);
-    },
-  });
-
-  const isLessonLocked = (lessonId: string, studentId: string) => {
-    return lessonLocks?.some(lock => 
-      lock.lesson_id === lessonId && 
-      lock.user_id === studentId && 
-      lock.locked
-    );
-  };
 
   const deleteLessonMutation = useMutation({
     mutationFn: async (lessonId: string) => {
@@ -236,10 +170,6 @@ const AdminCourses = () => {
     }
   };
 
-  const handleToggleLessonLock = (lessonId: string, studentId: string, locked: boolean) => {
-    toggleLessonLockMutation.mutate({ lessonId, studentId, locked });
-  };
-
   if (coursesLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -255,17 +185,13 @@ const AdminCourses = () => {
       <CourseOverviewCards
         courses={courses || []}
         courseAssignments={courseAssignments || []}
+        assignmentCounts={assignmentCounts || {}}
         onEditCourse={handleEditCourse}
         onAddLesson={handleAddLesson}
       />
 
       <LessonManagement
         courses={courses || []}
-        students={students || []}
-        courseAssignments={courseAssignments || []}
-        lessonLocks={lessonLocks || []}
-        isLessonLocked={isLessonLocked}
-        onToggleLessonLock={handleToggleLessonLock}
         onEditLesson={handleEditLesson}
         onDeleteLesson={handleDeleteLesson}
         onAddLesson={handleAddLesson}

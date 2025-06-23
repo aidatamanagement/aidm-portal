@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { BookOpen, Users, Plus, Edit } from 'lucide-react';
 interface CourseOverviewCardsProps {
   courses: any[];
   courseAssignments: any[];
+  assignmentCounts: { [key: string]: number };
   onEditCourse: (course: any) => void;
   onAddLesson: (courseId: string) => void;
 }
@@ -14,11 +14,18 @@ interface CourseOverviewCardsProps {
 const CourseOverviewCards: React.FC<CourseOverviewCardsProps> = ({
   courses,
   courseAssignments,
+  assignmentCounts,
   onEditCourse,
   onAddLesson
 }) => {
   const getAssignedStudentCount = (courseId: string) => {
-    return courseAssignments?.filter(assignment => assignment.course_id === courseId).length || 0;
+    // Use the assignment counts if available, otherwise fall back to filtering courseAssignments
+    const countFromCounts = assignmentCounts[courseId] || 0;
+    const countFromAssignments = courseAssignments?.filter(assignment => assignment.course_id === courseId).length || 0;
+    
+    console.log(`Course ${courseId}: countFromCounts=${countFromCounts}, countFromAssignments=${countFromAssignments}`);
+    
+    return countFromCounts || countFromAssignments;
   };
 
   return (

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,7 @@ import { useTheme } from '@/components/ThemeProvider';
 import { Moon, Sun } from 'lucide-react';
 import ChatSupport from './ChatSupport';
 import { supabase } from '@/integrations/supabase/client';
+import { Logo } from '@/components/Logo';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -72,13 +72,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Logo */}
             <div className="flex items-center">
               <Link to="/dashboard" className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">AI</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-bold text-xl text-foreground">AIDM</span>
-                  <span className="text-xs text-muted-foreground">AI Data Management</span>
-                </div>
+                <Logo className="h-6" />
               </Link>
             </div>
 

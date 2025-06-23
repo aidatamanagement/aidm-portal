@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -67,14 +66,14 @@ export const useRealtimeAdminStats = () => {
       console.log('User courses error:', userCoursesCheck.error);
 
       // Now get the detailed assigned services and courses
-      const [assignedServicesResult, assignedCoursesResult] = await Promise.all([
+      const [assignedServicesResult, assignedCoursesResult, recentStudentsResult] = await Promise.all([
         // Get assigned services with user and service details
         supabase
           .from('user_services')
           .select(`
             *,
-            profiles:user_id(id, name, email),
-            services:service_id(id, title, description, type, status)
+            profiles:fk_user_services_user_id(id, name, email),
+            services:user_services_service_id_fkey(id, title, description, type, status)
           `)
           .eq('status', 'active')
           .order('assigned_at', { ascending: false }),
@@ -84,15 +83,24 @@ export const useRealtimeAdminStats = () => {
           .from('user_course_assignments')
           .select(`
             *,
-            profiles:user_id(id, name, email),
-            courses:course_id(id, title, description)
+            profiles:fk_user_course_assignments_user_id(id, name, email),
+            courses:user_course_assignments_course_id_fkey(id, title, description)
           `)
+          .order('created_at', { ascending: false }),
+
+        // Get recent student enrollments (profiles with role 'student')
+        supabase
+          .from('profiles')
+          .select('id, name, email, created_at, role')
+          .eq('role', 'student')
           .order('created_at', { ascending: false })
+          .limit(3)
       ]);
 
       console.log('Detailed queries:');
       console.log('Assigned services result:', assignedServicesResult);
       console.log('Assigned courses result:', assignedCoursesResult);
+      console.log('Recent students result:', recentStudentsResult);
 
       // Calculate completion rate
       const totalProgressResult = await supabase
@@ -109,6 +117,7 @@ export const useRealtimeAdminStats = () => {
         totalCourses: coursesResult.count || 0,
         totalFiles: filesResult.count || 0,
         recentEnrollments: assignedServicesResult.data || [],
+        recentStudents: recentStudentsResult.data || [],
         completedLessons,
         completionRate,
         assignedServices: assignedServicesResult.data || [],
@@ -127,7 +136,7 @@ export const useRealtimeAdminStats = () => {
   const query = useQuery({
     queryKey: ['admin-stats-realtime'],
     queryFn: fetchAdminStats,
-    refetchInterval: 5000, // Refetch every 5 seconds
+    // refetchInterval: 5000, // Refetch every 5 seconds
   });
 
   // Set up real-time subscriptions

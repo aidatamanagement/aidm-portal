@@ -248,7 +248,14 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
   };
 
   const handleEditFile = (file: any) => {
-    setSelectedFile(file);
+    setSelectedFile({
+      id: file.id,
+      name: file.name,
+      description: file.description,
+      path: file.path,
+      student_id: file.student_id,
+      type: file.type
+    });
     setEditModalOpen(true);
   };
 
@@ -387,6 +394,7 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
                     size="sm"
                     variant="outline"
                     onClick={() => handleEditFile(file)}
+                    title="Edit file details or replace file content"
                   >
                     <Edit className="h-4 w-4" />
                   </Button>

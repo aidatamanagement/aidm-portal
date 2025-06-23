@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Loader2, Mail } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -136,16 +137,12 @@ const Auth = () => {
       <div className="w-full max-w-md space-y-8">
         {/* Logo */}
         <div className="text-center">
-          <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-2xl">AI</span>
-          </div>
-          <h1 className="text-3xl font-bold text-foreground">AIDM</h1>
-          <p className="text-muted-foreground mt-2">AI Data Management Client Portal</p>
+          <Logo className="mx-auto mb-6" />
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>{showForgotPassword ? 'Reset Password' : 'Welcome Back'}</CardTitle>
+            <CardTitle>{showForgotPassword ? 'Reset Password' : 'Welcome '}</CardTitle>
             <CardDescription>
               {showForgotPassword 
                 ? 'Enter your email to receive a password reset link'

@@ -6,14 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
-import { Search, Eye, Users, Trash2 } from 'lucide-react';
+import { Search, Eye, Users, Trash2, ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 import DeleteUserDialog from '@/components/DeleteUserDialog';
+import AddStudentModal from '@/components/AddStudentModal';
 
 const AdminStudents = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOption, setSortOption] = useState('joined-desc'); // default: newest first
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{
     isOpen: boolean;
     user: any | null;
@@ -42,7 +46,7 @@ const AdminStudents = () => {
         .from('user_services')
         .select(`
           user_id,
-          services (
+          services:user_services_service_id_fkey (
             id,
             title,
             type
@@ -61,7 +65,7 @@ const AdminStudents = () => {
         .from('user_course_assignments')
         .select(`
           user_id,
-          courses (
+          courses:user_course_assignments_course_id_fkey (
             id,
             title
           )
@@ -122,12 +126,6 @@ const AdminStudents = () => {
     setDeleteDialog({ isOpen: false, user: null });
   };
 
-  const filteredStudents = students?.filter(student =>
-    student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.organization?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const getStudentServices = (studentId: string) => {
     return studentServices?.filter(service => service.user_id === studentId) || [];
   };
@@ -135,6 +133,42 @@ const AdminStudents = () => {
   const getStudentCourses = (studentId: string) => {
     return studentCourses?.filter(course => course.user_id === studentId) || [];
   };
+
+  // Sorting function
+  const sortStudents = (students: any[]) => {
+    if (!students) return [];
+    
+    return [...students].sort((a, b) => {
+      switch (sortOption) {
+        case 'name-asc':
+          return (a.name || '').localeCompare(b.name || '');
+        case 'name-desc':
+          return (b.name || '').localeCompare(a.name || '');
+        case 'joined-asc':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'joined-desc':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'services-asc':
+          const aServices = getStudentServices(a.id).length;
+          const bServices = getStudentServices(b.id).length;
+          return aServices - bServices;
+        case 'services-desc':
+          const aServicesDesc = getStudentServices(a.id).length;
+          const bServicesDesc = getStudentServices(b.id).length;
+          return bServicesDesc - aServicesDesc;
+        default:
+          return 0;
+      }
+    });
+  };
+
+  const filteredStudents = students?.filter(student =>
+    student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.organization?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const sortedAndFilteredStudents = sortStudents(filteredStudents || []);
 
   if (isLoading) {
     return (
@@ -163,12 +197,13 @@ const AdminStudents = () => {
           <h1 className="text-3xl font-bold text-[#0D5C4B]">Student Management</h1>
           <p className="text-muted-foreground">Manage student accounts, services, and progress</p>
         </div>
-        <Link to="/admin/add-user">
-          <Button className="bg-[#0D5C4B] hover:bg-green-700">
+        <Button
+          className="bg-[#0D5C4B] hover:bg-green-700"
+          onClick={() => setIsAddModalOpen(true)}
+        >
             <Users className="h-4 w-4 mr-2" />
             Add Student
           </Button>
-        </Link>
       </div>
 
       {/* Search and Filters */}
@@ -176,7 +211,7 @@ const AdminStudents = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Search className="h-5 w-5" />
-            <span>Search Students</span>
+            <span>Search & Sort Students</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -189,6 +224,23 @@ const AdminStudents = () => {
                 className="w-full"
               />
             </div>
+            <div className="flex items-center space-x-2">
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">Sort by:</span>
+              <Select value={sortOption} onValueChange={setSortOption}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select sorting" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name-asc">Name A to Z</SelectItem>
+                  <SelectItem value="name-desc">Name Z to A</SelectItem>
+                  <SelectItem value="joined-desc">Joined Date (Newest First)</SelectItem>
+                  <SelectItem value="joined-asc">Joined Date (Oldest First)</SelectItem>
+                  <SelectItem value="services-desc">Services (High to Low)</SelectItem>
+                  <SelectItem value="services-asc">Services (Low to High)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -198,7 +250,7 @@ const AdminStudents = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Students ({filteredStudents?.length || 0})</CardTitle>
+              <CardTitle>Students ({sortedAndFilteredStudents?.length || 0})</CardTitle>
               <CardDescription>All registered students in the system</CardDescription>
             </div>
           </div>
@@ -216,7 +268,7 @@ const AdminStudents = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStudents?.map((student) => {
+              {sortedAndFilteredStudents?.map((student) => {
                 const studentServicesList = getStudentServices(student.id);
                 const studentCoursesList = getStudentCourses(student.id);
                 
@@ -309,7 +361,7 @@ const AdminStudents = () => {
             </TableBody>
           </Table>
           
-          {filteredStudents?.length === 0 && (
+          {sortedAndFilteredStudents?.length === 0 && (
             <div className="text-center py-8">
               <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-lg font-semibold text-muted-foreground">No students found</p>
@@ -329,6 +381,12 @@ const AdminStudents = () => {
         userName={deleteDialog.user?.name || ''}
         userEmail={deleteDialog.user?.email || ''}
         isDeleting={deleteUserMutation.isPending}
+      />
+
+      {/* Add Student Modal */}
+      <AddStudentModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
       />
     </div>
   );

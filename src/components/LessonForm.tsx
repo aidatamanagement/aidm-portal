@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -20,12 +20,30 @@ interface LessonFormProps {
 }
 
 const LessonForm: React.FC<LessonFormProps> = ({ isOpen, onClose, courseId, lesson, mode }) => {
-  const [title, setTitle] = useState(lesson?.title || '');
-  const [description, setDescription] = useState(lesson?.description || '');
-  const [pdfUrl, setPdfUrl] = useState(lesson?.pdf_url || '');
-  const [instructorNotes, setInstructorNotes] = useState(lesson?.instructor_notes || '');
-  const [order, setOrder] = useState(lesson?.order || 1);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [instructorNotes, setInstructorNotes] = useState('');
+  const [order, setOrder] = useState(1);
   const queryClient = useQueryClient();
+
+  // Update form state when lesson prop changes
+  useEffect(() => {
+    if (lesson && mode === 'edit') {
+      setTitle(lesson.title || '');
+      setDescription(lesson.description || '');
+      setPdfUrl(lesson.pdf_url || '');
+      setInstructorNotes(lesson.instructor_notes || '');
+      setOrder(lesson.order || 1);
+    } else if (mode === 'add') {
+      // Reset form for add mode
+      setTitle('');
+      setDescription('');
+      setPdfUrl('');
+      setInstructorNotes('');
+      setOrder(1);
+    }
+  }, [lesson, mode, isOpen]);
 
   const quillModules = {
     toolbar: [
@@ -119,11 +137,6 @@ const LessonForm: React.FC<LessonFormProps> = ({ isOpen, onClose, courseId, less
   };
 
   const handleClose = () => {
-    setTitle(lesson?.title || '');
-    setDescription(lesson?.description || '');
-    setPdfUrl(lesson?.pdf_url || '');
-    setInstructorNotes(lesson?.instructor_notes || '');
-    setOrder(lesson?.order || 1);
     onClose();
   };
 

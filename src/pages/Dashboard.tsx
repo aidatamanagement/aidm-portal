@@ -310,19 +310,19 @@ const Dashboard = () => {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* AI Leadership Training */}
-        <Card className="relative overflow-hidden bg-white hover:shadow-lg transition-shadow duration-300 border-2 cursor-pointer">
+        <Card className="relative overflow-hidden hover:shadow-lg transition-shadow duration-300 border-2 cursor-pointer">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
           <CardHeader className="pb-4 relative z-10">
             <div className="flex items-center space-x-2">
               <Award className="h-5 w-5 text-primary" />
-              <CardTitle className="text-foreground">AI Leadership Training</CardTitle>
+              <CardTitle className="text-card-foreground">AI Leadership Training</CardTitle>
             </div>
             <CardDescription className="text-muted-foreground">Advance your AI leadership skills</CardDescription>
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="space-y-4">
-              <div className="p-4 bg-card/50 rounded-lg border">
-                <h3 className="font-semibold text-lg mb-2 text-foreground">Ready to Lead the AI Revolution?</h3>
+              <div className="p-4 bg-muted/50 dark:bg-muted/30 rounded-lg border border-border">
+                <h3 className="font-semibold text-lg mb-2 text-card-foreground">Ready to Lead the AI Revolution?</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   {getTrainingDescription()}
                 </p>

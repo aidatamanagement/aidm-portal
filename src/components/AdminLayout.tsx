@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/components/ThemeProvider';
-import { Moon, Sun, Users, BookOpen, Zap, BarChart3, FileText } from 'lucide-react';
+import { Moon, Sun, Users, BookOpen, Zap, BarChart3, FileText, MessageSquare } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -30,7 +30,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { name: 'Students', href: '/admin/students', icon: Users },
     { name: 'Courses', href: '/admin/courses', icon: BookOpen },
     { name: 'Services', href: '/admin/services', icon: Zap },
-    { name: 'Files', href: '/admin/files', icon: FileText },
+    { name: 'Prompts', href: '/admin/prompts', icon: MessageSquare },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -43,19 +43,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-[#0D5C4B] border-b border-border sticky top-0 z-50">
+      <header className="bg-primary border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center">
               <Link to="/admin" className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
-                  <span className="text-[#0D5C4B] font-bold text-lg">AI</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-bold text-xl text-white">AIDM Admin</span>
-                  <span className="text-xs text-green-100">Management Portal</span>
-                </div>
+                <Logo className="h-6" />
+
               </Link>
             </div>
 
@@ -69,7 +64,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     to={item.href}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${
                       isActive(item.href)
-                        ? 'bg-white text-[#0D5C4B]'
+                        ? 'bg-white text-primary'
                         : 'text-green-100 hover:text-white hover:bg-green-600'
                     }`}
                   >
@@ -98,7 +93,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src="" alt="Admin" />
-                      <AvatarFallback className="bg-white text-[#0D5C4B]">
+                      <AvatarFallback className="bg-white text-primary">
                         {user?.email?.charAt(0).toUpperCase() || 'A'}
                       </AvatarFallback>
                     </Avatar>

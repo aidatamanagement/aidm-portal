@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +12,7 @@ const AdminDashboard = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D5C4B]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -36,14 +35,9 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-8">
       {/* Real-time indicator */}
-      {isFetching && (
-        <div className="fixed top-20 right-4 z-50 bg-[#0D5C4B] text-white px-3 py-1 rounded-full text-xs animate-pulse">
-          Live Updates
-        </div>
-      )}
 
       {/* Welcome Header */}
-      <div className="relative bg-gradient-to-r from-[#0D5C4B] to-green-600 rounded-2xl p-8 text-white overflow-hidden">
+      <div className="relative bg-gradient-to-r from-primary to-green-600 rounded-2xl p-8 text-white overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative z-10">
           <h1 className="text-3xl font-bold mb-2">Welcome to Admin Portal</h1>
@@ -58,15 +52,15 @@ const AdminDashboard = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="border-l-4 border-l-[#0D5C4B]">
+        <Card className="border-l-4 border-l-primary">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Students</p>
-                <p className="text-3xl font-bold text-[#0D5C4B]">{stats?.totalStudents || 0}</p>
+                <p className="text-3xl font-bold text-primary">{stats?.totalStudents || 0}</p>
                 <p className="text-xs text-green-600 mt-1">Active learners</p>
               </div>
-              <Users className="h-12 w-12 text-[#0D5C4B] opacity-80" />
+              <Users className="h-12 w-12 text-primary opacity-80" />
             </div>
           </CardContent>
         </Card>
@@ -110,183 +104,48 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Enhanced Debug Information Card */}
-      <Card className="border-2 border-yellow-500">
-        <CardHeader>
-          <CardTitle className="text-yellow-700">Enhanced Debug Information</CardTitle>
-          <CardDescription>Complete debugging data (check console for more details)</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4 text-sm">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-semibold mb-2">Counts:</h4>
-                <p><strong>Students:</strong> {stats?.totalStudents || 0}</p>
-                <p><strong>Active Services:</strong> {stats?.activeServices || 0}</p>
-                <p><strong>Total Courses:</strong> {stats?.totalCourses || 0}</p>
-                <p><strong>Files:</strong> {stats?.totalFiles || 0}</p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Assignments:</h4>
-                <p><strong>Assigned Services:</strong> {stats?.assignedServices?.length || 0}</p>
-                <p><strong>Assigned Courses:</strong> {stats?.assignedCourses?.length || 0}</p>
-                <p><strong>Recent Enrollments:</strong> {stats?.recentEnrollments?.length || 0}</p>
-                <p><strong>Completion Rate:</strong> {stats?.completionRate || 0}%</p>
-              </div>
-            </div>
-            
-            {stats?.assignedServices && stats.assignedServices.length > 0 && (
-              <div className="mt-4">
-                <h4 className="font-semibold mb-2">Sample Assigned Service:</h4>
-                <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
-                  {JSON.stringify(stats.assignedServices[0], null, 2)}
-                </pre>
-              </div>
-            )}
-            
-            {stats?.assignedCourses && stats.assignedCourses.length > 0 && (
-              <div className="mt-4">
-                <h4 className="font-semibold mb-2">Sample Assigned Course:</h4>
-                <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
-                  {JSON.stringify(stats.assignedCourses[0], null, 2)}
-                </pre>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Assigned Services Overview */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Zap className="h-5 w-5 text-[#0D5C4B]" />
-                <CardTitle>Assigned Services ({stats?.assignedServices?.length || 0})</CardTitle>
-              </div>
-              <Link to="/admin/services">
-                <Button variant="outline" size="sm">View All</Button>
-              </Link>
-            </div>
-            <CardDescription>Services currently assigned to students</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {stats?.assignedServices && stats.assignedServices.length > 0 ? (
-                stats.assignedServices.slice(0, 5).map((assignment: any) => (
-                  <div key={assignment.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                        <Zap className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">{assignment.services?.title || 'Unknown Service'}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Assigned to: {assignment.profiles?.name || assignment.profiles?.email || 'Unknown User'}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="text-xs capitalize">
-                      {assignment.services?.type || 'N/A'}
-                    </Badge>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-6">
-                  <Zap className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No services assigned yet</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Go to Services page to assign services to students
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Assigned Courses Overview */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <BookOpen className="h-5 w-5 text-[#0D5C4B]" />
-                <CardTitle>Assigned Courses ({stats?.assignedCourses?.length || 0})</CardTitle>
-              </div>
-              <Link to="/admin/courses">
-                <Button variant="outline" size="sm">View All</Button>
-              </Link>
-            </div>
-            <CardDescription>Courses currently assigned to students</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {stats?.assignedCourses && stats.assignedCourses.length > 0 ? (
-                stats.assignedCourses.slice(0, 5).map((assignment: any) => (
-                  <div key={assignment.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-                        <BookOpen className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">{assignment.courses?.title || 'Unknown Course'}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Assigned to: {assignment.profiles?.name || assignment.profiles?.email || 'Unknown User'}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge variant={assignment.locked ? "destructive" : "default"} className="text-xs">
-                      {assignment.locked ? 'Locked' : 'Active'}
-                    </Badge>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-6">
-                  <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No courses assigned yet</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Go to Courses page to assign courses to students
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Recent Activity */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5 text-[#0D5C4B]" />
-                <CardTitle>Recent Enrollments</CardTitle>
+                <Calendar className="h-5 w-5 text-primary" />
+                <CardTitle> Recent Enrollments</CardTitle>
               </div>
               <Link to="/admin/students">
                 <Button variant="outline" size="sm">View All</Button>
               </Link>
             </div>
-            <CardDescription>Latest student service assignments</CardDescription>
+            <CardDescription>Latest students who joined the platform</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {stats?.recentEnrollments && stats.recentEnrollments.length > 0 ? (
-                stats.recentEnrollments.slice(0, 5).map((enrollment: any) => (
-                  <div key={enrollment.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
+              {stats?.recentStudents && stats.recentStudents.length > 0 ? (
+                stats.recentStudents.map((student: any) => (
+                  <div key={student.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-[#0D5C4B] rounded-full flex items-center justify-center">
+                      <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                         <span className="text-white text-sm font-medium">
-                          {enrollment.profiles?.name?.charAt(0)?.toUpperCase() || 'U'}
+                          {student.name?.charAt(0)?.toUpperCase() || student.email?.charAt(0)?.toUpperCase() || 'U'}
                         </span>
                       </div>
                       <div>
-                        <p className="font-medium text-sm">{enrollment.profiles?.name || 'Unknown User'}</p>
-                        <p className="text-xs text-muted-foreground">{enrollment.services?.title || 'Unknown Service'}</p>
+                        <p className="font-medium text-sm">{student.name || 'Unknown User'}</p>
+                        <p className="text-xs text-muted-foreground">{student.email}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Joined {new Date(student.created_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </p>
                       </div>
                     </div>
                     <Badge variant="outline" className="text-xs capitalize">
-                      {enrollment.status}
+                      Student
                     </Badge>
                   </div>
                 ))
@@ -304,40 +163,29 @@ const AdminDashboard = () => {
         <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-[#0D5C4B]" />
+              <TrendingUp className="h-5 w-5 text-primary" />
               <CardTitle>Performance Overview</CardTitle>
             </div>
             <CardDescription>Key metrics at a glance</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              <div className="text-center p-6 bg-gradient-to-r from-[#0D5C4B]/10 to-green-100 rounded-lg">
-                <Award className="h-8 w-8 text-[#0D5C4B] mx-auto mb-2" />
-                <p className="text-2xl font-bold text-[#0D5C4B]">{stats?.completionRate || 0}%</p>
+              <div className="text-center p-6 bg-gradient-to-r from-primary/10 to-green-100 dark:to-green-900/20 rounded-lg">
+                <Award className="h-8 w-8 text-primary mx-auto mb-2" />
+                <p className="text-2xl font-bold text-primary">{stats?.completionRate || 0}%</p>
                 <p className="text-sm text-muted-foreground">Course Completion Rate</p>
               </div>
               
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Completed Lessons</span>
-                  <span className="text-sm text-[#0D5C4B] font-semibold">{stats?.completedLessons || 0}</span>
+                  <span className="text-sm text-primary font-semibold">{stats?.completedLessons || 0}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-muted rounded-full h-2">
                   <div 
-                    className="bg-[#0D5C4B] h-2 rounded-full transition-all duration-300" 
+                    className="bg-primary h-2 rounded-full transition-all duration-300" 
                     style={{ width: `${Math.min(stats?.completionRate || 0, 100)}%` }}
                   ></div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-4">
-                <div className="text-center">
-                  <p className="text-lg font-bold text-blue-600">{stats?.assignedServices?.length || 0}</p>
-                  <p className="text-xs text-muted-foreground">Services Assigned</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold text-purple-600">{stats?.assignedCourses?.length || 0}</p>
-                  <p className="text-xs text-muted-foreground">Courses Assigned</p>
                 </div>
               </div>
             </div>
@@ -354,25 +202,25 @@ const AdminDashboard = () => {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Link to="/admin/add-user">
-              <Button variant="outline" className="w-full h-20 flex flex-col space-y-2 hover:bg-[#0D5C4B] hover:text-white transition-colors">
+              <Button variant="outline" className="w-full h-20 flex flex-col space-y-2 hover:bg-primary hover:text-white transition-colors">
                 <Users className="h-6 w-6" />
                 <span className="text-xs">Add Student</span>
               </Button>
             </Link>
             <Link to="/admin/courses">
-              <Button variant="outline" className="w-full h-20 flex flex-col space-y-2 hover:bg-[#0D5C4B] hover:text-white transition-colors">
+              <Button variant="outline" className="w-full h-20 flex flex-col space-y-2 hover:bg-primary hover:text-white transition-colors">
                 <BookOpen className="h-6 w-6" />
                 <span className="text-xs">Manage Courses</span>
               </Button>
             </Link>
             <Link to="/admin/services">
-              <Button variant="outline" className="w-full h-20 flex flex-col space-y-2 hover:bg-[#0D5C4B] hover:text-white transition-colors">
+              <Button variant="outline" className="w-full h-20 flex flex-col space-y-2 hover:bg-primary hover:text-white transition-colors">
                 <Zap className="h-6 w-6" />
                 <span className="text-xs">Manage Services</span>
               </Button>
             </Link>
             <Link to="/admin/files">
-              <Button variant="outline" className="w-full h-20 flex flex-col space-y-2 hover:bg-[#0D5C4B] hover:text-white transition-colors">
+              <Button variant="outline" className="w-full h-20 flex flex-col space-y-2 hover:bg-primary hover:text-white transition-colors">
                 <FileText className="h-6 w-6" />
                 <span className="text-xs">Share Files</span>
               </Button>

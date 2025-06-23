@@ -1,20 +1,25 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Lock, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { toast } from 'sonner';
 
 const LessonViewer = () => {
   const { courseId, lessonId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [lesson, setLesson] = useState<any>(null);
-  const [nextLesson, setNextLesson] = useState<any>(null);
+  const [allLessons, setAllLessons] = useState<any[]>([]);
+  const [currentLessonIndex, setCurrentLessonIndex] = useState(-1);
   const [userProgress, setUserProgress] = useState<any>(null);
+  const [isLessonLocked, setIsLessonLocked] = useState(false);
+  const [lessonLocks, setLessonLocks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [navigating, setNavigating] = useState(false);
 
   useEffect(() => {
     if (courseId && lessonId && user) {
@@ -24,22 +29,45 @@ const LessonViewer = () => {
 
   const fetchLessonData = async () => {
     try {
-      // Fetch lesson details
+      setLoading(true);
+
+      // Fetch all lessons in the course (ordered)
+      const { data: allLessonsData } = await supabase
+        .from('lessons')
+        .select('id, title, order, description')
+        .eq('course_id', courseId)
+        .order('order', { ascending: true });
+
+      // Fetch current lesson details
       const { data: lessonData } = await supabase
         .from('lessons')
         .select('*')
         .eq('id', lessonId)
         .single();
 
-      // Fetch next lesson
-      const { data: nextLessonData } = await supabase
-        .from('lessons')
-        .select('*')
-        .eq('course_id', courseId)
-        .gt('order', lessonData?.order || 0)
-        .order('order')
-        .limit(1)
-        .maybeSingle();
+      // Find current lesson index
+      const lessonIndex = allLessonsData?.findIndex(l => l.id === lessonId) || -1;
+
+      // Fetch all lesson locks for this user
+      const { data: lockData } = await supabase
+        .from('user_lesson_locks')
+        .select('lesson_id, locked')
+        .eq('user_id', user?.id)
+        .eq('locked', true);
+
+      // Check if current lesson is locked
+      const currentLessonLock = lockData?.find(lock => lock.lesson_id === lessonId);
+      const locked = currentLessonLock?.locked || false;
+
+      // If lesson is locked, don't fetch other data
+      if (locked) {
+        setIsLessonLocked(true);
+        setLesson(lessonData);
+        setAllLessons(allLessonsData || []);
+        setCurrentLessonIndex(lessonIndex);
+        setLoading(false);
+        return;
+      }
 
       // Fetch user progress for this lesson
       const { data: progressData } = await supabase
@@ -49,11 +77,25 @@ const LessonViewer = () => {
         .eq('user_id', user?.id)
         .maybeSingle();
 
+      // Debug logging
+      console.log('Lesson navigation debug:', {
+        lessonId,
+        lessonIndex,
+        allLessonsCount: allLessonsData?.length,
+        progressData,
+        isCompleted: progressData?.completed,
+        lockData: lockData?.length
+      });
+
       setLesson(lessonData);
-      setNextLesson(nextLessonData);
+      setAllLessons(allLessonsData || []);
+      setCurrentLessonIndex(lessonIndex);
       setUserProgress(progressData);
+      setLessonLocks(lockData || []);
+      setIsLessonLocked(false);
     } catch (error) {
       console.error('Error fetching lesson data:', error);
+      toast.error('Failed to load lesson data');
     } finally {
       setLoading(false);
     }
@@ -61,15 +103,26 @@ const LessonViewer = () => {
 
   const markComplete = async () => {
     try {
+      console.log('Marking lesson complete:', {
+        lessonId,
+        courseId,
+        userId: user?.id,
+        existingProgress: userProgress
+      });
+
       if (userProgress) {
         // Update existing progress
-        await supabase
+        const { data, error } = await supabase
           .from('user_progress')
           .update({ completed: true, pdf_viewed: true })
-          .eq('id', userProgress.id);
+          .eq('id', userProgress.id)
+          .select();
+        
+        console.log('Updated progress:', { data, error });
+        if (error) throw error;
       } else {
         // Create new progress record
-        await supabase
+        const { data, error } = await supabase
           .from('user_progress')
           .insert({
             user_id: user?.id,
@@ -77,68 +130,183 @@ const LessonViewer = () => {
             lesson_id: lessonId,
             completed: true,
             pdf_viewed: true
-          });
+          })
+          .select();
+        
+        console.log('Created progress:', { data, error });
+        if (error) throw error;
       }
       
+      toast.success('Lesson marked as complete!');
       // Refresh data
       fetchLessonData();
     } catch (error) {
       console.error('Error marking lesson complete:', error);
+      toast.error('Failed to mark lesson as complete');
+    }
+  };
+
+  const navigateToLesson = async (targetLessonId: string, direction: 'next' | 'previous') => {
+    try {
+      setNavigating(true);
+      
+      // Add smooth transition effect
+      const content = document.querySelector('.lesson-content');
+      if (content) {
+        content.classList.add('opacity-50', 'transition-opacity', 'duration-300');
+      }
+
+      // Navigate to the lesson
+      navigate(`/courses/${courseId}/lessons/${targetLessonId}`);
+      
+      // Show direction feedback
+      toast.success(`Moving to ${direction} lesson...`);
+    } catch (error) {
+      console.error('Error navigating to lesson:', error);
+      toast.error('Failed to navigate to lesson');
+    } finally {
+      setTimeout(() => setNavigating(false), 300);
+    }
+  };
+
+  const goToPreviousLesson = () => {
+    const previousLesson = allLessons[currentLessonIndex - 1];
+    if (previousLesson) {
+      navigateToLesson(previousLesson.id, 'previous');
     }
   };
 
   const goToNextLesson = () => {
+    const nextLesson = allLessons[currentLessonIndex + 1];
     if (nextLesson) {
-      navigate(`/courses/${courseId}/lessons/${nextLesson.id}`);
+      navigateToLesson(nextLesson.id, 'next');
     }
   };
 
-  // Helper function to render plain text from HTML
-  const renderTextContent = (htmlContent: string) => {
-    if (!htmlContent) return '';
-    // Strip HTML tags and decode HTML entities
-    const textContent = htmlContent
-      .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .replace(/&nbsp;/g, ' ') // Replace &nbsp; with space
-      .replace(/&amp;/g, '&') // Replace &amp; with &
-      .replace(/&lt;/g, '<') // Replace &lt; with <
-      .replace(/&gt;/g, '>') // Replace &gt; with >
-      .replace(/&quot;/g, '"') // Replace &quot; with "
-      .replace(/&#39;/g, "'") // Replace &#39; with '
-      .trim();
-    return textContent;
+  const goBackToCourse = () => {
+    navigate(`/courses/${courseId}`);
+  };
+
+  const isLessonLockedForUser = (lessonId: string) => {
+    return lessonLocks.some(lock => lock.lesson_id === lessonId);
+  };
+
+  const getPreviousLesson = () => {
+    return currentLessonIndex > 0 ? allLessons[currentLessonIndex - 1] : null;
+  };
+
+  const getNextLesson = () => {
+    return currentLessonIndex < allLessons.length - 1 ? allLessons[currentLessonIndex + 1] : null;
+  };
+
+  const isNextLessonLocked = () => {
+    const nextLesson = getNextLesson();
+    return nextLesson ? isLessonLockedForUser(nextLesson.id) : false;
+  };
+
+  const isLastLesson = () => {
+    return currentLessonIndex === allLessons.length - 1;
   };
 
   if (loading) {
-    return <div className="p-6 text-foreground">Loading lesson...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   if (!lesson) {
-    return <div className="p-6 text-foreground">Lesson not found</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="max-w-md">
+          <CardContent className="text-center py-8">
+            <p className="text-muted-foreground">Lesson not found</p>
+            <Button onClick={goBackToCourse} className="mt-4">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Course
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
+
+  // If lesson is locked, show access denied page
+  if (isLessonLocked) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock className="h-8 w-8 text-red-600 dark:text-red-400" />
+            </div>
+            <CardTitle className="text-red-800 dark:text-red-200">Lesson Access Restricted</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <div className="space-y-2">
+              <h3 className="font-semibold">{lesson.title}</h3>
+              <Badge variant="destructive" className="text-xs">
+                🔒 Restricted by Admin
+              </Badge>
+            </div>
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <div className="flex items-center justify-center text-red-700 dark:text-red-300 mb-2">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                <span className="text-sm font-medium">Access Denied</span>
+              </div>
+              <p className="text-sm text-red-600 dark:text-red-400">
+                This lesson has been restricted by admin. Please contact them for access or check back later.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button 
+                variant="outline" 
+                onClick={goBackToCourse}
+                className="flex-1"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Course
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const previousLesson = getPreviousLesson();
+  const nextLesson = getNextLesson();
+  const nextLessonLocked = isNextLessonLocked();
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-card border-b px-6 py-4">
+      <div className="bg-card border-b px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate(`/courses/${courseId}`)}
+              onClick={goBackToCourse}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Course
+              <span className="hidden sm:inline">Back to Course</span>
+              <span className="sm:hidden">Course</span>
             </Button>
-            <h1 className="text-xl font-semibold text-card-foreground">{lesson.title}</h1>
+            <div>
+              <h1 className="text-lg sm:text-xl font-semibold text-card-foreground">{lesson.title}</h1>
+              <p className="text-sm text-muted-foreground">
+                Lesson {currentLessonIndex + 1} of {allLessons.length}
+              </p>
+            </div>
           </div>
           
           <div className="flex items-center space-x-2">
             {userProgress?.completed && (
               <div className="flex items-center text-green-600">
                 <CheckCircle className="h-4 w-4 mr-1" />
-                <span className="text-sm">Completed</span>
+                <span className="text-sm hidden sm:inline">Completed</span>
               </div>
             )}
           </div>
@@ -146,15 +314,15 @@ const LessonViewer = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-6">
-        <div className="max-w-5xl mx-auto space-y-6">
+      <div className="flex-1 p-4 sm:p-6">
+        <div className="max-w-5xl mx-auto space-y-6 lesson-content">
           {/* PDF Viewer */}
           <Card>
             <CardHeader>
               <CardTitle className="text-card-foreground">Lesson Content</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="w-full h-[600px] border rounded-lg">
+              <div className="w-full h-[400px] sm:h-[600px] border rounded-lg">
                 {lesson.pdf_url ? (
                   <iframe
                     src={lesson.pdf_url}
@@ -187,29 +355,13 @@ const LessonViewer = () => {
             </Card>
           )}
 
-          {/* Next Lesson Card - Shows after completion */}
-          {userProgress?.completed && nextLesson && (
+          {/* Completion Status */}
+          {userProgress?.completed && (
             <Card className="border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
-              <CardHeader>
-                <CardTitle className="text-green-800 dark:text-green-200 flex items-center">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-center text-green-800 dark:text-green-200">
                   <CheckCircle className="h-5 w-5 mr-2" />
-                  Lesson Complete!
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-green-700 dark:text-green-300 mb-2">
-                      Great job! You've completed this lesson.
-                    </p>
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                      Ready for the next lesson: <strong>{nextLesson.title}</strong>
-                    </p>
-                  </div>
-                  <Button onClick={goToNextLesson} className="bg-green-600 hover:bg-green-700">
-                    Next Lesson
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
+                  <span className="font-medium">Lesson Complete!</span>
                 </div>
               </CardContent>
             </Card>
@@ -217,25 +369,116 @@ const LessonViewer = () => {
         </div>
       </div>
 
-      {/* Footer Actions */}
-      <div className="bg-card border-t px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div />
-          
-          <div className="flex items-center space-x-3">
+      {/* Navigation Footer */}
+      <div className="bg-card border-t px-4 sm:px-6 py-4">
+        <div className="max-w-5xl mx-auto">
+          {/* Completion Action */}
             {!userProgress?.completed && (
-              <Button onClick={markComplete}>
+            <div className="flex justify-center mb-4">
+              <Button onClick={markComplete} size="lg">
+                <CheckCircle className="h-4 w-4 mr-2" />
                 Mark Complete
               </Button>
+            </div>
             )}
             
-            {!nextLesson && userProgress?.completed && (
-              <div className="text-sm text-green-600 flex items-center">
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Course Complete! New lessons coming soon.
+          {/* Navigation Controls */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Previous Lesson */}
+            <div className="flex-1 w-full sm:w-auto">
+              {previousLesson ? (
+                <Button
+                  variant="outline"
+                  onClick={goToPreviousLesson}
+                  disabled={navigating}
+                  className="w-full sm:w-auto"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-2" />
+                  <div className="text-left">
+                    <div className="text-xs text-muted-foreground">Previous</div>
+                    <div className="text-sm font-medium truncate max-w-[200px]">
+                      {previousLesson.title}
+                    </div>
+                  </div>
+                </Button>
+              ) : (
+                <div className="w-full sm:w-auto" /> // Spacer
+              )}
+            </div>
+
+            {/* Progress Indicator */}
+            <div className="text-center px-4">
+              <div className="text-sm text-muted-foreground">
+                {currentLessonIndex + 1} / {allLessons.length}
               </div>
-            )}
+              <div className="w-32 bg-muted rounded-full h-2 mt-1">
+                <div 
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${((currentLessonIndex + 1) / allLessons.length) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Next Lesson */}
+            <div className="flex-1 w-full sm:w-auto flex justify-end">
+              {nextLesson ? (
+                nextLessonLocked ? (
+                  <Button
+                    variant="outline"
+                    disabled
+                    className="w-full sm:w-auto opacity-50"
+                  >
+                    <div className="text-right">
+                      <div className="text-xs text-muted-foreground">Next</div>
+                      <div className="text-sm font-medium flex items-center">
+                        <Lock className="h-3 w-3 mr-1" />
+                        Locked by Admin
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      console.log('Next button clicked:', {
+                        nextLesson,
+                        userProgress,
+                        isCompleted: userProgress?.completed,
+                        navigating,
+                        buttonDisabled: navigating || !userProgress?.completed
+                      });
+                      goToNextLesson();
+                    }}
+                    disabled={navigating}
+                    className="w-full sm:w-auto"
+                  >
+                    <div className="text-right">
+                      <div className="text-xs text-primary-foreground/80">Next</div>
+                      <div className="text-sm font-medium truncate max-w-[200px]">
+                        {nextLesson.title}
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )
+              ) : isLastLesson() ? (
+                <div className="text-center text-green-600 dark:text-green-400">
+                  <CheckCircle className="h-5 w-5 mx-auto mb-1" />
+                  <div className="text-sm font-medium">Course Complete!</div>
+                  <div className="text-xs">You've finished all lessons</div>
+                </div>
+              ) : null}
+            </div>
           </div>
+
+          {/* Helper Text */}
+          {nextLesson && !userProgress?.completed && (
+            <div className="text-center mt-4">
+              <p className="text-sm text-muted-foreground">
+                You can navigate to the next lesson or mark this one complete first
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

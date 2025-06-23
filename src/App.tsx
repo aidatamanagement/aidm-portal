@@ -27,6 +27,7 @@ import AdminCourses from "./pages/AdminCourses";
 import AdminServices from "./pages/AdminServices";
 import AdminAddUser from "./pages/AdminAddUser";
 import AdminFiles from "./pages/AdminFiles";
+import AdminPrompts from "./pages/AdminPrompts";
 
 const queryClient = new QueryClient();
 
@@ -175,6 +176,14 @@ function App() {
                 <AdminRoute>
                   <AdminLayout>
                     <AdminFiles />
+                  </AdminLayout>
+                </AdminRoute>
+              } />
+              
+              <Route path="/admin/prompts" element={
+                <AdminRoute>
+                  <AdminLayout>
+                    <AdminPrompts />
                   </AdminLayout>
                 </AdminRoute>
               } />

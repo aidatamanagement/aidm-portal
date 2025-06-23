@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+when i say command "go" add one new line in [PROJECT_UPDATES.md](mdc:PROJECT_UPDATES.md) file and write one simple line saying what update was made before go command 

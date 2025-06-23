@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -33,8 +32,8 @@ export const useAdminStats = () => {
         .from('user_services')
         .select(`
           *,
-          profiles(name, email),
-          services(title)
+          profiles:fk_user_services_user_id(name, email),
+          services:user_services_service_id_fkey(title)
         `)
         .order('assigned_at', { ascending: false })
         .limit(5);
