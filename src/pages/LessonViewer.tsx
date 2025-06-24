@@ -46,7 +46,7 @@ const LessonViewer = () => {
         .single();
 
       // Find current lesson index
-      const lessonIndex = allLessonsData?.findIndex(l => l.id === lessonId) || -1;
+      const lessonIndex = allLessonsData?.findIndex(l => l.id === lessonId) ?? -1;
 
       // Fetch all lesson locks for this user
       const { data: lockData } = await supabase
@@ -82,6 +82,7 @@ const LessonViewer = () => {
         lessonId,
         lessonIndex,
         allLessonsCount: allLessonsData?.length,
+        allLessonsData: allLessonsData?.map(l => ({ id: l.id, title: l.title, order: l.order })),
         progressData,
         isCompleted: progressData?.completed,
         lockData: lockData?.length
@@ -177,9 +178,20 @@ const LessonViewer = () => {
   };
 
   const goToNextLesson = () => {
+    console.log('goToNextLesson called:', {
+      currentLessonIndex,
+      allLessonsLength: allLessons.length,
+      currentLesson: allLessons[currentLessonIndex],
+      nextLessonIndex: currentLessonIndex + 1,
+      nextLesson: allLessons[currentLessonIndex + 1]
+    });
+    
     const nextLesson = allLessons[currentLessonIndex + 1];
     if (nextLesson) {
+      console.log('Navigating to next lesson:', nextLesson);
       navigateToLesson(nextLesson.id, 'next');
+    } else {
+      console.log('No next lesson found');
     }
   };
 
@@ -297,7 +309,7 @@ const LessonViewer = () => {
             <div>
               <h1 className="text-lg sm:text-xl font-semibold text-card-foreground">{lesson.title}</h1>
               <p className="text-sm text-muted-foreground">
-                Lesson {currentLessonIndex + 1} of {allLessons.length}
+                Lesson {currentLessonIndex + 1} of {allLessons.length} 
               </p>
             </div>
           </div>
