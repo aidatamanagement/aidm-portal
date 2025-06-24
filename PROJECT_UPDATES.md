@@ -4,6 +4,13 @@ This file tracks major updates and changes to the AIDM Client Portal project.
 
 ## Recent Updates
 
+### AI Architecture & Custom Agents Page Creation
+- Created comprehensive AI Architecture & Custom Agents page with detailed content about AI architecture fundamentals and custom AI agent solutions
+- Added sections covering "What is AI Architecture?", "What Are Custom AI Agents?", structured approach to building AI agents, and benefits of implementation
+- Included common applications like HR Assistant, Onboarding Guide, Finance Assistant, and Customer Support Agent
+- Added proper routing and navigation integration with Services page enhancement
+- Enhanced Services page with Featured Services section showcasing all available service pages including the new AI Architecture & Custom Agents page
+
 ### Security Enhancement - Environment Variable Configuration
 - Moved all Supabase credentials and sensitive data to environment variables
 - Created comprehensive security documentation and setup guides
@@ -13,6 +20,8 @@ This file tracks major updates and changes to the AIDM Client Portal project.
 - Implemented security best practices for credential management
 
 Security updates successfully pushed to GitHub repository
+
+Lesson navigation fix and Coach Fox chatbot integration completed
 
 ## 🆕 Recent Enrollments Feature (Latest Update)
 - **Date**: Current
@@ -1005,4 +1014,80 @@ Admin Prompts Management page created with 7 structured fields (title, context, 
 - **Error Handling**: Graceful error handling with user-friendly messages
 - **Performance**: Optimized navigation with minimal re-renders
 - **Accessibility**: Proper ARIA labels and keyboard navigation support
- 
+
+## Latest Updates
+
+Created animated ScrollJourney component with car traveling through AI phases/weeks - scroll-based framer-motion animations, floating clouds, waypoints, and interactive timeline for both AI Adoption Framework and Leadership Training pages
+
+Added interactive navigation for student services in dashboard - students can now click on active services to access them directly
+
+Added lesson navigation bug fix in LessonViewer.tsx - fixed issue where first lesson (index 0) navigation failed by changing || -1 to ?? -1
+
+Replaced existing ChatSupport component with Coachvox AI chatbot integration - embedded Coach Fox avatar with proper message handling and z-index layering
+
+Added instructor notes spacing fix - imported RichTextStyles.css to LessonViewer component for consistent formatting on student side
+
+Enhanced PDF viewer with comprehensive error handling - added Hide/Show instructor notes functionality, PDF download button, and fallback options for Google service issues
+
+Created comprehensive AI Adoption Framework page (src/pages/AIAdoptionFramework.tsx) with 12-month implementation roadmap, assessment tools, and resource library
+
+Updated site branding in index.html - removed Lovable references, added AIDM branding, updated meta tags and favicon with aidm-logo.jpg
+
+Migrated all Supabase credentials to environment variables - moved from hardcoded values to .env configuration with comprehensive security documentation (SECURITY.md, SECURITY_CHECKLIST.md)
+
+Enhanced file content replacement feature in EditFileModal.tsx - added actual file upload functionality with Supabase storage replacement, confirmation dialogs, and file size validation (50MB limit)
+
+Implemented student-side lesson lock enforcement - updated CourseDetail.tsx and LessonViewer.tsx to check lesson locks from user_lesson_locks table and prevent access to locked lessons
+
+Enhanced AdminStudentDetail with lesson management controls - added collapsible course sections with individual lesson lock/unlock toggles and visual status indicators
+
+Enhanced lesson management interface in AdminStudents - replaced static list with searchable dropdown using Command component for adding students to lessons
+
+Fixed course assignment count display issue - courses now show correct number of assigned students using dedicated admin-course-assignment-counts query
+
+Fixed Supabase join relationship errors across multiple queries - explicitly specified foreign key relationships to resolve "more than one relationship" errors
+
+Added comprehensive student management sorting - implemented 6 sorting options (Name A-Z/Z-A, Joined Date, Services count) with dropdown interface
+
+Enhanced student creation workflow - replaced navigation-based AdminAddUser with popup AddStudentModal component for better UX
+
+Implemented recent enrollments feature - updated admin dashboard to show actual student enrollments from profiles table with real-time updates
+
+Created theme-aware Logo component - built reusable component that switches between logo-light.png and logo-dark.png based on current theme
+
+## Previous Updates
+
+Initial setup of React + TypeScript + Vite application with Supabase integration
+Implemented user authentication and role-based access control
+Created admin and student dashboards with real-time data
+Built course management system with lesson tracking
+Added file management with Supabase storage integration
+Implemented AI prompt library with favorites system
+Created service management and assignment system
+Added progress tracking and analytics
+Integrated quiz system for assessments
+Built comprehensive admin interface for user management
+
+Improved ScrollJourney component with realistic road design, proper lane markings, and centered car positioning
+
+Fixed car crossing road issue in Courses page - adjusted phase spacing calculations and car positioning for different journey types (phases vs weeks)
+
+Reduced space between cards in ScrollJourney component - decreased card margins from mb-16/mb-20 to mb-12/mb-16 and adjusted phase spacing calculations accordingly
+
+Restructured Course Access cards with wider layout - changed from 3-column to 2-column grid, enhanced card design with larger icons, better spacing, and improved visual hierarchy
+
+Added "Back to Courses" button to CourseDetail page - users can now easily navigate back from individual course overview to the main courses list
+
+Created comprehensive AI Advisory & CTO Services page (src/pages/AIAdvisoryServices.tsx) with flexible service offerings, process steps, popular services, and call-to-action sections
+
+Linked AI Advisory & CTO Services page to Services page - added featured service card and navigation logic for advisory/CTO services
+
+Created comprehensive AI Digital Transformation page (src/pages/AIDigitalTransformation.tsx) with key components, detailed breakdown, outcomes, and linked it to Services page with featured card
+
+Enhanced AI Digital Transformation page with ScrollJourney animation - replaced static detailed breakdown section with interactive 5-phase transformation journey with animated car and road
+
+Fixed car animation issue in ScrollJourney component - adjusted phase spacing calculations for 5-phase journeys and improved scroll offset configuration for better animation coverage
+
+Added individual car start/end position customization to ScrollJourney component - each page now has custom car animation ranges to prevent car going beyond finish line on different content lengths
+
+Removed red speed lines and blue trail effects from car animation - simplified car movement to show only the car itself without distracting visual effects

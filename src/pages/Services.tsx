@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { Lock, CheckCircle, Clock } from 'lucide-react';
+import { Lock, CheckCircle, Clock, ArrowRight, Lightbulb, Globe } from 'lucide-react';
 
 const Services = () => {
   const { user } = useAuth();
@@ -85,6 +85,14 @@ const Services = () => {
     // If it's AI Leadership Training service, navigate to courses
     if (service.title?.toLowerCase().includes('leadership') || service.title?.toLowerCase().includes('training')) {
       navigate('/courses');
+    } else if (service.title?.toLowerCase().includes('ai adoption') || service.title?.toLowerCase().includes('framework')) {
+      navigate('/ai-adoption-framework');
+    } else if (service.title?.toLowerCase().includes('advisory') || service.title?.toLowerCase().includes('cto')) {
+      navigate('/ai-advisory-services');
+    } else if (service.title?.toLowerCase().includes('digital') || service.title?.toLowerCase().includes('transformation')) {
+      navigate('/ai-digital-transformation');
+    } else if (service.title?.toLowerCase().includes('architecture') || service.title?.toLowerCase().includes('custom agents') || service.title?.toLowerCase().includes('ai agents')) {
+      navigate('/ai-architecture-custom-agents');
     } else {
       // Handle other services as needed
       console.log('Accessing service:', service.title);
@@ -97,63 +105,65 @@ const Services = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Services</h1>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {services.map((service) => {
-          const status = getUserServiceStatus(service.id);
-          const isLocked = status === 'locked';
+      {/* Your Assigned Services */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Your Assigned Services</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-          return (
-            <Card 
-              key={service.id} 
-              className={`hover:shadow-md transition-shadow ${
-                isLocked ? 'opacity-60' : 'cursor-pointer'
-              }`}
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    {getStatusIcon(status)}
-                    <CardTitle className="text-lg">{service.title}</CardTitle>
+          {services.map((service) => {
+            const status = getUserServiceStatus(service.id);
+            const isLocked = status === 'locked';
+
+            return (
+              <Card 
+                key={service.id} 
+                className={`hover:shadow-md transition-shadow ${
+                  isLocked ? 'opacity-60' : 'cursor-pointer'
+                }`}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      {getStatusIcon(status)}
+                      <CardTitle className="text-lg">{service.title}</CardTitle>
+                    </div>
+                    {getStatusBadge(status)}
                   </div>
-                  {getStatusBadge(status)}
-                </div>
-                {service.description && (
-                  <CardDescription>{service.description}</CardDescription>
-                )}
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <span className="text-sm font-medium text-gray-700">Type: </span>
-                    <span className="text-sm text-gray-600 capitalize">{service.type}</span>
-                  </div>
+                  {service.description && (
+                    <CardDescription>{service.description}</CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Type: </span>
+                      <span className="text-sm text-gray-600 capitalize">{service.type}</span>
+                    </div>
 
-                  <Button 
-                    className="w-full" 
-                    disabled={isLocked}
-                    variant={isLocked ? "outline" : "default"}
-                    onClick={() => handleServiceClick(service, status)}
-                  >
-                    {isLocked ? (
-                      <>
-                        <Lock className="h-4 w-4 mr-2" />
-                        Locked
-                      </>
-                    ) : status === 'pending' ? (
-                      'View Details'
-                    ) : (
-                      'Access Service'
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                    <Button 
+                      className="w-full" 
+                      disabled={isLocked}
+                      variant={isLocked ? "outline" : "default"}
+                      onClick={() => handleServiceClick(service, status)}
+                    >
+                      {isLocked ? (
+                        <>
+                          <Lock className="h-4 w-4 mr-2" />
+                          Locked
+                        </>
+                      ) : status === 'pending' ? (
+                        'View Details'
+                      ) : (
+                        'Access Service'
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
       {services.length === 0 && (

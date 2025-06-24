@@ -124,3 +124,50 @@
 .dark .ql-editor h6 {
   font-weight: bold !important;
 }
+
+/* Rich Text Display Styles (for viewing, not editing) */
+.ql-editor p {
+  margin: 0.5em 0 !important;
+  line-height: 1.6 !important;
+}
+
+.ql-editor p:first-child {
+  margin-top: 0 !important;
+}
+
+.ql-editor p:last-child {
+  margin-bottom: 0 !important;
+}
+
+.ql-editor ul li, .ql-editor ol li {
+  margin: 0.2em 0;
+  line-height: 1.5;
+}
+
+.ql-editor div {
+  margin: 0.3em 0;
+}
+
+/* Ensure spacing for various HTML elements */
+.ql-editor h1 { margin: 1em 0 0.5em 0 !important; }
+.ql-editor h2 { margin: 0.8em 0 0.4em 0 !important; }
+.ql-editor h3 { margin: 0.6em 0 0.3em 0 !important; }
+.ql-editor h4, .ql-editor h5, .ql-editor h6 { margin: 0.5em 0 0.2em 0 !important; }
+
+/* Preserve line breaks and spacing */
+.ql-editor br {
+  display: block;
+  margin: 0.5em 0;
+  content: "";
+}
+
+/* Better spacing for lists */
+.ql-editor ul, .ql-editor ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.ql-editor blockquote {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+}

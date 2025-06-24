@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { FileText, Video, Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { FileText, Video, Lock, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 
 const CourseDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [course, setCourse] = useState<any>(null);
   const [lessons, setLessons] = useState<any[]>([]);
   const [userProgress, setUserProgress] = useState<any[]>([]);
@@ -83,6 +84,18 @@ const CourseDetail = () => {
 
   return (
     <div className="space-y-6">
+      {/* Back to Courses Button */}
+      <div className="flex items-center justify-between">
+        <Button
+          variant="outline" 
+          onClick={() => navigate('/courses')}
+          className="flex items-center space-x-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>Back to Courses</span>
+        </Button>
+      </div>
+
       {/* Course Header */}
       <Card>
         <CardHeader>
@@ -135,7 +148,7 @@ const CourseDetail = () => {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
-                        <h3 className="font-medium">{lesson.title}</h3>
+                      <h3 className="font-medium">{lesson.title}</h3>
                         {isAdminLocked && (
                           <Badge variant="destructive" className="text-xs">
                             🔒 Restricted

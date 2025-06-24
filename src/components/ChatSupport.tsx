@@ -67,7 +67,7 @@ const ChatSupport: React.FC = () => {
         }}
         title="Coach Fox AI Assistant"
       />
-    </div>
+        </div>
   );
 };
 

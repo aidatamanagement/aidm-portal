@@ -7,13 +7,14 @@ import SplitText from '@/components/SplitText';
 import CountUp from '@/components/CountUp';
 import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
-import { Link } from 'react-router-dom';
-import { BookOpen, FileText, MessageSquare, Zap, Heart, Copy, TrendingUp, Users, Award } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { BookOpen, FileText, MessageSquare, Zap, Heart, Copy, TrendingUp, Users, Award, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: stats, isLoading, error, isFetching } = useRealtimeDashboard();
   const [profile, setProfile] = useState<any>(null);
   const [nextLessonInfo, setNextLessonInfo] = useState<any>(null);
@@ -147,6 +148,23 @@ const Dashboard = () => {
 
   const handleNameAnimationComplete = () => {
     console.log('Name animation completed!');
+  };
+
+  const handleServiceClick = (service: any, status: string) => {
+    if (status === 'locked') {
+      toast.error('This service is not available. Contact support for access.');
+      return;
+    }
+    
+    // If it's AI Leadership Training service, navigate to courses
+    if (service.title?.toLowerCase().includes('leadership') || service.title?.toLowerCase().includes('training')) {
+      navigate('/courses');
+    } else if (service.title?.toLowerCase().includes('ai adoption') || service.title?.toLowerCase().includes('framework')) {
+      navigate('/ai-adoption-framework');
+    } else {
+      // For other services, go to the main services page
+      navigate('/services');
+    }
   };
 
   const userName = profile?.name || user?.user_metadata?.name || 'Valued Client';
@@ -461,19 +479,38 @@ const Dashboard = () => {
                 </div>
               ) : (
                 stats.enrolledServices.slice(0, 3).map((userService: any) => (
-                  <div key={userService.service_id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
-                    <div className="flex items-center space-x-3">
+                  <div 
+                    key={userService.service_id} 
+                    className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${
+                      userService.status === 'active' 
+                        ? 'hover:bg-accent/50 cursor-pointer hover:border-primary/50' 
+                        : 'opacity-75'
+                    }`}
+                    onClick={() => userService.status === 'active' && handleServiceClick(userService.services, userService.status)}
+                  >
+                    <div className="flex items-center space-x-3 flex-1">
                       <div className={`w-2 h-2 rounded-full ${
                         userService.status === 'active' ? 'bg-green-500' : 
                         userService.status === 'pending' ? 'bg-yellow-500' : 'bg-gray-400'
                       }`}></div>
-                      <div>
+                      <div className="flex-1">
                         <p className="font-medium text-sm">{userService.services.title}</p>
+                        <div className="flex items-center space-x-2 mt-1">
                         <Badge variant="outline" className="text-xs capitalize">
                           {userService.status}
                         </Badge>
+                          {userService.status === 'active' && (
+                            <span className="text-xs text-muted-foreground">Click to access</span>
+                          )}
+                          {userService.status === 'pending' && (
+                            <span className="text-xs text-muted-foreground">Activation pending</span>
+                          )}
+                        </div>
                       </div>
                     </div>
+                    {userService.status === 'active' && (
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    )}
                   </div>
                 ))
               )}

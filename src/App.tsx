@@ -28,6 +28,10 @@ import AdminServices from "./pages/AdminServices";
 import AdminAddUser from "./pages/AdminAddUser";
 import AdminFiles from "./pages/AdminFiles";
 import AdminPrompts from "./pages/AdminPrompts";
+import AIAdoptionFramework from "./pages/AIAdoptionFramework";
+import AIAdvisoryServices from "./pages/AIAdvisoryServices";
+import AIDigitalTransformation from "./pages/AIDigitalTransformation";
+import AIArchitectureCustomAgents from "./pages/AIArchitectureCustomAgents";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +45,37 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/ai-adoption-framework" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AIAdoptionFramework />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/ai-advisory-services" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AIAdvisoryServices />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/ai-digital-transformation" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AIDigitalTransformation />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/ai-architecture-custom-agents" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AIArchitectureCustomAgents />
+                  </Layout>
+                </ProtectedRoute>
+              } />
               
               {/* Protected User Routes */}
               <Route path="/dashboard" element={
