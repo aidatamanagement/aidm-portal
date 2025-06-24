@@ -1,73 +1,143 @@
-# Welcome to your Lovable project
+# AIDM Client Portal
 
-## Project info
+A comprehensive AI Data Management Client Portal built with React, TypeScript, and Supabase.
 
-**URL**: https://lovable.dev/projects/cc5373a7-ac16-41b5-bdb5-a889d9edd5f6
+## 🔐 Security & Environment Setup
 
-## How can I edit this code?
+### Quick Start
+1. Copy environment template:
+   ```bash
+   cp .env.example .env
+   ```
 
-There are several ways of editing your application.
+2. Configure your Supabase credentials in `.env`:
+   ```bash
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   VITE_SUPABASE_FUNCTION_URL=your_supabase_function_url
+   VITE_NODE_ENV=development
+   ```
 
-**Use Lovable**
+3. Install dependencies and start:
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/cc5373a7-ac16-41b5-bdb5-a889d9edd5f6) and start prompting.
+### 🚨 Important Security Notes
+- **Never commit `.env` files** to version control
+- All credentials are now environment-based for security
+- See `SECURITY.md` for comprehensive security guidelines
+- Use `.env.example` as template for required variables
 
-Changes made via Lovable will be committed automatically to this repo.
+## Tech Stack
 
-**Use your preferred IDE**
+- **Frontend**: React 18, TypeScript, Vite
+- **UI**: Shadcn UI, Tailwind CSS, Radix UI
+- **Backend**: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
+- **Real-time**: Supabase Realtime subscriptions
+- **Deployment**: Vercel/Netlify ready
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Features
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### User Portal
+- 🔐 Secure authentication with role-based access
+- 📚 Course management and progress tracking
+- 📁 File management with upload/download
+- 💬 AI prompt library with favorites
+- 📊 Personal dashboard with analytics
+- 🎯 Service assignment and tracking
 
-Follow these steps:
+### Admin Portal  
+- 👥 User management (create, edit, delete)
+- 📖 Course and lesson management
+- 🔒 Lesson access control (lock/unlock)
+- 📈 Real-time analytics dashboard
+- 🗂️ File management system
+- ⚙️ Service assignment management
+- 📝 Prompt library administration
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Environment Variables
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Required environment variables (see `.env.example`):
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+# Supabase Configuration
+VITE_SUPABASE_URL=          # Your Supabase project URL
+VITE_SUPABASE_ANON_KEY=     # Your Supabase anonymous key
+VITE_SUPABASE_FUNCTION_URL= # Supabase Edge Functions URL
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# Environment
+VITE_NODE_ENV=              # development/production
 ```
 
-**Edit a file directly in GitHub**
+## Development
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+# Install dependencies
+npm install
 
-**Use GitHub Codespaces**
+# Start development server
+npm run dev
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Build for production
+npm run build
 
-## What technologies are used for this project?
+# Preview production build
+npm run preview
+```
 
-This project is built with:
+## Deployment
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Vercel (Recommended)
+1. Connect your GitHub repository
+2. Set environment variables in Vercel dashboard
+3. Deploy automatically on push
 
-## How can I deploy this project?
+### Netlify
+1. Connect repository or drag build folder
+2. Set environment variables in site settings
+3. Configure build command: `npm run build`
 
-Simply open [Lovable](https://lovable.dev/projects/cc5373a7-ac16-41b5-bdb5-a889d9edd5f6) and click on Share -> Publish.
+## Database Schema
 
-## Can I connect a custom domain to my Lovable project?
+The application uses Supabase with the following key tables:
+- `profiles` - User profiles and roles
+- `courses` - Course information
+- `lessons` - Individual lesson content
+- `user_course_assignments` - Course enrollments
+- `user_progress` - Learning progress tracking
+- `user_lesson_locks` - Lesson access control
+- `services` - Available services
+- `user_services` - Service assignments
+- `files` - File metadata and storage
+- `prompts` - AI prompt library
+- `favorites` - User favorites
 
-Yes, you can!
+## Security Features
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- 🔐 Environment-based credential management
+- 🛡️ Row Level Security (RLS) policies
+- 🔑 JWT-based authentication
+- 👥 Role-based access control (admin/user)
+- 🚫 Credential exposure prevention
+- 📝 Comprehensive security documentation
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Configure environment variables
+4. Make your changes
+5. Submit a pull request
+
+## Support
+
+For support or questions:
+- Check `SECURITY.md` for security-related setup
+- Review environment variable configuration
+- Ensure all required variables are set
+
+---
+
+⚠️ **Security Reminder**: Always use environment variables for sensitive data. Never commit credentials to version control.

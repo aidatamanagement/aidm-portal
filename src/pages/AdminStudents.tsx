@@ -84,7 +84,7 @@ const AdminStudents = () => {
         throw new Error('No active session');
       }
 
-      const response = await fetch(`https://oimqzyfmglyhljjuboek.supabase.co/functions/v1/delete-user`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_FUNCTION_URL}/delete-user`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,

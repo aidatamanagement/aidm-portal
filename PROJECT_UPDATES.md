@@ -1,3 +1,17 @@
+# Project Updates
+
+This file tracks major updates and changes to the AIDM Client Portal project.
+
+## Recent Updates
+
+### Security Enhancement - Environment Variable Configuration
+- Moved all Supabase credentials and sensitive data to environment variables
+- Created comprehensive security documentation and setup guides
+- Updated application configuration to use environment-based credentials
+- Added proper TypeScript declarations for environment variables
+- Enhanced .gitignore to prevent credential exposure
+- Implemented security best practices for credential management
+
 ## 🆕 Recent Enrollments Feature (Latest Update)
 - **Date**: Current
 - **Status**: ✅ COMPLETED

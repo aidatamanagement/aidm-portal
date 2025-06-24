@@ -34,7 +34,7 @@ const AdminAddUser = () => {
       }
 
       // Call the Edge Function
-      const response = await fetch(`https://oimqzyfmglyhljjuboek.supabase.co/functions/v1/create-user`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_FUNCTION_URL}/create-user`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
