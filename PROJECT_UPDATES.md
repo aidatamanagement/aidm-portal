@@ -4,6 +4,12 @@ This file tracks major updates and changes to the AIDM Client Portal project.
 
 ## Recent Updates
 
+### Password Reset Sign-In Requirement
+- Modified password reset flow to require users to sign in after password update
+- Added automatic sign-out after successful password reset to ensure users must authenticate with new password
+- Users are now redirected to sign-in page instead of being automatically logged into dashboard
+- Enhanced security by requiring explicit authentication with new credentials
+
 ### Password Visibility Toggle (Eye Icons)
 - Added eye icons to all password fields for better user experience
 - Users can now toggle password visibility on login form
