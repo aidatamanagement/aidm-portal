@@ -4,6 +4,13 @@ This file tracks major updates and changes to the AIDM Client Portal project.
 
 ## Recent Updates
 
+### Vercel Page Refresh Fix
+- Fixed Vercel deployment page refresh errors by adding proper client-side routing configuration
+- Created vercel.json with rewrite rules to redirect all routes to index.html for React Router handling
+- Added security headers and cache control settings for improved performance and security
+
+## Recent Updates
+
 ### AI Architecture & Custom Agents Page Creation
 - Created comprehensive AI Architecture & Custom Agents page with detailed content about AI architecture fundamentals and custom AI agent solutions
 - Added sections covering "What is AI Architecture?", "What Are Custom AI Agents?", structured approach to building AI agents, and benefits of implementation
