@@ -4,6 +4,12 @@ This file tracks major updates and changes to the AIDM Client Portal project.
 
 ## Recent Updates
 
+### Password Reset Auto-Redirect Fix
+- Fixed issue where users were automatically redirected to dashboard during password reset
+- Added conditional logic to prevent dashboard redirect when ?reset=true parameter is present
+- Users can now properly complete the password reset flow without being redirected away
+- Enhanced URL parameter detection to maintain password reset state throughout the process
+
 ### Password Reset Functionality Fix
 - Fixed incomplete forgot password implementation that was not working properly
 - Added complete password reset flow with URL parameter detection and session recovery

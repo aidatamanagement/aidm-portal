@@ -36,20 +36,12 @@ const Auth = () => {
   }, [location]);
 
   useEffect(() => {
-    // Check for password reset URL parameter
-    const urlParams = new URLSearchParams(location.search);
-    const isPasswordReset = urlParams.get('reset') === 'true';
-    
-    if (isPasswordReset) {
-      setShowPasswordReset(true);
-      setShowForgotPassword(false);
-      setResetEmailSent(false);
-    }
-  }, [location]);
-
-  useEffect(() => {
     const checkUserRoleAndRedirect = async () => {
-      if (user) {
+      // Don't redirect if we're in password reset mode
+      const urlParams = new URLSearchParams(location.search);
+      const isPasswordReset = urlParams.get('reset') === 'true';
+      
+      if (user && !isPasswordReset) {
         try {
           const { data, error } = await supabase
             .from('profiles')
@@ -77,7 +69,7 @@ const Auth = () => {
     };
 
     checkUserRoleAndRedirect();
-  }, [user, navigate]);
+  }, [user, navigate, location]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -283,7 +275,7 @@ const Auth = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>{showForgotPassword ? 'Reset Password' : 'Welcome '}</CardTitle>
+            <CardTitle>{showForgotPassword ? 'Reset Password' : 'Welcome'}</CardTitle>
             <CardDescription>
               {showForgotPassword 
                 ? 'Enter your email to receive a password reset link'
