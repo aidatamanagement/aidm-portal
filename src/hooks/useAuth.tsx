@@ -11,7 +11,13 @@ export const useAuth = () => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.id);
+        
+        if (event === 'PASSWORD_RECOVERY') {
+          console.log('Password recovery session detected');
+        }
+        
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);

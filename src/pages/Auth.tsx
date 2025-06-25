@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,17 +7,45 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { Loader2, Mail } from 'lucide-react';
+import { Loader2, Mail, Key } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+
+  useEffect(() => {
+    // Check for password reset URL parameter
+    const urlParams = new URLSearchParams(location.search);
+    const isPasswordReset = urlParams.get('reset') === 'true';
+    
+    if (isPasswordReset) {
+      setShowPasswordReset(true);
+      setShowForgotPassword(false);
+      setResetEmailSent(false);
+    }
+  }, [location]);
+
+  useEffect(() => {
+    // Check for password reset URL parameter
+    const urlParams = new URLSearchParams(location.search);
+    const isPasswordReset = urlParams.get('reset') === 'true';
+    
+    if (isPasswordReset) {
+      setShowPasswordReset(true);
+      setShowForgotPassword(false);
+      setResetEmailSent(false);
+    }
+  }, [location]);
 
   useEffect(() => {
     const checkUserRoleAndRedirect = async () => {
@@ -102,6 +130,46 @@ const Auth = () => {
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success('Password updated successfully! You can now sign in.');
+      
+      // Reset form and redirect to sign in
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowPasswordReset(false);
+      navigate('/auth', { replace: true });
+    } catch (error: any) {
+      toast.error('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (resetEmailSent) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-primary/5 flex items-center justify-center p-4">
@@ -128,6 +196,79 @@ const Auth = () => {
             </Button>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (showPasswordReset) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-primary/5 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-8">
+          {/* Logo */}
+          <div className="text-center">
+            <Logo className="mx-auto mb-6" />
+          </div>
+
+          <Card>
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Key className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle>Set New Password</CardTitle>
+              <CardDescription>
+                Enter your new password below
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handlePasswordReset} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    placeholder="Enter your new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="Confirm your new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                </div>
+
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Update Password
+                </Button>
+
+                <div className="text-center">
+                  <Button
+                    type="button"
+                    variant="link"
+                    onClick={() => {
+                      setShowPasswordReset(false);
+                      navigate('/auth', { replace: true });
+                    }}
+                    className="text-sm text-muted-foreground hover:text-primary"
+                  >
+                    Back to Sign In
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
