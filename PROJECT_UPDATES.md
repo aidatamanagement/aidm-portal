@@ -4,6 +4,13 @@ This file tracks major updates and changes to the AIDM Client Portal project.
 
 ## Recent Updates
 
+### Password Visibility Toggle (Eye Icons)
+- Added eye icons to all password fields for better user experience
+- Users can now toggle password visibility on login form
+- Password reset form also includes eye icons for new password and confirm password fields
+- Enhanced accessibility with proper button states and hover effects
+- Implemented with Eye and EyeOff icons from Lucide React
+
 ### Password Reset Auto-Redirect Fix
 - Fixed issue where users were automatically redirected to dashboard during password reset
 - Added conditional logic to prevent dashboard redirect when ?reset=true parameter is present
