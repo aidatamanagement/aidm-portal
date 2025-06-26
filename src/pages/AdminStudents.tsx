@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
-import { Search, Eye, Users, Trash2, ArrowUpDown } from 'lucide-react';
+import { Search, Eye, Users, Trash2, ArrowUpDown, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import DeleteUserDialog from '@/components/DeleteUserDialog';
 import AddStudentModal from '@/components/AddStudentModal';
@@ -25,13 +25,13 @@ const AdminStudents = () => {
 
   const queryClient = useQueryClient();
 
-  const { data: students, isLoading, error } = useQuery({
-    queryKey: ['admin-students'],
+  const { data: users, isLoading, error } = useQuery({
+    queryKey: ['admin-users'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('role', 'student')
+        .in('role', ['student', 'admin'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -39,8 +39,8 @@ const AdminStudents = () => {
     },
   });
 
-  const { data: studentServices } = useQuery({
-    queryKey: ['admin-student-services'],
+  const { data: userServices } = useQuery({
+    queryKey: ['admin-user-services'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('user_services')
@@ -58,8 +58,8 @@ const AdminStudents = () => {
     },
   });
 
-  const { data: studentCourses } = useQuery({
-    queryKey: ['admin-student-courses'],
+  const { data: userCourses } = useQuery({
+    queryKey: ['admin-user-courses'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('user_course_assignments')
@@ -103,7 +103,7 @@ const AdminStudents = () => {
     },
     onSuccess: () => {
       toast.success('User deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['admin-students'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       setDeleteDialog({ isOpen: false, user: null });
     },
     onError: (error: any) => {
@@ -126,19 +126,18 @@ const AdminStudents = () => {
     setDeleteDialog({ isOpen: false, user: null });
   };
 
-  const getStudentServices = (studentId: string) => {
-    return studentServices?.filter(service => service.user_id === studentId) || [];
+  const getUserServices = (userId: string) => {
+    return userServices?.filter(service => service.user_id === userId) || [];
   };
 
-  const getStudentCourses = (studentId: string) => {
-    return studentCourses?.filter(course => course.user_id === studentId) || [];
+  const getUserCourses = (userId: string) => {
+    return userCourses?.filter(course => course.user_id === userId) || [];
   };
 
-  // Sorting function
-  const sortStudents = (students: any[]) => {
-    if (!students) return [];
+  const sortUsers = (users: any[]) => {
+    if (!users) return [];
     
-    return [...students].sort((a, b) => {
+    return [...users].sort((a, b) => {
       switch (sortOption) {
         case 'name-asc':
           return (a.name || '').localeCompare(b.name || '');
@@ -149,31 +148,36 @@ const AdminStudents = () => {
         case 'joined-desc':
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case 'services-asc':
-          const aServices = getStudentServices(a.id).length;
-          const bServices = getStudentServices(b.id).length;
+          const aServices = getUserServices(a.id).length;
+          const bServices = getUserServices(b.id).length;
           return aServices - bServices;
         case 'services-desc':
-          const aServicesDesc = getStudentServices(a.id).length;
-          const bServicesDesc = getStudentServices(b.id).length;
+          const aServicesDesc = getUserServices(a.id).length;
+          const bServicesDesc = getUserServices(b.id).length;
           return bServicesDesc - aServicesDesc;
+        case 'role-asc':
+          return a.role.localeCompare(b.role);
+        case 'role-desc':
+          return b.role.localeCompare(a.role);
         default:
           return 0;
       }
     });
   };
 
-  const filteredStudents = students?.filter(student =>
-    student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.organization?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users?.filter(user =>
+    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.organization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.role?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const sortedAndFilteredStudents = sortStudents(filteredStudents || []);
+  const sortedAndFilteredUsers = sortUsers(filteredUsers || []);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D5C4B]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -182,7 +186,7 @@ const AdminStudents = () => {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <p className="text-destructive mb-4">Error loading students</p>
+          <p className="text-destructive mb-4">Error loading users</p>
           <Button onClick={() => window.location.reload()}>Retry</Button>
         </div>
       </div>
@@ -194,11 +198,11 @@ const AdminStudents = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-[#0D5C4B]">Student Management</h1>
-          <p className="text-muted-foreground">Manage student accounts, services, and progress</p>
+          <h1 className="text-3xl font-bold text-primary">User Management</h1>
+          <p className="text-muted-foreground">Manage student and admin accounts, services, and progress</p>
         </div>
         <Button
-          className="bg-[#0D5C4B] hover:bg-green-700"
+          className="bg-primary hover:bg-primary/90"
           onClick={() => setIsAddModalOpen(true)}
         >
             <Users className="h-4 w-4 mr-2" />
@@ -211,14 +215,14 @@ const AdminStudents = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Search className="h-5 w-5" />
-            <span>Search & Sort Students</span>
+            <span>Search & Sort Users</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex space-x-4">
             <div className="flex-1">
               <Input
-                placeholder="Search by name, email, or organization..."
+                placeholder="Search by name, email, organization, or role..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
@@ -236,6 +240,8 @@ const AdminStudents = () => {
                   <SelectItem value="name-desc">Name Z to A</SelectItem>
                   <SelectItem value="joined-desc">Joined Date (Newest First)</SelectItem>
                   <SelectItem value="joined-asc">Joined Date (Oldest First)</SelectItem>
+                  <SelectItem value="role-asc">Role (Admin First)</SelectItem>
+                  <SelectItem value="role-desc">Role (Student First)</SelectItem>
                   <SelectItem value="services-desc">Services (High to Low)</SelectItem>
                   <SelectItem value="services-asc">Services (Low to High)</SelectItem>
                 </SelectContent>
@@ -245,13 +251,13 @@ const AdminStudents = () => {
         </CardContent>
       </Card>
 
-      {/* Students Table */}
+      {/* Users Table */}
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Students ({sortedAndFilteredStudents?.length || 0})</CardTitle>
-              <CardDescription>All registered students in the system</CardDescription>
+              <CardTitle>Users ({sortedAndFilteredUsers?.length || 0})</CardTitle>
+              <CardDescription>All registered students and admins in the system</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -259,7 +265,7 @@ const AdminStudents = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Student</TableHead>
+                <TableHead>User</TableHead>
                 <TableHead>Organization</TableHead>
                 <TableHead>Services</TableHead>
                 <TableHead>Courses</TableHead>
@@ -268,79 +274,88 @@ const AdminStudents = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedAndFilteredStudents?.map((student) => {
-                const studentServicesList = getStudentServices(student.id);
-                const studentCoursesList = getStudentCourses(student.id);
+              {sortedAndFilteredUsers?.map((user) => {
+                const userServicesList = getUserServices(user.id);
+                const userCoursesList = getUserCourses(user.id);
+                const isAdmin = user.role === 'admin';
                 
                 return (
-                  <TableRow key={student.id} className="hover:bg-accent/50">
+                  <TableRow key={user.id} className="hover:bg-accent/50">
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">
                           <AvatarImage 
-                            src={student.profile_image || ''} 
-                            alt={student.name || 'Student'} 
+                            src={user.profile_image || ''} 
+                            alt={user.name || 'User'} 
                           />
-                          <AvatarFallback className="bg-[#0D5C4B] text-white">
-                            {student.name?.charAt(0)?.toUpperCase() || 'U'}
+                          <AvatarFallback className={isAdmin ? "bg-blue-600 text-white" : "bg-primary text-white"}>
+                            {user.name?.charAt(0)?.toUpperCase() || 'U'}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{student.name}</p>
-                          <p className="text-sm text-muted-foreground">{student.email}</p>
+                          <div className="flex items-center space-x-2">
+                            <p className="font-medium">{user.name}</p>
+                            {isAdmin && (
+                              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                <Shield className="h-3 w-3 mr-1" />
+                                Admin
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <span className="text-sm font-medium">{student.organization || '-'}</span>
-                        {student.organization_role && (
-                          <p className="text-xs text-muted-foreground">{student.organization_role}</p>
+                        <span className="text-sm font-medium">{user.organization || '-'}</span>
+                        {user.organization_role && (
+                          <p className="text-xs text-muted-foreground">{user.organization_role}</p>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
-                        {studentServicesList.slice(0, 2).map((service: any) => (
+                        {userServicesList.slice(0, 2).map((service: any) => (
                           <Badge key={service.services?.id} variant="outline" className="text-xs">
                             {service.services?.title}
                           </Badge>
                         ))}
-                        {studentServicesList.length > 2 && (
+                        {userServicesList.length > 2 && (
                           <Badge variant="outline" className="text-xs">
-                            +{studentServicesList.length - 2} more
+                            +{userServicesList.length - 2} more
                           </Badge>
                         )}
-                        {!studentServicesList.length && (
+                        {!userServicesList.length && (
                           <span className="text-xs text-muted-foreground">No services</span>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
-                        {studentCoursesList.slice(0, 1).map((course: any) => (
+                        {userCoursesList.slice(0, 1).map((course: any) => (
                           <Badge key={course.courses?.id} variant="secondary" className="text-xs">
                             {course.courses?.title}
                           </Badge>
                         ))}
-                        {studentCoursesList.length > 1 && (
+                        {userCoursesList.length > 1 && (
                           <Badge variant="secondary" className="text-xs">
-                            +{studentCoursesList.length - 1} more
+                            +{userCoursesList.length - 1} more
                           </Badge>
                         )}
-                        {!studentCoursesList.length && (
+                        {!userCoursesList.length && (
                           <span className="text-xs text-muted-foreground">No courses</span>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
                       <span className="text-sm">
-                        {new Date(student.created_at).toLocaleDateString()}
+                        {new Date(user.created_at).toLocaleDateString()}
                       </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        <Link to={`/admin/students/${student.id}`}>
+                        <Link to={`/admin/students/${user.id}`}>
                           <Button variant="outline" size="sm">
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -348,7 +363,7 @@ const AdminStudents = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDeleteUser(student)}
+                          onClick={() => handleDeleteUser(user)}
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -361,10 +376,10 @@ const AdminStudents = () => {
             </TableBody>
           </Table>
           
-          {sortedAndFilteredStudents?.length === 0 && (
+          {sortedAndFilteredUsers?.length === 0 && (
             <div className="text-center py-8">
               <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-lg font-semibold text-muted-foreground">No students found</p>
+              <p className="text-lg font-semibold text-muted-foreground">No users found</p>
               <p className="text-sm text-muted-foreground">
                 {searchTerm ? 'Try adjusting your search criteria' : 'Add your first student to get started'}
               </p>

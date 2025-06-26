@@ -12,7 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ArrowLeft, User, Zap, BookOpen, FileText, Plus, X, ChevronDown, ChevronRight, Lock, Unlock } from 'lucide-react';
+import { ArrowLeft, User, Zap, BookOpen, FileText, Plus, X, ChevronDown, ChevronRight, Lock, Unlock, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AssignServiceModal from '@/components/AssignServiceModal';
 import AdminFilesList from '@/components/AdminFilesList';
@@ -321,6 +321,13 @@ const AdminStudentDetail = () => {
   const assignedServiceIds = userServices?.map(us => us.service_id).filter(Boolean) || [];
   const assignedCourseIds = userCourses?.map(uc => uc.course_id).filter(Boolean) || [];
   const availableCoursesToAssign = availableCourses?.filter(course => !assignedCourseIds.includes(course.id)) || [];
+  
+  // Check if this is an admin user
+  const isAdmin = student.role === 'admin';
+  const themeColor = isAdmin ? 'bg-blue-600' : 'bg-primary';
+  const themeColorHover = isAdmin ? 'hover:bg-blue-700' : 'hover:bg-primary/90';
+  const textThemeColor = isAdmin ? 'text-blue-600' : 'text-primary';
+  const borderThemeColor = isAdmin ? 'border-blue-600' : 'border-primary';
 
   return (
     <div className="space-y-6">
@@ -336,12 +343,22 @@ const AdminStudentDetail = () => {
             <img 
               src={student.profile_image} 
               alt={student.name}
-              className="w-16 h-16 rounded-full object-cover border-2 border-[#0D5C4B]"
+              className={`w-16 h-16 rounded-full object-cover border-2 ${borderThemeColor}`}
             />
           )}
           <div>
-            <h1 className="text-3xl font-bold text-[#0D5C4B]">{student.name}</h1>
-            <p className="text-muted-foreground">Manage student profile and assignments</p>
+            <div className="flex items-center space-x-3">
+              <h1 className={`text-3xl font-bold ${textThemeColor}`}>{student.name}</h1>
+              {isAdmin && (
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                  <Shield className="h-4 w-4 mr-1" />
+                  Admin
+                </Badge>
+              )}
+            </div>
+            <p className="text-muted-foreground">
+              {isAdmin ? 'Manage admin profile and assignments' : 'Manage student profile and assignments'}
+            </p>
           </div>
         </div>
       </div>
@@ -352,13 +369,14 @@ const AdminStudentDetail = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
-                <User className="h-5 w-5 text-[#0D5C4B]" />
+                <User className={`h-5 w-5 ${textThemeColor}`} />
                 <CardTitle>Profile Information</CardTitle>
               </div>
               <Button
                 variant={editMode ? "default" : "outline"}
                 onClick={() => editMode ? handleSave() : setEditMode(true)}
                 disabled={updateStudentMutation.isPending}
+                className={editMode ? `${themeColor} ${themeColorHover} text-white` : ''}
               >
                 {editMode ? 'Save Changes' : 'Edit Profile'}
               </Button>
@@ -413,13 +431,13 @@ const AdminStudentDetail = () => {
             <CardTitle>Quick Stats</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="text-center p-4 bg-[#0D5C4B]/10 rounded-lg">
-              <p className="text-2xl font-bold text-[#0D5C4B]">{userServices?.length || 0}</p>
+            <div className={`text-center p-4 rounded-lg ${isAdmin ? 'bg-blue-50' : 'bg-primary/10'}`}>
+              <p className={`text-2xl font-bold ${textThemeColor}`}>{userServices?.length || 0}</p>
               <p className="text-sm text-muted-foreground">Active Services</p>
             </div>
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <p className="text-2xl font-bold text-blue-600">{userCourses?.length || 0}</p>
-              <p className="text-sm text-muted-foreground">Enrolled Courses</p>
+            <div className="text-center p-4 bg-secondary/50 rounded-lg">
+              <p className="text-2xl font-bold text-secondary-foreground">{userCourses?.length || 0}</p>
+              <p className="text-sm text-muted-foreground">{isAdmin ? 'Enrolled Courses' : 'Enrolled Courses'}</p>
             </div>
           </CardContent>
         </Card>
@@ -430,7 +448,7 @@ const AdminStudentDetail = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
-              <Zap className="h-5 w-5 text-[#0D5C4B]" />
+              <Zap className={`h-5 w-5 ${textThemeColor}`} />
               <CardTitle>Assigned Services</CardTitle>
             </div>
             <Button 
@@ -484,7 +502,7 @@ const AdminStudentDetail = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
-              <BookOpen className="h-5 w-5 text-[#0D5C4B]" />
+              <BookOpen className={`h-5 w-5 ${textThemeColor}`} />
               <CardTitle>Enrolled Courses</CardTitle>
             </div>
             <Dialog open={showAssignCourse} onOpenChange={setShowAssignCourse}>
@@ -521,7 +539,7 @@ const AdminStudentDetail = () => {
                     <Button 
                       onClick={handleAssignCourse}
                       disabled={assignCourseMutation.isPending || !selectedCourse}
-                      className="bg-[#0D5C4B] hover:bg-green-700"
+                      className={`${themeColor} ${themeColorHover} text-white`}
                     >
                       {assignCourseMutation.isPending ? 'Assigning...' : 'Assign Course'}
                     </Button>

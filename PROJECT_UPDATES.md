@@ -1125,3 +1125,8 @@ Fixed car animation issue in ScrollJourney component - adjusted phase spacing ca
 Added individual car start/end position customization to ScrollJourney component - each page now has custom car animation ranges to prevent car going beyond finish line on different content lengths
 
 Removed red speed lines and blue trail effects from car animation - simplified car movement to show only the car itself without distracting visual effects
+
+Enhanced lesson navigation controls with next/previous buttons and progress indicators
+- Fixed lesson 1 to lesson 2 navigation by removing completion requirement
+- Added admins to students list with blue theme colors and admin badges for better admin account management
+- Created dedicated forgot password page with email input, new password fields with eye icons, and proper redirect flow to sign-in - Fixed 404 error when clicking email reset links by properly handling URL tokens and authentication session
