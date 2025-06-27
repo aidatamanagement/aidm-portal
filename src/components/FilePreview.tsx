@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -453,14 +452,21 @@ const FilePreview = ({ file, trigger }: FilePreviewProps) => {
   return (
     <>
       {trigger ? (
-        <div onClick={() => setOpen(true)} className="cursor-pointer">
+        <div 
+          onClick={() => {
+            setOpen(true);
+          }} 
+          className="cursor-pointer"
+        >
           {trigger}
         </div>
       ) : (
         <Button
           size="sm"
           variant="outline"
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            setOpen(true);
+          }}
           className="flex items-center gap-2"
         >
           <Eye className="h-4 w-4" />

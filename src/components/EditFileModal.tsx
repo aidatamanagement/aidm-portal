@@ -174,9 +174,9 @@ const EditFileModal = ({ open, onOpenChange, file, onFileUpdated }: EditFileModa
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Check file size (max 50MB)
+      // Check file size (max 300MB)
       if (file.size > 50 * 1024 * 1024) {
-        toast.error('File size must be less than 50MB');
+        toast.error('File size must be less than 300MB');
         return;
       }
       setSelectedFile(file);

@@ -65,6 +65,7 @@ export type Database = {
       files: {
         Row: {
           description: string | null
+          folder_id: string | null
           id: string
           name: string
           path: string
@@ -72,9 +73,13 @@ export type Database = {
           type: string
           uploaded_at: string
           uploader_id: string
+          deleted_at: string | null
+          deleted_by: string | null
+          original_folder_id: string | null
         }
         Insert: {
           description?: string | null
+          folder_id?: string | null
           id?: string
           name: string
           path: string
@@ -82,9 +87,13 @@ export type Database = {
           type: string
           uploaded_at?: string
           uploader_id: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          original_folder_id?: string | null
         }
         Update: {
           description?: string | null
+          folder_id?: string | null
           id?: string
           name?: string
           path?: string
@@ -92,8 +101,18 @@ export type Database = {
           type?: string
           uploaded_at?: string
           uploader_id?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          original_folder_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "files_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "files_student_id_fkey"
             columns: ["student_id"]
@@ -104,6 +123,57 @@ export type Database = {
           {
             foreignKeyName: "files_uploader_id_fkey"
             columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      folders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          parent_id: string | null
+          student_id: string
+          updated_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          original_parent_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          parent_id?: string | null
+          student_id: string
+          updated_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          original_parent_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          student_id?: string
+          updated_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          original_parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "folders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "folders_student_id_fkey"
+            columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -618,6 +688,22 @@ export type Database = {
       is_admin_user: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      soft_delete_folder_with_contents: {
+        Args: { folder_uuid: string; deleter_id: string }
+        Returns: undefined
+      }
+      restore_folder_with_contents: {
+        Args: { folder_uuid: string }
+        Returns: undefined
+      }
+      permanent_delete_old_trash: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      empty_trash: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
     }
     Enums: {

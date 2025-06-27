@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { FileText, Download, Search, Upload, File, Image, Music, Video, Archive, Trash2, Edit } from 'lucide-react';
+import { FileText, Download, Search, Upload, File, Image, Music, Video, Archive, Trash2, Edit, Eye } from 'lucide-react';
 import { format } from 'date-fns';
-import FilePreview from '@/components/FilePreview';
 import UploadFileModal from '@/components/UploadFileModal';
+import AdvancedUploadModal from '@/components/AdvancedUploadModal';
 import EditFileModal from '@/components/EditFileModal';
 import { toast } from 'sonner';
 import {
@@ -33,6 +34,7 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
   const [selectedType, setSelectedType] = useState('all');
   const [loading, setLoading] = useState(true);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [advancedUploadModalOpen, setAdvancedUploadModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<any>(null);
 
@@ -308,10 +310,22 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
         <h2 className="text-xl font-semibold">
           Files {studentName && `for ${studentName}`}
         </h2>
-        <Button onClick={() => setUploadModalOpen(true)}>
-          <Upload className="h-4 w-4 mr-2" />
-          Upload File
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => setUploadModalOpen(true)}
+            variant="outline"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Quick Upload
+          </Button>
+          <Button 
+            onClick={() => setAdvancedUploadModalOpen(true)}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Advanced Upload
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -380,7 +394,110 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
                   </div>
                 </div>
                 <div className="mt-4 flex space-x-2">
-                  <FilePreview file={file} />
+                  {/* File Preview Dialog */}
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        title="Preview file"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Preview
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+                      <DialogHeader>
+                        <DialogTitle className="text-lg font-semibold">
+                          File Preview
+                        </DialogTitle>
+                        <DialogDescription>
+                          Details and information about the selected file
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4">
+                        {/* File Icon and Basic Info */}
+                        <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                          <div className="flex-shrink-0">
+                            {getFileIcon(file.type)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-medium text-gray-900 truncate">
+                              {file.name}
+                            </h3>
+                            <p className="text-sm text-gray-500 uppercase">
+                              {file.type} File
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* File Content Preview */}
+                        <FileContentPreview file={file} />
+
+                        {/* File Details */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">File Name</label>
+                              <p className="mt-1 text-sm text-gray-900">{file.name}</p>
+                            </div>
+                            
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">File Type</label>
+                              <p className="mt-1 text-sm text-gray-900 uppercase">{file.type}</p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">Date Uploaded</label>
+                              <p className="mt-1 text-sm text-gray-900">
+                                {format(new Date(file.uploaded_at), 'MMM d, yyyy h:mm a')}
+                              </p>
+                            </div>
+                            
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">Uploaded By</label>
+                              <p className="mt-1 text-sm text-gray-900">
+                                {file.uploader?.name || 'Unknown'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        {file.description && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-700">Description</label>
+                            <div className="mt-1 p-2 bg-gray-50 rounded-lg">
+                              <p className="text-sm text-gray-900">{file.description}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-end space-x-3 pt-3 border-t">
+                          <Button
+                            variant="outline"
+                            onClick={() => handleDownload(file)}
+                            className="flex items-center gap-2"
+                          >
+                            <Download className="h-4 w-4" />
+                            Download
+                          </Button>
+                          <Button
+                            onClick={() => handleEditFile(file)}
+                            className="flex items-center gap-2"
+                          >
+                            <Edit className="h-4 w-4" />
+                            Edit Details
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  
                   <Button 
                     size="sm" 
                     variant="outline" 
@@ -436,6 +553,13 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
         onFileUploaded={fetchFiles}
       />
 
+      <AdvancedUploadModal
+        open={advancedUploadModalOpen}
+        onOpenChange={setAdvancedUploadModalOpen}
+        studentId={studentId}
+        onFilesUploaded={fetchFiles}
+      />
+
       {selectedFile && (
         <EditFileModal
           open={editModalOpen}
@@ -446,6 +570,229 @@ const AdminFilesList = ({ studentId, studentName }: AdminFilesListProps) => {
       )}
     </div>
   );
+};
+
+// File Content Preview Component
+const FileContentPreview = ({ file }: { file: any }) => {
+  const [fileUrl, setFileUrl] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [textContent, setTextContent] = useState<string>('');
+
+  const getFileCategory = (type: string) => {
+    const lowerType = type.toLowerCase();
+    
+    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp', 'tiff'].includes(lowerType)) return 'image';
+    if (['mp4', 'avi', 'mov', 'webm', 'mkv', 'flv'].includes(lowerType)) return 'video';
+    if (['mp3', 'wav', 'flac', 'ogg', 'aac', 'm4a'].includes(lowerType)) return 'audio';
+    if (['pdf'].includes(lowerType)) return 'pdf';
+    if (['txt', 'md', 'json', 'xml', 'csv', 'log'].includes(lowerType)) return 'text';
+    if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(lowerType)) return 'office';
+    return 'other';
+  };
+
+  const extractStoragePath = (filePath: string) => {
+    if (!filePath.startsWith('http')) {
+      return filePath;
+    }
+    
+    try {
+      const url = new URL(filePath);
+      const pathParts = url.pathname.split('/');
+      
+      const bucketIndex = pathParts.indexOf('student-files');
+      if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+        const storagePath = pathParts.slice(bucketIndex + 1).join('/');
+        return decodeURIComponent(storagePath);
+      }
+      
+      const lastPart = pathParts[pathParts.length - 1];
+      return decodeURIComponent(lastPart);
+    } catch (error) {
+      console.error('Error parsing file path:', error);
+      return filePath;
+    }
+  };
+
+  const getFileUrl = async () => {
+    try {
+      const storagePath = extractStoragePath(file.path);
+      
+      const { data, error } = await supabase.storage
+        .from('student-files')
+        .createSignedUrl(storagePath, 3600);
+      
+      if (error) {
+        console.error('Error creating signed URL:', error);
+        const { data: publicData } = supabase.storage
+          .from('student-files')
+          .getPublicUrl(storagePath);
+        return publicData.publicUrl;
+      }
+      
+      return data.signedUrl;
+    } catch (error) {
+      console.error('Error in getFileUrl:', error);
+      return null;
+    }
+  };
+
+  const loadTextContent = async (url: string) => {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'Accept': 'text/plain,*/*',
+          'Cache-Control': 'no-cache'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch text content');
+      const text = await response.text();
+      setTextContent(text);
+    } catch (error) {
+      console.error('Error loading text content:', error);
+      setTextContent('Unable to load text content');
+    }
+  };
+
+  useEffect(() => {
+    const loadFile = async () => {
+      setLoading(true);
+      setError(false);
+      
+      const url = await getFileUrl();
+      
+      if (!url) {
+        setError(true);
+        setLoading(false);
+        return;
+      }
+      
+      setFileUrl(url);
+      
+      const category = getFileCategory(file.type);
+      
+      if (category === 'text') {
+        await loadTextContent(url);
+      }
+      
+      setLoading(false);
+    };
+    
+    loadFile();
+  }, [file]);
+
+  const category = getFileCategory(file.type);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-48 bg-muted rounded-lg">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error || !fileUrl) {
+    return (
+      <div className="flex flex-col items-center justify-center h-48 bg-muted rounded-lg">
+        <File className="h-16 w-16 text-muted-foreground mb-4" />
+        <p className="text-muted-foreground text-center">
+          Unable to preview this file
+          <br />
+          <span className="text-sm">Error loading file. You can still download it.</span>
+        </p>
+      </div>
+    );
+  }
+
+  switch (category) {
+    case 'image':
+      return (
+        <div className="flex justify-center bg-muted rounded-lg p-4">
+          <img
+            src={fileUrl}
+            alt={file.name}
+            className="max-w-full max-h-64 object-contain rounded"
+            onError={() => setError(true)}
+          />
+        </div>
+      );
+
+    case 'video':
+      return (
+        <div className="bg-black rounded-lg">
+          <video
+            controls
+            className="w-full max-h-64 rounded-lg"
+            onError={() => setError(true)}
+          >
+            <source src={fileUrl} />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      );
+
+    case 'audio':
+      return (
+        <div className="flex flex-col items-center justify-center h-32 bg-muted rounded-lg">
+          <Music className="h-12 w-12 text-primary mb-2" />
+          <audio
+            controls
+            className="w-full max-w-md"
+            onError={() => setError(true)}
+          >
+            <source src={fileUrl} />
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      );
+
+    case 'pdf':
+      return (
+        <div className="w-full h-64 border rounded-lg overflow-hidden">
+          <iframe
+            src={fileUrl}
+            className="w-full h-full"
+            title={file.name}
+            onError={() => setError(true)}
+          />
+        </div>
+      );
+
+    case 'text':
+      return (
+        <div className="w-full h-64 bg-muted rounded-lg p-4 overflow-auto">
+          <pre className="text-sm whitespace-pre-wrap font-mono">
+            {textContent || 'Loading text content...'}
+          </pre>
+        </div>
+      );
+
+    case 'office':
+      const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+      return (
+        <div className="w-full h-64 border rounded-lg overflow-hidden">
+          <iframe
+            src={officeViewerUrl}
+            className="w-full h-full"
+            title={file.name}
+            onError={() => setError(true)}
+            allow="fullscreen"
+          />
+        </div>
+      );
+
+    default:
+      return (
+        <div className="flex flex-col items-center justify-center h-48 bg-muted rounded-lg">
+          <File className="h-16 w-16 text-muted-foreground mb-4" />
+          <p className="text-muted-foreground mt-4 text-center">
+            Preview not available for this file type
+            <br />
+            <span className="text-sm">Use the download button to view this file</span>
+          </p>
+        </div>
+      );
+  }
 };
 
 export default AdminFilesList;

@@ -12,10 +12,22 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ArrowLeft, User, Zap, BookOpen, FileText, Plus, X, ChevronDown, ChevronRight, Lock, Unlock, Shield } from 'lucide-react';
+import { ArrowLeft, User, Zap, BookOpen, FileText, Plus, X, ChevronDown, ChevronRight, Lock, Unlock, Shield, Mail, Building, Briefcase, Edit3, Save, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AssignServiceModal from '@/components/AssignServiceModal';
-import AdminFilesList from '@/components/AdminFilesList';
+import FolderExplorer from '@/components/FolderExplorer';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const AdminStudentDetail = () => {
   const { id } = useParams();
@@ -31,6 +43,23 @@ const AdminStudentDetail = () => {
     organization: '',
     organization_role: ''
   });
+
+  // Service removal confirmation states
+  const [removeServiceDialog, setRemoveServiceDialog] = useState({
+    isOpen: false,
+    service: null as any,
+    confirmText: ''
+  });
+
+  // Course removal confirmation states
+  const [removeCourseDialog, setRemoveCourseDialog] = useState({
+    isOpen: false,
+    assignment: null as any,
+    confirmText: ''
+  });
+
+  // Services view mode
+  const [servicesViewMode, setServicesViewMode] = useState<'list' | 'badges'>('list');
 
   const { data: student, isLoading } = useQuery({
     queryKey: ['admin-student', id],
@@ -302,6 +331,56 @@ const AdminStudentDetail = () => {
     toggleLessonLockMutation.mutate({ lessonId, locked });
   };
 
+  const handleRemoveServiceClick = (userService: any) => {
+    setRemoveServiceDialog({
+      isOpen: true,
+      service: userService,
+      confirmText: ''
+    });
+  };
+
+  const confirmRemoveService = () => {
+    const serviceName = removeServiceDialog.service?.services?.title;
+    if (removeServiceDialog.confirmText !== serviceName) {
+      toast.error('Please type the service name to confirm removal');
+      return;
+    }
+
+    if (removeServiceDialog.service) {
+      removeServiceMutation.mutate(removeServiceDialog.service.service_id);
+      setRemoveServiceDialog({
+        isOpen: false,
+        service: null,
+        confirmText: ''
+      });
+    }
+  };
+
+  const handleRemoveCourseClick = (assignment: any) => {
+    setRemoveCourseDialog({
+      isOpen: true,
+      assignment: assignment,
+      confirmText: ''
+    });
+  };
+
+  const confirmRemoveCourse = () => {
+    const courseName = removeCourseDialog.assignment?.courses?.title;
+    if (removeCourseDialog.confirmText !== courseName) {
+      toast.error('Please type the course name to confirm removal');
+      return;
+    }
+
+    if (removeCourseDialog.assignment) {
+      removeCourseAssignmentMutation.mutate(removeCourseDialog.assignment.course_id);
+      setRemoveCourseDialog({
+        isOpen: false,
+        assignment: null,
+        confirmText: ''
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -449,7 +528,17 @@ const AdminStudentDetail = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <Zap className={`h-5 w-5 ${textThemeColor}`} />
-              <CardTitle>Assigned Services</CardTitle>
+              <CardTitle>Assigned Services ({userServices?.length || 0})</CardTitle>
+              {userServices?.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setServicesViewMode(servicesViewMode === 'list' ? 'badges' : 'list')}
+                  className="h-6 px-2 text-xs"
+                >
+                  {servicesViewMode === 'list' ? 'Compact' : 'Detailed'}
+                </Button>
+              )}
             </div>
             <Button 
               variant="outline" 
@@ -462,38 +551,71 @@ const AdminStudentDetail = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {userServices?.map((userService: any) => (
-              <div key={userService.id} className="p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold">{userService.services?.title}</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeServiceMutation.mutate(userService.service_id)}
-                    disabled={removeServiceMutation.isPending}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">{userService.services?.description}</p>
-                <div className="flex justify-between items-center">
-                  <Badge variant="outline" className="capitalize">
-                    {userService.services?.type}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(userService.assigned_at).toLocaleDateString()}
-                  </span>
-                </div>
+          {userServices?.length ? (
+            servicesViewMode === 'list' ? (
+              <div className="space-y-2">
+                {userServices.map((userService: any) => (
+                  <div key={userService.id} className="flex items-center justify-between py-2 px-3 bg-accent/30 rounded-md hover:bg-accent/50 transition-colors">
+                    <div className="flex items-center space-x-3 flex-1">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-medium text-sm">{userService.services?.title}</h4>
+                          <Badge variant="outline" className="text-xs capitalize">
+                            {userService.services?.type}
+                          </Badge>
+                        </div>
+                        {userService.services?.description && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                            {userService.services.description}
+                          </p>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(userService.assigned_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveServiceClick(userService)}
+                      disabled={removeServiceMutation.isPending}
+                      className="ml-2 h-8 w-8 p-0"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
               </div>
-            ))}
-            {!userServices?.length && (
-              <div className="col-span-2 text-center py-8">
-                <Zap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No services assigned</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {userServices.map((userService: any) => (
+                  <div key={userService.id} className="group relative">
+                    <Badge 
+                      variant="secondary" 
+                      className="pr-6 cursor-pointer hover:bg-accent"
+                      title={`${userService.services?.title} - ${userService.services?.type} - Assigned: ${new Date(userService.assigned_at).toLocaleDateString()}`}
+                    >
+                      {userService.services?.title}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveServiceClick(userService)}
+                      disabled={removeServiceMutation.isPending}
+                      className="absolute -top-1 -right-1 h-5 w-5 p-0 rounded-full bg-red-100 hover:bg-red-200 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3 text-red-600" />
+                    </Button>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+            )
+          ) : (
+            <div className="text-center py-6">
+              <Zap className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">No services assigned</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -574,7 +696,7 @@ const AdminStudentDetail = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeCourseAssignmentMutation.mutate(assignment.course_id)}
+                          onClick={() => handleRemoveCourseClick(assignment)}
                           disabled={removeCourseAssignmentMutation.isPending}
                         >
                           <X className="h-4 w-4" />
@@ -666,9 +788,10 @@ const AdminStudentDetail = () => {
       </Card>
 
       {/* Files Section */}
-      <AdminFilesList 
+      <FolderExplorer 
         studentId={id!} 
         studentName={student.name}
+        isAdmin={true}
       />
 
       {/* Modals */}
@@ -678,6 +801,122 @@ const AdminStudentDetail = () => {
         studentId={id!}
         assignedServiceIds={assignedServiceIds}
       />
+
+      {/* Service Removal Confirmation Dialog */}
+      <AlertDialog open={removeServiceDialog.isOpen} onOpenChange={() => setRemoveServiceDialog({
+        isOpen: false,
+        service: null,
+        confirmText: ''
+      })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center space-x-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <span>Remove Service</span>
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Are you sure you want to remove the service 
+                "<strong>{removeServiceDialog.service?.services?.title}</strong>" from this student?
+              </p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                <p className="text-sm text-yellow-800">
+                  This will remove the student's access to this service. This action can be reversed by reassigning the service later.
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="confirmRemove" className="text-sm font-medium">
+                  Type <code className="bg-gray-100 px-1 rounded">{removeServiceDialog.service?.services?.title}</code> to confirm:
+                </Label>
+                <Input
+                  id="confirmRemove"
+                  value={removeServiceDialog.confirmText}
+                  onChange={(e) => setRemoveServiceDialog(prev => ({
+                    ...prev,
+                    confirmText: e.target.value
+                  }))}
+                  placeholder="Type the service title here"
+                  className="mt-1"
+                />
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setRemoveServiceDialog({
+              isOpen: false,
+              service: null,
+              confirmText: ''
+            })}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmRemoveService}
+              disabled={removeServiceDialog.confirmText !== removeServiceDialog.service?.services?.title || removeServiceMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {removeServiceMutation.isPending ? 'Removing...' : 'Remove Service'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Course Removal Confirmation Dialog */}
+      <AlertDialog open={removeCourseDialog.isOpen} onOpenChange={() => setRemoveCourseDialog({
+        isOpen: false,
+        assignment: null,
+        confirmText: ''
+      })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center space-x-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <span>Remove Course</span>
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Are you sure you want to remove the course 
+                "<strong>{removeCourseDialog.assignment?.courses?.title}</strong>" from this student?
+              </p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                <p className="text-sm text-yellow-800">
+                  This will remove the student's enrollment from this course and all related progress. This action can be reversed by reassigning the course later.
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="confirmRemoveCourse" className="text-sm font-medium">
+                  Type <code className="bg-gray-100 px-1 rounded">{removeCourseDialog.assignment?.courses?.title}</code> to confirm:
+                </Label>
+                <Input
+                  id="confirmRemoveCourse"
+                  value={removeCourseDialog.confirmText}
+                  onChange={(e) => setRemoveCourseDialog(prev => ({
+                    ...prev,
+                    confirmText: e.target.value
+                  }))}
+                  placeholder="Type the course title here"
+                  className="mt-1"
+                />
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setRemoveCourseDialog({
+              isOpen: false,
+              assignment: null,
+              confirmText: ''
+            })}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmRemoveCourse}
+              disabled={removeCourseDialog.confirmText !== removeCourseDialog.assignment?.courses?.title || removeCourseAssignmentMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {removeCourseAssignmentMutation.isPending ? 'Removing...' : 'Remove Course'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

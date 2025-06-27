@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useRealtimeAdminStats } from '@/hooks/useRealtimeAdminStats';
 import { Link } from 'react-router-dom';
-import { Users, Zap, BookOpen, FileText, TrendingUp, Award, Calendar } from 'lucide-react';
+import { Users, Zap, BookOpen, FileText, TrendingUp, Award, Calendar, Eye } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { data: stats, isLoading, error, isFetching } = useRealtimeAdminStats();
@@ -144,9 +144,16 @@ const AdminDashboard = () => {
                         </p>
                       </div>
                     </div>
-                    <Badge variant="outline" className="text-xs capitalize">
-                      Student
-                    </Badge>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline" className="text-xs capitalize">
+                        Student
+                      </Badge>
+                      <Link to={`/admin/students/${student.id}`}>
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 ))
               ) : (

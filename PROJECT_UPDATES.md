@@ -321,7 +321,7 @@ Lesson navigation fix and Coach Fox chatbot integration completed
 - **Metadata Editing**: Continue to edit file names and descriptions
 - **Storage Management**: Proper deletion of old files and upload of new ones
 - **Confirmation Dialogs**: Safety measures to prevent accidental replacements
-- **File Validation**: Size limits (50MB) and type checking
+- **File Validation**: Size limits (300MB) and type checking
 - **Visual Feedback**: Clear indicators showing replacement status
 
 **UI/UX Enhancements**:
@@ -342,7 +342,7 @@ Lesson navigation fix and Coach Fox chatbot integration completed
 **Security & Safety**:
 - Confirmation dialog before file replacement
 - Clear warning messages about permanent deletion
-- File size validation (50MB limit)
+- File size validation (300MB limit)
 - Proper error handling and rollback mechanisms
 - Storage cleanup of old files
 
@@ -498,501 +498,6 @@ Lesson navigation fix and Coach Fox chatbot integration completed
 - **Improved Navigation**: Sticky headers make data easier to read
 - **Efficient Space Usage**: More content visible above the fold
 - **Clear Feedback**: Users know exactly how many assignments exist
-- **Professional Appearance**: Clean, contained table design
-
-**Technical Implementation**:
-- `max-h-96 overflow-y-auto` for scrollable container
-- `sticky top-0 bg-background z-10` for fixed headers
-- Conditional rendering for empty state
-- Dynamic pluralization for assignment count
-- Proper table structure maintained within scroll container
-
-**Responsive Design**:
-- Works well on all screen sizes
-- Maintains usability on mobile devices
-- Proper touch scrolling on mobile
-- Headers stay accessible during scroll
-
-## 🔍 Service Assignments Advanced Filtering & Search (Latest Update)
-- **Date**: Current
-- **Status**: ✅ COMPLETED
-- **Changes Made**:
-  - Added comprehensive search functionality for service assignments
-  - Implemented multi-criteria filtering (status, service, search terms)
-  - Added flexible sorting options with 8 different sort methods
-  - Enhanced user experience with clear filters and reset functionality
-
-**Files Modified**:
-- `src/pages/AdminServices.tsx`
-
-**New Features Added**:
-- **Search Functionality**: Search by student name, email, or service title
-- **Status Filter**: Filter by Active, Inactive, Pending, or All statuses
-- **Service Filter**: Filter assignments by specific service
-- **Multi-Sort Options**: 8 sorting methods including:
-  - Date (Newest/Oldest)
-  - Student Name (A-Z/Z-A)
-  - Service Name (A-Z/Z-A)
-  - Status (A-Z/Z-A)
-- **Clear Filters Button**: One-click reset to default state
-- **Real-time Results**: Instant filtering and sorting without page refresh
-
-**UI/UX Enhancements**:
-- **Responsive Filter Bar**: Flexible layout that works on all screen sizes
-- **Visual Search Icons**: Clear search indicators with proper icons
-- **Filter Persistence**: Maintains filter state during data updates
-- **Result Counter**: Shows filtered results vs total assignments
-- **Empty State Messages**: Different messages for no data vs no matches
-- **Proper Labels**: Clear labeling for all filter controls
-
-**Technical Implementation**:
-- **useMemo Hook**: Optimized filtering and sorting performance
-- **Multi-criteria Filtering**: Combines search, status, and service filters
-- **Flexible Sorting**: Switch-based sorting with proper string/date comparison
-- **State Management**: Separate state for each filter type
-- **Real-time Updates**: Filters work with live data updates
-
-**Performance Optimizations**:
-- **Memoized Filtering**: Prevents unnecessary recalculations
-- **Efficient Search**: Case-insensitive search across multiple fields
-- **Optimized Sorting**: Proper comparison functions for different data types
-- **Minimal Re-renders**: Smart dependency management in useMemo
-
-**User Experience Benefits**:
-- **Quick Discovery**: Find specific assignments instantly
-- **Flexible Views**: Multiple ways to organize and view data
-- **Efficient Management**: Easier to manage large numbers of assignments
-- **Clear Feedback**: Always know how many results match filters
-- **Easy Reset**: Quick return to default view when needed
-
-## ⚙️ Service CRUD Operations with GitHub-Style Confirmation (Latest Update)
-- **Date**: Current
-- **Status**: ✅ COMPLETED
-- **Changes Made**:
-  - Added complete service management with Create, Edit, and Delete operations
-  - Implemented GitHub-style delete confirmation requiring service title input
-  - Added comprehensive service form with validation and status management
-  - Enhanced service cards with edit and delete action buttons
-
-**Files Modified**:
-- `src/pages/AdminServices.tsx`
-
-**New Features Added**:
-- **Create Service**: Full form with title, description, type, and status
-- **Edit Service**: In-place editing of existing services with pre-populated data
-- **Delete Service**: GitHub-style confirmation requiring exact title match
-- **Service Validation**: Required fields and proper error handling
-- **Cascade Delete**: Automatically removes all student assignments when service is deleted
-
-**Service Form Features**:
-- **Service Title**: Required field with validation
-- **Description**: Optional rich text description
-- **Service Type**: Categorization (consulting, training, support, etc.)
-- **Status**: Active, Inactive, or Pending status management
-- **Form Validation**: Client-side validation with error messages
-- **Loading States**: Visual feedback during create/update operations
-
-**GitHub-Style Delete Confirmation**:
-- **Warning Dialog**: Clear indication of permanent action
-- **Impact Explanation**: Shows what will be deleted (assignments, history)
-- **Title Confirmation**: Must type exact service title to confirm
-- **Visual Warnings**: Red styling and warning icons
-- **Cascade Information**: Explains related data deletion
-- **Disabled State**: Confirm button disabled until title matches
-
-**UI/UX Enhancements**:
-- **Action Buttons**: Edit and delete buttons on each service card
-- **Icon Integration**: Edit and Trash icons for clear action indication
-- **Header Reorganization**: Create Service and Assign Service buttons in header
-- **Modal Forms**: Clean, focused forms for service management
-- **Confirmation Flow**: Multi-step confirmation for destructive actions
-- **Loading Feedback**: Visual indicators during operations
-
-**Technical Implementation**:
-- **CRUD Mutations**: Separate mutations for create, update, and delete
-- **Cascade Delete**: Proper cleanup of related user_services records
-- **Form State Management**: Separate state for form fields and editing mode
-- **Validation Logic**: Client-side validation before API calls
-- **Real-time Updates**: Automatic refresh of data after operations
-- **Error Handling**: Comprehensive error messages and recovery
-
-**Security & Safety Features**:
-- **Confirmation Required**: Cannot delete without typing service title
-- **Clear Warnings**: Multiple warnings about permanent deletion
-- **Cascade Awareness**: Users understand all related data will be deleted
-- **Form Validation**: Prevents invalid data submission
-- **Error Recovery**: Graceful handling of failed operations
-
-**Admin Experience Benefits**:
-- **Complete Control**: Full CRUD operations for service management
-- **Safe Deletion**: GitHub-style confirmation prevents accidental deletions
-- **Efficient Workflow**: In-place editing without navigation
-- **Clear Feedback**: Always know the status of operations
-- **Professional Interface**: Consistent with modern admin interfaces
-
-## 👥 Assigned Students Popup Modal (Latest Update)
-- **Date**: Current
-- **Status**: ✅ COMPLETED
-- **Changes Made**:
-  - Added clickable student count icon in service cards
-  - Implemented popup modal showing detailed list of assigned students
-  - Added student management functionality within the modal
-  - Enhanced UI with hover effects and visual feedback
-
-**Files Modified**:
-- `src/pages/AdminServices.tsx`
-
-**New Features Added**:
-- **Clickable Student Count**: Click on the Users icon/count to view details
-- **Student List Modal**: Detailed popup showing all assigned students
-- **Student Information**: Name, email, avatar, status, and assignment date
-- **Quick Unassign**: Unassign students directly from the modal
-- **Empty State**: Clear message when no students are assigned
-- **Scrollable List**: Handles large numbers of assigned students
-
-**UI/UX Enhancements**:
-- **Hover Effects**: Visual feedback on clickable student count
-- **Student Avatars**: Circular avatars with initials for easy identification
-- **Status Badges**: Clear indication of assignment status (Active/Inactive)
-- **Assignment Dates**: Shows when each student was assigned
-- **Responsive Design**: Modal works well on all screen sizes
-- **Loading States**: Visual feedback during unassign operations
-
-**Modal Features**:
-- **Service Title**: Shows which service the students are assigned to
-- **Student Count**: Displays total number of assigned students
-- **Detailed Cards**: Each student shown in a clean card layout
-- **Action Buttons**: Unassign functionality with confirmation
-- **Scroll Support**: Handles long lists of students efficiently
-- **Close Options**: Easy modal dismissal
-
-**Student Information Display**:
-- **Avatar with Initials**: Visual identification using first letter of name
-- **Full Name**: Student's complete name
-- **Email Address**: Contact information
-- **Assignment Status**: Active, Inactive, or Pending badge
-- **Assignment Date**: When the service was assigned
-- **Quick Actions**: One-click unassign functionality
-
-**Technical Implementation**:
-- **Modal State Management**: Separate state for modal visibility and selected service
-- **Data Filtering**: Efficient filtering of assigned students per service
-- **Real-time Updates**: Modal data updates when assignments change
-- **Event Handling**: Proper click handlers and modal controls
-- **Performance**: Optimized rendering for large student lists
-
-**User Experience Benefits**:
-- **Quick Access**: Instant view of assigned students without navigation
-- **Detailed Information**: All relevant student data in one place
-- **Efficient Management**: Unassign students without leaving the modal
-- **Visual Clarity**: Clear presentation of assignment relationships
-- **Time Saving**: No need to navigate to separate pages for student details
-
-## 🔍 Enhanced Assigned Students Modal with Search & Confirmation (Latest Update)
-- **Date**: Current
-- **Status**: ✅ COMPLETED
-- **Changes Made**:
-  - Added search functionality to filter assigned students by name or email
-  - Implemented confirmation dialog for unassign actions
-  - Enhanced modal with better filtering and user feedback
-  - Added proper confirmation flow for destructive actions
-
-**Files Modified**:
-- `src/pages/AdminServices.tsx`
-
-**New Search Features**:
-- **Search Input**: Filter students by name or email in real-time
-- **Search Icon**: Visual indicator with search functionality
-- **Live Filtering**: Instant results as you type
-- **Search Counter**: Shows "X of Y students shown" when filtering
-- **No Results State**: Clear message when no students match search
-- **Case Insensitive**: Search works regardless of capitalization
-
-**Confirmation Dialog Features**:
-- **Student Details**: Shows student name and service being unassigned
-- **Impact Warning**: Explains what happens when student is unassigned
-- **Type Confirmation**: Must type "OK" to confirm unassign action
-- **Visual Warnings**: Yellow warning box with clear messaging
-- **Disabled State**: Confirm button disabled until "OK" is typed
-- **Loading State**: Visual feedback during unassign operation
-
-**Enhanced Modal Layout**:
-- **Search Bar**: Prominently placed search input with icon
-- **Dynamic Counter**: Shows filtered vs total student count
-- **Better Organization**: Search at top, followed by student list
-- **Improved Spacing**: Better visual hierarchy and spacing
-- **Empty States**: Different messages for no students vs no search results
-
-**User Experience Improvements**:
-- **Quick Search**: Find specific students instantly in large lists
-- **Safe Actions**: Confirmation prevents accidental unassignments
-- **Clear Feedback**: Always know how many students are shown/hidden
-- **Efficient Workflow**: Search and manage students without leaving modal
-- **Visual Clarity**: Better organization and information hierarchy
-
-**Technical Implementation**:
-- **Real-time Filtering**: Efficient client-side search filtering
-- **State Management**: Separate states for search and confirmation
-- **Confirmation Flow**: Multi-step confirmation for destructive actions
-- **Performance**: Optimized filtering for large student lists
-- **Accessibility**: Proper labels and keyboard navigation
-
-**Confirmation Dialog Details**:
-```
-Unassign Student
-
-Are you sure you want to unassign "John Doe" from 
-the service "AI Training Program"?
-
-⚠️ This will remove the student's access to this service. 
-This action can be reversed by reassigning the service later.
-
-Type OK to confirm:
-[________________]
-
-[Cancel] [Unassign Student]
-```
-
-**Benefits**:
-- **Faster Discovery**: Quickly find students in large lists
-- **Safer Operations**: Confirmation prevents accidental unassignments
-- **Better Organization**: Clear search and filtering capabilities
-- **Professional Interface**: Consistent with modern admin tools
-
-## 📊 Student Dashboard Lesson Progress Fix (Latest Update)
-- **Date**: Current
-- **Status**: ✅ COMPLETED
-- **Issue Fixed**:
-  - Fixed "Lesson Progress" card showing incorrect progress (e.g., 3/3 instead of 3/5)
-  - Progress was only counting lessons with user progress records, not total course lessons
-  - Now shows accurate completed/total format for enrolled courses
-
-**Root Cause**:
-- Dashboard was counting `user_progress` records instead of total lessons in enrolled courses
-- Only lessons that students had started were being counted in the total
-- Missing proper calculation of all available lessons vs completed lessons
-
-**Solution Implemented**:
-- Fetch all lessons for user's enrolled courses from `lessons` table
-- Calculate total lessons: all lessons in enrolled courses
-- Calculate completed lessons: progress records marked as completed
-- Only count completed lessons that exist in enrolled courses
-- Added real-time subscriptions for lessons and course assignment changes
-
-**Files Modified**:
-- `src/hooks/useRealtimeDashboard.ts`
-
-**Technical Implementation**:
-- Added query to fetch all lessons for enrolled courses: `lessons.select('id, course_id').in('course_id', enrolledCourseIds)`
-- Improved progress calculation logic to compare completed lesson IDs with available lessons
-- Added real-time subscriptions for `lessons` and `user_course_assignments` tables
-- Enhanced logging for debugging progress calculations
-
-**Before vs After**:
-- **Before**: Shows "3/3 lessons" (only counting started lessons)
-- **After**: Shows "3/5 lessons" (completed out of total available)
-
-**Progress Calculation Logic**:
-```typescript
-// Get enrolled course IDs
-const enrolledCourseIds = coursesResult.data.map(c => c.course_id);
-
-// Fetch ALL lessons for enrolled courses
-const { data: allLessons } = await supabase
-  .from('lessons')
-  .select('id, course_id')
-  .in('course_id', enrolledCourseIds);
-
-// Total lessons = all lessons in enrolled courses
-const totalLessons = allLessons?.length || 0;
-
-// Completed lessons = progress records marked as completed
-const completedLessonIds = progressResult.data?.filter(p => p.completed).map(p => p.lesson_id) || [];
-
-// Only count completed lessons that exist in enrolled courses
-const completedLessons = completedLessonIds.filter(lessonId => 
-  allLessons?.some(lesson => lesson.id === lessonId)
-).length;
-```
-
-**Real-time Updates**:
-- Added subscriptions for lessons table changes
-- Added subscriptions for course assignment changes
-- Progress updates automatically when lessons are added/removed
-- Progress updates when students are enrolled/unenrolled from courses
-
-**User Experience Improvement**:
-- Students now see accurate progress representation
-- Progress reflects true completion status relative to available content
-- Better motivation through realistic progress tracking
-- Consistent progress display across all enrolled courses
-
-## 📝 Admin Prompts Management Page (Latest Update)
-- **Date**: Current
-- **Status**: ✅ COMPLETED
-- **Changes Made**:
-  - Created comprehensive AdminPrompts.tsx page for managing AI prompts
-  - Added full CRUD operations (Create, Read, Update, Delete) for prompts table
-  - Implemented advanced search and filtering by title, content, category, and creation date
-  - Added sorting options (date, title, category) with ascending/descending order
-  - Created modal form for creating/editing prompts with validation
-  - Added GitHub-style delete confirmation requiring exact title input
-  - Implemented copy-to-clipboard functionality for prompt content
-  - Added real-time updates using Supabase subscriptions
-  - Enhanced UI with scrollable table, sticky headers, and proper loading states
-  - Integrated cascade delete functionality removing associated favorites
-  - Added route `/admin/prompts` and navigation link in AdminLayout
-  - Used proper form validation with required title and at least one content field
-  - Implemented comprehensive error handling and success feedback
-
-**Files Created/Modified**:
-- `src/pages/AdminPrompts.tsx` (NEW)
-- `src/App.tsx` (added route and import)
-- `src/components/AdminLayout.tsx` (added navigation link)
-
-**Key Features Added**:
-- **Complete CRUD Operations**: Create, read, update, and delete prompts
-- **Advanced Search**: Search across title, content, context, task, and category fields
-- **Multi-field Filtering**: Filter by category with dynamic category list
-- **Flexible Sorting**: 6 sorting options (date, title, category - asc/desc)
-- **Modal Forms**: Clean create/edit interface with comprehensive form fields
-- **Content Management**: Separate fields for context, task, and additional content
-- **Copy Functionality**: One-click copy of full prompt content to clipboard
-- **GitHub-style Deletion**: Type exact title to confirm prompt deletion
-- **Cascade Delete**: Automatically removes associated user favorites
-
-**Form Fields**:
-- **Title**: Required field for prompt identification
-- **Context**: Required background information or context for the prompt
-- **Role**: Required role or persona definition for the AI
-- **Interview**: Optional interview questions or dialogue structure
-- **Task**: Required specific task or instruction description
-- **Boundaries**: Optional limitations, constraints, or boundaries
-- **Reasoning**: Optional explanation of reasoning or thought process
-
-**UI/UX Features**:
-- **Responsive Design**: Works well on all screen sizes
-- **Scrollable Table**: Fixed height with sticky headers for large datasets
-- **Visual Indicators**: Clear icons for copy, edit, and delete actions
-- **Loading States**: Proper loading feedback during operations
-- **Empty States**: Different messages for no data vs filtered results
-- **Content Preview**: Truncated preview of prompt content in table
-- **Badge Categories**: Visual category tags with proper styling
-
-**Search & Filter Capabilities**:
-- **Real-time Search**: Instant filtering across all prompt fields
-- **Comprehensive Search**: Searches title, context, role, interview, task, boundaries, reasoning
-- **Sort Options**: Date (newest/oldest), Title (A-Z/Z-A)
-- **Clear Filters**: One-click reset to default view
-- **Result Counter**: Shows filtered vs total prompt count
-
-**Safety Features**:
-- **Confirmation Dialogs**: GitHub-style confirmation for deletions
-- **Form Validation**: Required fields and content validation
-- **Error Handling**: Comprehensive error messages and recovery
-- **Cascade Warnings**: Clear indication of what gets deleted
-- **Loading States**: Prevents duplicate operations during processing
-
-**Technical Implementation**:
-- **Real-time Subscriptions**: Live updates using Supabase channels
-- **Optimized Queries**: Efficient data fetching and filtering
-- **State Management**: Proper React state management for forms and modals
-- **Performance**: useMemo for filtering/sorting optimization
-- **TypeScript**: Full type safety throughout the component
-- **Accessibility**: Proper ARIA labels and keyboard navigation
-
-**Database Integration**:
-- **Prompts Table**: Full CRUD operations on prompts table
-- **Favorites Cleanup**: Cascade delete removes user favorites
-- **Real-time Updates**: Automatic refresh when data changes
-- **Error Recovery**: Proper error handling for database operations
-
-**Admin Experience Benefits**:
-- **Centralized Management**: All prompt operations in one interface
-- **Efficient Workflow**: No page navigation required for CRUD operations
-- **Quick Discovery**: Fast search and filtering for large prompt libraries
-- **Safe Operations**: Confirmation prevents accidental deletions
-- **Content Reuse**: Easy copy functionality for prompt sharing
-- **Professional Interface**: Modern, clean admin interface design
-
-Admin Prompts Management page created with 7 structured fields (title, context, role, interview, task, boundaries, reasoning)
-
-## 🌙 Dark Mode Comprehensive Fix (Latest Update)
-- **Date**: Current
-- **Status**: ✅ COMPLETED
-- **Changes Made**:
-  - Enhanced CSS variables and theme system for better dark mode support
-  - Fixed hardcoded colors across all admin pages and components
-  - Replaced `text-[#0D5C4B]` with `text-primary` for theme-aware primary colors
-  - Replaced `bg-[#0D5C4B]` with `bg-primary` for theme-aware backgrounds
-  - Fixed red color schemes in delete dialogs and error states
-  - Updated gray color variants for proper dark mode contrast
-  - Enhanced AdminLayout header and navigation for dark mode
-  - Fixed AdminDashboard KPI cards and progress indicators
-  - Updated AdminPrompts page with theme-aware colors
-  - Added proper dark mode variants for hover states and interactions
-
-**Files Modified**:
-- `src/index.css` (enhanced dark mode CSS rules)
-- `src/pages/AdminPrompts.tsx` (theme-aware colors)
-- `src/pages/AdminDashboard.tsx` (comprehensive color fixes)
-- `src/components/AdminLayout.tsx` (header and navigation fixes)
-
-**CSS Enhancements Added**:
-- **Gray Color Fixes**: Proper dark mode variants for text-gray-400, text-gray-600, bg-gray-100
-- **Red Color Fixes**: Dark mode variants for error states and destructive actions
-- **Primary Color System**: Automatic color switching for brand colors in dark mode
-- **Interactive States**: Proper hover and focus states for dark mode
-- **Background Variants**: Theme-aware background colors for cards and containers
-
-**Dark Mode Improvements**:
-- **Better Contrast**: Improved text readability in dark mode
-- **Consistent Branding**: Primary colors adapt appropriately to dark theme
-- **Error States**: Red colors maintain visibility and meaning in dark mode
-- **Interactive Elements**: Buttons and links have proper dark mode hover states
-- **Loading States**: Spinner and progress bars work correctly in both themes
-- **Modal Dialogs**: Delete confirmations and forms display properly in dark mode
-
-**Technical Implementation**:
-- **CSS Variables**: Enhanced theme system using HSL color values
-- **Tailwind Classes**: Replaced hardcoded hex colors with semantic class names
-- **Automatic Switching**: Colors automatically adapt based on theme preference
-- **Backward Compatibility**: Maintains existing functionality while adding dark mode support
-- **Performance**: No impact on performance, uses existing Tailwind CSS system
-
-## 🎨 Dashboard Dark Mode Styling Fix (Latest Update)
-- **Date**: Current
-- **Status**: ✅ COMPLETED
-- **Issue Fixed**:
-  - Fixed dark mode contrast and visibility issues in the "Ready to Lead the AI Revolution?" section
-  - Card background was hardcoded to white causing poor visibility in dark mode
-  - Text colors weren't adapting properly to dark theme
-
-**Root Cause**:
-- Used `bg-white` class instead of theme-aware background
-- Used `text-foreground` instead of `text-card-foreground` for proper card context
-- Inner card section used `bg-card/50` which wasn't optimized for dark mode
-
-**Solution Implemented**:
-- Removed hardcoded `bg-white` class to use theme-aware Card component defaults
-- Updated text colors to use proper card context classes (`text-card-foreground`)
-- Enhanced inner section with `bg-muted/50 dark:bg-muted/30` for better dark mode support
-- Added explicit `border-border` class for consistent theming
-
-**Files Modified**:
-- `src/pages/Dashboard.tsx`
-
-**Technical Details**:
-- Replaced `bg-white` with default Card styling
-- Changed `text-foreground` to `text-card-foreground`
-- Updated inner card styling: `bg-muted/50 dark:bg-muted/30`
-- Added proper border styling with `border-border`
-
-**User Experience Improvement**:
-- Proper contrast and readability in both light and dark modes
-- Consistent styling with the rest of the dashboard cards
-- Better visual hierarchy with theme-aware backgrounds
-- Maintains hover effects and transitions in both themes
 
 ## 🧭 Lesson Navigation Controls (Latest Update)
 - **Date**: Current
@@ -1069,7 +574,7 @@ Updated site branding in index.html - removed Lovable references, added AIDM bra
 
 Migrated all Supabase credentials to environment variables - moved from hardcoded values to .env configuration with comprehensive security documentation (SECURITY.md, SECURITY_CHECKLIST.md)
 
-Enhanced file content replacement feature in EditFileModal.tsx - added actual file upload functionality with Supabase storage replacement, confirmation dialogs, and file size validation (50MB limit)
+Enhanced file content replacement feature in EditFileModal.tsx - added actual file upload functionality with Supabase storage replacement, confirmation dialogs, and file size validation (300MB limit)
 
 Implemented student-side lesson lock enforcement - updated CourseDetail.tsx and LessonViewer.tsx to check lesson locks from user_lesson_locks table and prevent access to locked lessons
 
@@ -1130,3 +635,335 @@ Enhanced lesson navigation controls with next/previous buttons and progress indi
 - Fixed lesson 1 to lesson 2 navigation by removing completion requirement
 - Added admins to students list with blue theme colors and admin badges for better admin account management
 - Created dedicated forgot password page with email input, new password fields with eye icons, and proper redirect flow to sign-in - Fixed 404 error when clicking email reset links by properly handling URL tokens and authentication session
+- Created advanced file upload modal with circular progress bars, real-time status updates, drag-and-drop support, and multiple file upload capability with individual file management
+
+## 📁 Complete Folder Management System with File Operations
+- **Date**: Current
+- **Status**: ✅ COMPLETED
+- **Changes Made**:
+  - Implemented complete folder-based file organization system for both students and admins
+  - Added full file operations (preview, download, edit, delete) within folder structure
+  - Enhanced FolderExplorer with all AdminFilesList functionality
+  - Unified file management experience across student and admin interfaces
+
+**Complete Feature Set**:
+
+**📂 Folder Management**:
+- ✅ Create new folders with unique names per parent/student
+- ✅ Rename existing folders with conflict detection
+- ✅ Delete empty folders (prevents deletion if contains files/subfolders)
+- ✅ Navigate folder hierarchy with breadcrumb navigation
+- ✅ Recursive folder path display in move operations
+- ✅ Drag and drop folders for reorganization
+
+**📄 File Operations**:
+- ✅ **Preview Files**: View documents, images, videos in modal
+- ✅ **Download Files**: Secure download with signed URLs
+- ✅ **Edit Files (Admin)**: Edit file details and replace file content
+- ✅ **Delete Files (Admin)**: Remove files with confirmation dialog
+- ✅ **Move Files**: Drag and drop or batch move between folders
+- ✅ **Upload Files (Admin)**: Advanced upload to specific folders
+
+**🎯 Permission-Based Features**:
+
+**For Students**:
+- ✅ View and organize files in folder structure
+- ✅ Create and manage folder hierarchy
+- ✅ Preview and download all files
+- ✅ Move files and folders via drag & drop
+- ✅ Batch move operations with selection
+- ❌ Cannot upload, edit, or delete files
+
+**For Admins**:
+- ✅ All student capabilities PLUS
+- ✅ Upload files to specific folders
+- ✅ Edit file metadata and replace content
+- ✅ Delete files with confirmation
+- ✅ Full file lifecycle management
+
+**🎨 Enhanced User Interface**:
+- **Grid & List Views**: Toggle between visual modes
+- **Action Buttons**: Hover-reveal buttons for file operations
+- **Smart Tooltips**: Clear descriptions for each action
+- **Visual Feedback**: Selection states, drag indicators, drop zones
+- **Responsive Design**: Works on mobile and desktop
+- **File Details**: Upload date, uploader info, descriptions
+
+**🔄 File Operations in Folders**:
+- **Preview Button**: 👁️ Eye icon for quick file viewing
+- **Download Button**: 📥 Download icon for file downloads
+- **Edit Button (Admin)**: ✏️ Edit icon for file management
+- **Delete Button (Admin)**: 🗑️ Trash icon with confirmation dialog
+
+**🛡️ Safety & Security**:
+- **Confirmation Dialogs**: Prevent accidental file deletion
+- **Permission Checks**: Role-based access to operations
+- **Secure Downloads**: Signed URLs for file access
+- **Error Handling**: Comprehensive error management
+- **Storage Cleanup**: Proper file removal from storage
+
+**📱 Cross-Platform Experience**:
+- **Consistent Interface**: Same features in student and admin views
+- **Intuitive Navigation**: Familiar file explorer patterns
+- **Keyboard Accessible**: Proper ARIA labels and tab navigation
+- **Touch Friendly**: Mobile-optimized interactions
+
+**🎮 User Workflows**:
+
+**Student Workflow**:
+1. Navigate to Files page
+2. Create folder structure (Projects, Assignments, etc.)
+3. Organize files uploaded by admins
+4. Preview and download files as needed
+5. Use drag & drop for quick organization
+
+**Admin Workflow**:
+1. Select student in Admin Files
+2. Create organized folder structure
+3. Upload files to appropriate folders
+4. Edit file details and descriptions
+5. Manage file lifecycle (edit/delete)
+
+**Technical Implementation**:
+- **Unified Component**: FolderExplorer handles both student/admin views
+- **Feature Flags**: `isAdmin` prop controls available operations
+- **File Operations**: Secure Supabase storage operations
+- **Real-time Updates**: Live synchronization across sessions
+- **Error Recovery**: Graceful degradation and user feedback
+
+This creates a complete document management system that rivals commercial solutions, providing users with familiar folder-based organization capabilities plus comprehensive file operations.
+
+## 📁 Comprehensive Folder Management System Deployment
+- **Date**: Current
+- **Status**: ✅ DEPLOYED
+- **Changes Made**:
+  - Successfully deployed complete folder-based file organization system with database migration
+  - Database migration completed with folders table and file connections established
+  - Implemented role-based permissions: Only admins can upload files, students can organize them
+  - All components ready for testing and production use
+
+**Permission Structure**:
+- **Students**: Can create folders, organize files, move files between folders (NO upload capability)
+- **Admins**: Full access - can upload files, create folders, organize files for any student
+
+**User Experience**:
+- **Students**: See "My Files" with organization capabilities and helpful text explaining admin uploads files
+- **Admins**: See "File Management" with full upload and organization capabilities
+
+## 🖱️ Drag and Drop File Organization
+- **Date**: Current  
+- **Status**: ✅ COMPLETED
+- **Changes Made**:
+  - Added comprehensive drag and drop functionality for intuitive file organization
+  - Implemented visual feedback with drop zones and drag indicators
+  - Added safety checks to prevent infinite folder loops and invalid operations
+
+**New Drag & Drop Features**:
+
+**🎯 Drag Sources**:
+- **Files**: Drag any file to move it between folders
+- **Folders**: Drag folders to reorganize folder structure
+- **Visual Feedback**: Dragged items become semi-transparent during drag
+
+**📂 Drop Targets**:
+- **Folder Icons**: Drop on any folder to move items into it
+- **Breadcrumb Navigation**: Drop on breadcrumb buttons to move to specific folders
+- **Root Area**: Drop on breadcrumb root or empty areas to move to root level
+- **Empty Folders**: Drop anywhere in empty folder areas
+
+**🎨 Visual Indicators**:
+- **Drop Zones**: Blue highlighted areas show valid drop targets
+- **"Drop here" Messages**: Clear indicators when hovering over drop zones
+- **Drag Feedback**: Semi-transparent items during drag operation
+- **Invalid Actions**: Prevented with error messages (e.g., folder into subfolder)
+
+**🛡️ Safety Features**:
+- **Infinite Loop Prevention**: Cannot drop folder into its own subfolder
+- **Self-Drop Protection**: Cannot drop item onto itself
+- **Database Validation**: Proper error handling for failed operations
+- **Success Feedback**: Toast notifications for successful moves
+
+**🎮 User Experience**:
+- **Intuitive Operation**: Works like desktop file managers
+- **Visual Feedback**: Clear indicators for all drag and drop states
+- **Helpful Tips**: On-screen instructions for new users
+- **Responsive Design**: Works on both desktop and touch devices
+
+**📱 Integration**:
+- **Existing Move Feature**: Drag & drop complements existing "Move" button functionality
+- **Multi-Select Compatible**: Can still use traditional select-and-move for batch operations
+- **Permission Aware**: Respects student vs admin permission boundaries
+
+**Technical Implementation**:
+- **React DragEvent Handling**: Proper drag start, over, leave, and drop events
+- **Database Operations**: Direct Supabase updates for file/folder locations
+- **State Management**: Real-time UI updates after successful moves
+- **Error Handling**: Comprehensive error catching and user feedback
+
+This enhancement makes file organization as intuitive as using a desktop file manager, significantly improving the user experience for both students and administrators.
+
+## 🔔 Toast Notification Duration Customization
+- **Date**: Current
+- **Status**: ✅ COMPLETED
+- **Changes Made**:
+  - Customized toast notification durations for better user experience
+  - Added different timing for success, error, and info messages
+  - Implemented custom toast functions with appropriate durations
+
+**Toast Duration Settings**:
+
+**⏱️ Duration by Message Type**:
+- **Success Messages**: 3 seconds (quick confirmations like "File moved successfully")
+- **Error Messages**: 6 seconds (more time to read errors like "Failed to create folder")
+- **Info Messages**: 4 seconds (general information)
+- **Important Messages**: 8 seconds (critical information that needs attention)
+
+**🎯 Smart Duration Logic**:
+- **Quick Actions**: Success notifications disappear quickly to avoid clutter
+- **Error Messages**: Stay longer so users can read the full error message
+- **Default**: 4 seconds for balanced visibility without being intrusive
+
+**📱 Custom Toast Functions**:
+- `toastSuccess()` - 3 seconds for confirmations
+- `toastError()` - 6 seconds for errors
+- `toastInfo()` - 4 seconds for general messages
+- `toastPersistent()` - 8 seconds for important notifications
+
+**🎨 User Experience Benefits**:
+- **Appropriate Timing**: Messages stay just long enough to be read
+- **No Information Overload**: Success messages disappear quickly
+- **Error Clarity**: Error messages stay longer for proper reading
+- **Consistent Experience**: Predictable timing across the application
+
+**⚙️ Customization Options**:
+- Durations can be overridden per toast call
+- Global default is 4 seconds
+- Easy to adjust timing in the future as needed
+
+This creates a much better notification experience where users have enough time to read important messages without being overwhelmed by quick confirmations.
+
+## 🔧 File Explorer UI Fixes and Improvements
+- **Date**: Current
+- **Status**: ✅ COMPLETED
+- **Changes Made**:
+  - Fixed grid view layout issues with overlapping file names
+  - Enhanced action button visibility and styling
+  - Improved responsive design for both grid and list views
+
+**🎯 Issues Fixed**:
+
+**Grid View Layout Problems**:
+- ❌ **Before**: File names overlapping with upload dates and action buttons
+- ✅ **After**: Proper spacing with dedicated areas for each element
+- ✅ **Fixed**: Added extra bottom padding (pb-16) for grid items
+- ✅ **Fixed**: Positioned file details at absolute bottom of cards
+- ✅ **Fixed**: Improved text truncation for long file names
+
+**Action Button Visibility**:
+- ❌ **Before**: Action buttons barely visible on hover
+- ✅ **After**: Clear white background with shadow and border
+- ✅ **Fixed**: Consistent sizing (h-8 w-8) for all action buttons
+- ✅ **Fixed**: Better contrast and visibility
+
+**🎨 Visual Improvements**:
+
+**Grid View Enhancements**:
+- **Better Spacing**: Increased space between elements (space-y-3)
+- **Fixed Positioning**: File details at bottom don't interfere with names
+- **Text Truncation**: Long file names properly truncated with padding
+- **Action Buttons**: Floating buttons with white background and shadow
+
+**List View Improvements**:
+- **Consistent Padding**: Uniform p-4 padding for all list items
+- **Better Button Layout**: Right-aligned buttons with proper positioning
+- **Improved Readability**: Clear separation between file info elements
+
+**📱 Student vs Admin Features**:
+
+**For Students (Always Available)**:
+- 👁️ **Preview Button**: View file content in modal
+- 📥 **Download Button**: Download files to device
+- 🎯 **Clear UI**: Only relevant buttons shown
+
+**For Admins (Additional Features)**:
+- ✏️ **Edit Button**: Modify file details/content
+- 🗑️ **Delete Button**: Remove files with confirmation
+- 🎨 **Full Control**: Complete file management capabilities
+
+**🔧 Technical Improvements**:
+- **Responsive Design**: Works perfectly on mobile and desktop
+- **Hover States**: Smooth transitions for better UX
+- **Layout Stability**: No more overlapping or layout shifts
+- **Visual Hierarchy**: Clear separation of elements and actions
+
+**💡 User Experience Benefits**:
+- **No More Overlap**: File names never clash with other elements
+- **Clear Actions**: Easy to identify and click action buttons
+- **Consistent Interface**: Same experience across grid and list views
+- **Mobile Friendly**: Touch-optimized button sizes and spacing
+
+This resolves all layout issues and provides a professional, consistent file management interface for both students and administrators.
+
+## 📁 Admin Personal Folder System (Latest Update)
+- **Date**: January 2025
+- **Status**: ✅ COMPLETED
+- **Feature Added**:
+  - Created dedicated admin personal folder system separate from student file management
+  - Added tab-based interface to switch between admin's personal files and student file management
+  - Admins now have their own folder structure with full CRUD capabilities
+
+**Files Modified**:
+- `src/pages/AdminFiles.tsx`
+
+**Changes Made**:
+- **Tab System**: Added tabs to separate "My Files" (admin personal) and "Student Files" (student management)
+- **Admin Personal Files**: Admins can now create their own folder structure using their user ID
+- **Full Folder Functionality**: Complete folder management for admin's personal files including:
+  - Create, rename, delete folders
+  - Upload, edit, delete files
+  - Drag and drop organization
+  - File preview with all media types
+  - Breadcrumb navigation
+- **Enhanced UI**: Improved interface with clear separation between personal and student file management
+- **User Authentication**: Uses admin's user ID for personal file storage
+
+**User Experience Improvement**:
+- Admins now have their own personal file workspace
+- Clear separation between personal files and student file management
+- Consistent folder management experience across both personal and student files
+- Tab-based navigation for easy switching between contexts
+- Full administrative privileges on both personal and student files
+
+## 👁️ File Preview Implementation (Latest Update)
+
+## Current Development Tasks
+- Fixed student file loading issues by improving error handling and path resolution
+- Fixed image file type detection for MIME types like "IMAGE/PNG"
+- Added expanded/fullscreen file preview option for better viewing experience
+- Fixed file selection issue when clicking preview/action buttons
+- Verified folder functionality works on both admin and student sides (backend + frontend)
+- Fixed AdminStudentDetail page to use FolderExplorer instead of old AdminFilesList component
+- Moved grid/list view toggle button to breadcrumb navigation area next to Root
+- Removed folder delete option for students (admin-only feature)
+- Added GitHub-style confirmation dialog for removing services from students
+- Implemented comprehensive trash system with soft deletes for files and folders
+- Added TrashManager component for admin trash management
+- Updated database schema with trash-related columns and RLS policies
+- Added admin Trash Management tab in AdminFiles page
+- Added trash icon in FolderExplorer header for easy admin access
+- Added URL parameter support (?tab=trash) for direct trash access
+- Changed trash button to open modal popup instead of navigating to new page
+- Fixed files/folders disappearing from current view when moved to trash
+- Added callback to refresh folder view when items are restored from trash
+- Fixed AlertDialogTrigger import error in TrashManager component
+- Added explicit deleted_at IS NULL filters to all folder/file queries
+- Enhanced deletion workflow logging for debugging
+- Fixed loadAllFolders and buildBreadcrumbs to exclude deleted items
+- Added comprehensive debugging for admin folder deletion issues
+- Created fallback manual soft delete when RPC function fails
+- Added debug button and SQL script for troubleshooting database issues
+- Fixed RLS policy blocking admin folder updates (Error 42501)
+- Created immediate fix SQL script for admin permissions
+- Implemented GitHub-style confirmation dialog for course removal from students
+- Redesigned assigned services section with compact list and ultra-compact badge views to save space
+- Added eye icon navigation to recent enrollments in admin dashboard for direct student access
