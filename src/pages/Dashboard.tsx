@@ -262,80 +262,27 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="relative overflow-hidden">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Learning Progress</p>
-                <div className="flex items-center space-x-3 mt-2">
-                  <ProgressCircle progress={progressPercentage} size={60} strokeWidth={4} />
-                  <div>
-                    <p className="text-xs text-muted-foreground">
-                      <CountUp to={stats?.completedLessons || 0} duration={1.2} className="font-medium" /> of <CountUp to={stats?.totalLessons || 0} duration={1.2} className="font-medium" /> lessons
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Services</p>
-                <p className="text-2xl font-bold">
-                  <CountUp to={stats?.enrolledServices.length || 0} duration={1.5} className="text-2xl font-bold" />
-                </p>
-              </div>
-              <Zap className="h-8 w-8 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">My Files</p>
-                <p className="text-2xl font-bold">
-                  <CountUp to={stats?.totalFiles || 0} duration={1.8} separator="," className="text-2xl font-bold" />
-                </p>
-              </div>
-              <FileText className="h-8 w-8 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Favorite Prompts</p>
-                <p className="text-2xl font-bold">
-                  <CountUp to={stats?.favoritePrompts.length || 0} duration={2} className="text-2xl font-bold" />
-                </p>
-              </div>
-              <Heart className="h-8 w-8 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* AI Leadership Training */}
         <Card className="relative overflow-hidden hover:shadow-lg transition-shadow duration-300 border-2 cursor-pointer">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
           <CardHeader className="pb-4 relative z-10">
-            <div className="flex items-center space-x-2">
-              <Award className="h-5 w-5 text-primary" />
-              <CardTitle className="text-card-foreground">AI Leadership Training</CardTitle>
-            </div>
-            <CardDescription className="text-muted-foreground">Advance your AI leadership skills</CardDescription>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Award className="h-5 w-5 text-primary" />
+                <CardTitle className="text-card-foreground">AI Leadership Training</CardTitle>
+              </div>
+              <div className="flex items-center space-x-3">
+                <ProgressCircle progress={progressPercentage} size={48} strokeWidth={4} />
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">
+                    <CountUp to={stats?.completedLessons || 0} duration={1.2} className="font-medium" /> of <CountUp to={stats?.totalLessons || 0} duration={1.2} className="font-medium" /> lessons
+                  </p>
+                </div>
+              </div>
+            </div>           
+            <CardDescription className="text-muted-foreground">Advance your AI leadership skills with personalized learning paths</CardDescription>
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="space-y-4">
@@ -376,7 +323,7 @@ const Dashboard = () => {
           <CardContent>
             <div className="grid grid-cols-2 gap-3">
               <Link to="/files">
-                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
+                <Button variant="outline" className="w-full h-20 flex flex-col space-y-1">
                   <FileText className="h-5 w-5" />
                   <span className="text-xs">Browse Files</span>
                 </Button>
@@ -459,13 +406,21 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Users className="h-5 w-5 text-primary" />
-                <CardTitle>My Services</CardTitle>
+                <div>
+                  <CardTitle>My Services</CardTitle>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <span className="text-2xl font-bold text-primary">
+                      <CountUp to={stats?.enrolledServices.length || 0} duration={1.5} className="text-2xl font-bold" />
+                    </span>
+                    <span className="text-sm text-muted-foreground">active services</span>
+                  </div>
+                </div>
               </div>
               <Link to="/services">
                 <Button variant="outline" size="sm">View All</Button>
               </Link>
             </div>
-            <CardDescription>Active and available services</CardDescription>
+            <CardDescription>Manage your active and available services</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -496,15 +451,6 @@ const Dashboard = () => {
                       <div className="flex-1">
                         <p className="font-medium text-sm">{userService.services.title}</p>
                         <div className="flex items-center space-x-2 mt-1">
-                        <Badge variant="outline" className="text-xs capitalize">
-                          {userService.status}
-                        </Badge>
-                          {userService.status === 'active' && (
-                            <span className="text-xs text-muted-foreground">Click to access</span>
-                          )}
-                          {userService.status === 'pending' && (
-                            <span className="text-xs text-muted-foreground">Activation pending</span>
-                          )}
                         </div>
                       </div>
                     </div>

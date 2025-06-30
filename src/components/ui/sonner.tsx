@@ -10,7 +10,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
-      duration={4000}
+      duration={1000}
       toastOptions={{
         classNames: {
           toast:
@@ -29,15 +29,15 @@ const Toaster = ({ ...props }: ToasterProps) => {
 
 // Custom toast functions with specific durations
 const toastSuccess = (message: string, duration?: number) => {
-  return toast.success(message, { duration: duration || 3000 }); // 3 seconds for success (quick confirmation)
+  return toast.success(message, { duration: duration || 1000 }); // 3 seconds for success (quick confirmation)
 };
 
 const toastError = (message: string, duration?: number) => {
-  return toast.error(message, { duration: duration || 6000 }); // 6 seconds for errors (more time to read)
+  return toast.error(message, { duration: duration || 3000 }); // 6 seconds for errors (more time to read)
 };
 
 const toastInfo = (message: string, duration?: number) => {
-  return toast(message, { duration: duration || 4000 }); // 4 seconds for info (default)
+  return toast(message, { duration: duration || 1000 }); // 4 seconds for info (default)
 };
 
 // Special function for important messages that need more attention
