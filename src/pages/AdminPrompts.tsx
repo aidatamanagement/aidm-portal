@@ -38,6 +38,7 @@ const AdminPrompts = () => {
   const [promptTask, setPromptTask] = useState('');
   const [promptBoundaries, setPromptBoundaries] = useState('');
   const [promptReasoning, setPromptReasoning] = useState('');
+  const [promptKeyword, setPromptKeyword] = useState('');
   
   // Delete confirmation states
   const [deletePromptId, setDeletePromptId] = useState<number | null>(null);
@@ -161,6 +162,7 @@ const AdminPrompts = () => {
     setPromptTask('');
     setPromptBoundaries('');
     setPromptReasoning('');
+    setPromptKeyword('');
     setEditingPrompt(null);
   };
 
@@ -178,6 +180,7 @@ const AdminPrompts = () => {
     setPromptTask(prompt.task || '');
     setPromptBoundaries(prompt.boundaries || '');
     setPromptReasoning(prompt.reasoning || '');
+    setPromptKeyword(prompt.keyword || '');
     setPromptFormOpen(true);
   };
 
@@ -200,7 +203,8 @@ const AdminPrompts = () => {
       interview: promptInterview.trim() || null,
       task: promptTask.trim(),
       boundaries: promptBoundaries.trim() || null,
-      reasoning: promptReasoning.trim() || null
+      reasoning: promptReasoning.trim() || null,
+      keyword: promptKeyword.trim() || null
     };
 
     if (editingPrompt) {
@@ -289,7 +293,8 @@ const AdminPrompts = () => {
         prompt.interview?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         prompt.task?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         prompt.boundaries?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        prompt.reasoning?.toLowerCase().includes(searchTerm.toLowerCase());
+        prompt.reasoning?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        prompt.keyword?.toLowerCase().includes(searchTerm.toLowerCase());
 
       return matchesSearch;
     });
@@ -300,6 +305,10 @@ const AdminPrompts = () => {
           return (a.title || '').localeCompare(b.title || '');
         case 'title-desc':
           return (b.title || '').localeCompare(a.title || '');
+        case 'keyword-asc':
+          return (a.keyword || '').localeCompare(b.keyword || '');
+        case 'keyword-desc':
+          return (b.keyword || '').localeCompare(a.keyword || '');
         case 'date-asc':
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case 'date-desc':
@@ -355,7 +364,7 @@ const AdminPrompts = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by title, context, role, task, etc..."
+                  placeholder="Search by title, context, role, task, keywords, etc..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -374,6 +383,8 @@ const AdminPrompts = () => {
                   <SelectItem value="date-asc">Date (Oldest)</SelectItem>
                   <SelectItem value="title-asc">Title (A-Z)</SelectItem>
                   <SelectItem value="title-desc">Title (Z-A)</SelectItem>
+                  <SelectItem value="keyword-asc">Keywords (A-Z)</SelectItem>
+                  <SelectItem value="keyword-desc">Keywords (Z-A)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -405,6 +416,7 @@ const AdminPrompts = () => {
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Role</TableHead>
+                  <TableHead>Keywords</TableHead>
                   <TableHead>Content Preview</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Actions</TableHead>
@@ -413,7 +425,7 @@ const AdminPrompts = () => {
               <TableBody>
                 {filteredAndSortedPrompts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       {prompts?.length === 0 ? 'No prompts found' : 'No prompts match your filters'}
                     </TableCell>
                   </TableRow>
@@ -430,6 +442,19 @@ const AdminPrompts = () => {
                           </Badge>
                         ) : (
                           <span className="text-muted-foreground text-sm">No role</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {prompt.keyword ? (
+                          <div className="flex flex-wrap gap-1">
+                            {prompt.keyword.split(',').map((keyword: string, index: number) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {keyword.trim()}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">No keywords</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -562,6 +587,15 @@ const AdminPrompts = () => {
                 onChange={(e) => setPromptReasoning(e.target.value)}
                 placeholder="Explain the reasoning or thought process"
                 rows={2}
+              />
+            </div>
+            <div>
+              <Label htmlFor="promptKeyword">Keywords</Label>
+              <Input
+                id="promptKeyword"
+                value={promptKeyword}
+                onChange={(e) => setPromptKeyword(e.target.value)}
+                placeholder="Enter keywords for sorting (e.g., AI, leadership, strategy)"
               />
             </div>
           </div>

@@ -316,6 +316,7 @@ export type Database = {
           created_at: string | null
           id: number
           interview: string | null
+          keyword: string | null
           reasoning: string | null
           role: string
           task: string
@@ -327,6 +328,7 @@ export type Database = {
           created_at?: string | null
           id?: number
           interview?: string | null
+          keyword?: string | null
           reasoning?: string | null
           role: string
           task: string
@@ -338,6 +340,7 @@ export type Database = {
           created_at?: string | null
           id?: number
           interview?: string | null
+          keyword?: string | null
           reasoning?: string | null
           role?: string
           task?: string
