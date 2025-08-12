@@ -49,14 +49,30 @@ export const useRealtimeDashboard = () => {
       
       supabase
         .from('prompts')
-        .select('*')
+        .select(`
+          *,
+          prompt_categories (
+            id,
+            name,
+            description,
+            color
+          )
+        `)
         .limit(5),
       
       supabase
         .from('favorites')
         .select(`
           *,
-          prompts(*)
+          prompts(
+            *,
+            prompt_categories (
+              id,
+              name,
+              description,
+              color
+            )
+          )
         `)
         .eq('user_id', user.id),
       

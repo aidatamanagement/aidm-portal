@@ -133,9 +133,67 @@ const Dashboard = () => {
     : 0;
 
   const copyPrompt = (prompt: any) => {
-    const promptText = `${prompt.context} ${prompt.task}`;
-    navigator.clipboard.writeText(promptText);
-    toast.success('Prompt copied to clipboard!');
+    const sections = [];
+    
+    // Add title
+    if (prompt.title) {
+      sections.push(`TITLE: ${prompt.title}`);
+    }
+    
+    // Add description
+    if (prompt.description) {
+      sections.push(`DESCRIPTION:\n${prompt.description}`);
+    }
+    
+    // Add persona
+    if (prompt.persona) {
+      sections.push(`PERSONA:\n${prompt.persona}`);
+    }
+    
+    // Add task
+    if (prompt.task) {
+      sections.push(`TASK:\n${prompt.task}`);
+    }
+    
+    // Add context
+    if (prompt.context) {
+      sections.push(`CONTEXT:\n${prompt.context}`);
+    }
+    
+    // Add format (role)
+    if (prompt.role) {
+      sections.push(`FORMAT:\n${prompt.role}`);
+    }
+    
+    // Add interview
+    if (prompt.interview) {
+      sections.push(`INTERVIEW:\n${prompt.interview}`);
+    }
+    
+    // Add boundaries
+    if (prompt.boundaries) {
+      sections.push(`BOUNDARIES:\n${prompt.boundaries}`);
+    }
+    
+    // Add reasoning
+    if (prompt.reasoning) {
+      sections.push(`REASONING:\n${prompt.reasoning}`);
+    }
+    
+    // Add tags (keywords)
+    if (prompt.keyword) {
+      sections.push(`TAGS:\n${prompt.keyword}`);
+    }
+    
+    const content = sections.join('\n\n');
+    
+    try {
+      navigator.clipboard.writeText(content);
+      toast.success('Prompt copied to clipboard!');
+    } catch (error) {
+      console.error('Error copying prompt:', error);
+      toast.error('Failed to copy prompt');
+    }
   };
 
   const promptsToShow = stats?.favoritePrompts.length > 0 
@@ -382,17 +440,36 @@ const Dashboard = () => {
                 promptsToShow.slice(0, 2).map((prompt: any) => (
                   <div key={prompt.id} className="p-3 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-medium text-sm line-clamp-1">{prompt.title}</h3>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-sm line-clamp-1">{prompt.title}</h3>
+                        {prompt.description && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{prompt.description}</p>
+                        )}
+                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => copyPrompt(prompt)}
-                        className="h-6 w-6 p-0"
+                        className="h-6 w-6 p-0 flex-shrink-0"
                       >
                         <Copy className="h-3 w-3" />
                       </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{prompt.context}</p>
+                    <div className="space-y-1">
+                      {prompt.persona && (
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          <span className="font-medium">Persona:</span> {prompt.persona}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        <span className="font-medium">Task:</span> {prompt.task}
+                      </p>
+                      {prompt.keyword && (
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          <span className="font-medium">Tags:</span> {prompt.keyword}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 ))
               )}
