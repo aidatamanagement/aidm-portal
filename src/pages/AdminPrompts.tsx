@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -32,13 +31,22 @@ const AdminPrompts = () => {
   const [promptFormOpen, setPromptFormOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<any>(null);
   const [promptTitle, setPromptTitle] = useState('');
+  const [promptDescription, setPromptDescription] = useState('');
   const [promptContext, setPromptContext] = useState('');
+  const [promptPersona, setPromptPersona] = useState('');
   const [promptRole, setPromptRole] = useState('');
   const [promptInterview, setPromptInterview] = useState('');
   const [promptTask, setPromptTask] = useState('');
   const [promptBoundaries, setPromptBoundaries] = useState('');
   const [promptReasoning, setPromptReasoning] = useState('');
   const [promptKeyword, setPromptKeyword] = useState('');
+  const [promptCategoryId, setPromptCategoryId] = useState<number | null>(null);
+  
+  // Category management states
+  const [categories, setCategories] = useState<any[]>([]);
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryDescription, setNewCategoryDescription] = useState('');
   
   // Delete confirmation states
   const [deletePromptId, setDeletePromptId] = useState<number | null>(null);
@@ -78,13 +86,41 @@ const AdminPrompts = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('prompts')
-        .select('*')
+        .select(`
+          *,
+          prompt_categories (
+            id,
+            name,
+            description,
+            color
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data || [];
     },
   });
+
+  const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
+    queryKey: ['prompt-categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('prompt_categories')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Update categories state when data is loaded
+  useEffect(() => {
+    if (categoriesData) {
+      setCategories(categoriesData);
+    }
+  }, [categoriesData]);
 
   const createPromptMutation = useMutation({
     mutationFn: async (promptData: any) => {
@@ -154,15 +190,43 @@ const AdminPrompts = () => {
     },
   });
 
+  const createCategoryMutation = useMutation({
+    mutationFn: async (categoryData: { name: string; description: string }) => {
+      const { data, error } = await supabase
+        .from('prompt_categories')
+        .insert(categoryData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (newCategory) => {
+      toast.success('Category created successfully');
+      queryClient.invalidateQueries({ queryKey: ['prompt-categories'] });
+      setCategories([...categories, newCategory]);
+      setPromptCategoryId(newCategory.id);
+      setShowAddCategory(false);
+      setNewCategoryName('');
+      setNewCategoryDescription('');
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to create category: ${error.message}`);
+    },
+  });
+
   const resetPromptForm = () => {
     setPromptTitle('');
+    setPromptDescription('');
     setPromptContext('');
+    setPromptPersona('');
     setPromptRole('');
     setPromptInterview('');
     setPromptTask('');
     setPromptBoundaries('');
     setPromptReasoning('');
     setPromptKeyword('');
+    setPromptCategoryId(null);
     setEditingPrompt(null);
   };
 
@@ -174,13 +238,16 @@ const AdminPrompts = () => {
   const handleEditPrompt = (prompt: any) => {
     setEditingPrompt(prompt);
     setPromptTitle(prompt.title || '');
+    setPromptDescription(prompt.description || '');
     setPromptContext(prompt.context || '');
+    setPromptPersona(prompt.persona || '');
     setPromptRole(prompt.role || '');
     setPromptInterview(prompt.interview || '');
     setPromptTask(prompt.task || '');
     setPromptBoundaries(prompt.boundaries || '');
     setPromptReasoning(prompt.reasoning || '');
     setPromptKeyword(prompt.keyword || '');
+    setPromptCategoryId(prompt.category_id || null);
     setPromptFormOpen(true);
   };
 
@@ -198,13 +265,16 @@ const AdminPrompts = () => {
 
     const promptData = {
       title: promptTitle.trim(),
+      description: promptDescription.trim() || null,
       context: promptContext.trim(),
+      persona: promptPersona.trim() || null,
       role: promptRole.trim(),
       interview: promptInterview.trim() || null,
       task: promptTask.trim(),
       boundaries: promptBoundaries.trim() || null,
       reasoning: promptReasoning.trim() || null,
-      keyword: promptKeyword.trim() || null
+      keyword: promptKeyword.trim() || null,
+      category_id: promptCategoryId
     };
 
     if (editingPrompt) {
@@ -239,24 +309,24 @@ const AdminPrompts = () => {
       sections.push(`TITLE: ${prompt.title}`);
     }
     
-    // Add context
-    if (prompt.context) {
-      sections.push(`CONTEXT:\n${prompt.context}`);
-    }
-    
-    // Add role
-    if (prompt.role) {
-      sections.push(`ROLE:\n${prompt.role}`);
-    }
-    
-    // Add interview
-    if (prompt.interview) {
-      sections.push(`INTERVIEW:\n${prompt.interview}`);
+    // Add persona
+    if (prompt.persona) {
+      sections.push(`PERSONA:\n${prompt.persona}`);
     }
     
     // Add task
     if (prompt.task) {
       sections.push(`TASK:\n${prompt.task}`);
+    }
+    
+    // Add context
+    if (prompt.context) {
+      sections.push(`CONTEXT:\n${prompt.context}`);
+    }
+    
+    // Add format (role)
+    if (prompt.role) {
+      sections.push(`FORMAT:\n${prompt.role}`);
     }
     
     // Add boundaries
@@ -267,6 +337,16 @@ const AdminPrompts = () => {
     // Add reasoning
     if (prompt.reasoning) {
       sections.push(`REASONING:\n${prompt.reasoning}`);
+    }
+    
+    // Add tags (keywords)
+    if (prompt.keyword) {
+      sections.push(`TAGS:\n${prompt.keyword}`);
+    }
+    
+    // Add interview (additional field)
+    if (prompt.interview) {
+      sections.push(`INTERVIEW:\n${prompt.interview}`);
     }
     
     const content = sections.join('\n\n');
@@ -324,6 +404,19 @@ const AdminPrompts = () => {
     setSearchTerm('');
     setSortBy('date-desc');
   };
+
+  const handleAddCategory = () => {
+    if (!newCategoryName.trim()) {
+      toast.error('Category name is required');
+      return;
+    }
+
+    createCategoryMutation.mutate({
+      name: newCategoryName.trim(),
+      description: newCategoryDescription.trim() || null
+    });
+  };
+
 
   if (promptsLoading) {
     return (
@@ -401,7 +494,7 @@ const AdminPrompts = () => {
         </CardContent>
       </Card>
 
-      {/* Prompts Table */}
+      {/* Prompts Grid */}
       <Card>
         <CardHeader>
           <CardTitle>All Prompts</CardTitle>
@@ -410,103 +503,134 @@ const AdminPrompts = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="max-h-96 overflow-y-auto border rounded-md">
-            <Table>
-              <TableHeader className="sticky top-0 bg-background z-10">
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Keywords</TableHead>
-                  <TableHead>Content Preview</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAndSortedPrompts.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      {prompts?.length === 0 ? 'No prompts found' : 'No prompts match your filters'}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredAndSortedPrompts.map((prompt) => (
-                    <TableRow key={prompt.id}>
-                      <TableCell>
-                        <div className="font-medium">{prompt.title}</div>
-                      </TableCell>
-                      <TableCell>
-                        {prompt.role ? (
-                          <Badge variant="outline" className="capitalize">
-                            {prompt.role}
+          {filteredAndSortedPrompts.length === 0 ? (
+            <div className="text-center py-12">
+              <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {prompts?.length === 0 ? 'No prompts found' : 'No prompts match your filters'}
+              </h3>
+              <p className="text-gray-600">
+                {prompts?.length === 0 
+                  ? 'Create your first prompt using the Create Prompt button above.'
+                  : 'Try adjusting your search terms or filters.'
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredAndSortedPrompts.map((prompt) => (
+                <Card key={prompt.id} className="hover:shadow-md transition-shadow border-2 border-primary/20">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg leading-6 mb-2">{prompt.title}</CardTitle>
+                        {prompt.description && (
+                          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{prompt.description}</p>
+                        )}
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                            Admin View
                           </Badge>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">No role</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {prompt.keyword ? (
-                          <div className="flex flex-wrap gap-1">
-                            {prompt.keyword.split(',').map((keyword: string, index: number) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {keyword.trim()}
-                              </Badge>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">No keywords</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="max-w-xs">
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {[prompt.context, prompt.task, prompt.interview].filter(Boolean).join(' ').slice(0, 100)}...
-                          </p>
+                          {prompt.prompt_categories && (
+                            <Badge 
+                              variant="secondary" 
+                              className="text-xs"
+                              style={{ backgroundColor: prompt.prompt_categories.color + '20', color: prompt.prompt_categories.color, borderColor: prompt.prompt_categories.color + '40' }}
+                            >
+                              {prompt.prompt_categories.name}
+                            </Badge>
+                          )}
+                          {prompt.keyword && prompt.keyword.split(',').map((keyword: string, index: number) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {keyword.trim()}
+                            </Badge>
+                          ))}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(prompt.created_at).toLocaleDateString()}
+                        <div className="text-xs text-muted-foreground">
+                          Created: {new Date(prompt.created_at).toLocaleDateString()}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyPromptContent(prompt)}
-                            title={copiedPromptId === prompt.id ? "Copied!" : "Copy prompt content"}
-                            className={copiedPromptId === prompt.id ? "text-green-600" : ""}
-                          >
-                            {copiedPromptId === prompt.id ? (
-                              <Check className="h-4 w-4" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditPrompt(prompt)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeletePrompt(prompt.id)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                      </div>
+                      <div className="flex items-center space-x-1 ml-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyPromptContent(prompt)}
+                          title={copiedPromptId === prompt.id ? "Copied!" : "Copy prompt content"}
+                          className={copiedPromptId === prompt.id ? "text-green-600" : ""}
+                        >
+                          {copiedPromptId === prompt.id ? (
+                            <Check className="h-4 w-4" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditPrompt(prompt)}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeletePrompt(prompt.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                                     <CardContent className="space-y-4">
+                     {prompt.persona && (
+                       <div>
+                         <h4 className="font-medium text-gray-900 mb-1">Persona</h4>
+                         <p className="text-sm text-gray-600">{prompt.persona}</p>
+                       </div>
+                     )}
+                     
+                     <div>
+                       <h4 className="font-medium text-gray-900 mb-1">Task</h4>
+                       <p className="text-sm text-gray-600">{prompt.task}</p>
+                     </div>
+                     
+                     <div>
+                       <h4 className="font-medium text-gray-900 mb-1">Context</h4>
+                       <p className="text-sm text-gray-600">{prompt.context}</p>
+                     </div>
+                     
+                     <div>
+                       <h4 className="font-medium text-gray-900 mb-1">Format</h4>
+                       <p className="text-sm text-gray-600">{prompt.role}</p>
+                     </div>
+
+                    {prompt.interview && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-1">Interview</h4>
+                        <p className="text-sm text-gray-600">{prompt.interview}</p>
+                      </div>
+                    )}
+
+                    {prompt.boundaries && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-1">Boundaries</h4>
+                        <p className="text-sm text-gray-600">{prompt.boundaries}</p>
+                      </div>
+                    )}
+
+                    {prompt.reasoning && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-1">Reasoning</h4>
+                        <p className="text-sm text-gray-600">{prompt.reasoning}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -530,33 +654,55 @@ const AdminPrompts = () => {
               />
             </div>
             <div>
-              <Label htmlFor="promptContext">Context *</Label>
+              <Label htmlFor="promptDescription">Description</Label>
               <Textarea
-                id="promptContext"
-                value={promptContext}
-                onChange={(e) => setPromptContext(e.target.value)}
-                placeholder="Provide context or background information for the prompt"
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label htmlFor="promptRole">Role *</Label>
-              <Textarea
-                id="promptRole"
-                value={promptRole}
-                onChange={(e) => setPromptRole(e.target.value)}
-                placeholder="Define the role or persona for the AI"
+                id="promptDescription"
+                value={promptDescription}
+                onChange={(e) => setPromptDescription(e.target.value)}
+                placeholder="Brief description of the prompt purpose and usage"
                 rows={2}
               />
             </div>
             <div>
-              <Label htmlFor="promptInterview">Interview</Label>
+              <Label htmlFor="promptCategory">Category</Label>
+              <div className="flex gap-2">
+                <Select value={promptCategoryId?.toString() || ''} onValueChange={(value) => setPromptCategoryId(value ? parseInt(value) : null)}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                          />
+                          {category.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAddCategory(true)}
+                  className="px-3"
+                >
+                  +
+                </Button>
+              </div>
+            </div>
+            
+            {/* Main Prompt Fields in Specified Order */}
+            <div>
+              <Label htmlFor="promptPersona">Persona</Label>
               <Textarea
-                id="promptInterview"
-                value={promptInterview}
-                onChange={(e) => setPromptInterview(e.target.value)}
-                placeholder="Interview questions or dialogue structure"
-                rows={3}
+                id="promptPersona"
+                value={promptPersona}
+                onChange={(e) => setPromptPersona(e.target.value)}
+                placeholder="Specific persona or character for the AI to adopt"
+                rows={2}
               />
             </div>
             <div>
@@ -567,6 +713,26 @@ const AdminPrompts = () => {
                 onChange={(e) => setPromptTask(e.target.value)}
                 placeholder="Describe the specific task or instruction"
                 rows={3}
+              />
+            </div>
+            <div>
+              <Label htmlFor="promptContext">Context *</Label>
+              <Textarea
+                id="promptContext"
+                value={promptContext}
+                onChange={(e) => setPromptContext(e.target.value)}
+                placeholder="Provide context or background information for the prompt"
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label htmlFor="promptFormat">Format</Label>
+              <Textarea
+                id="promptFormat"
+                value={promptRole}
+                onChange={(e) => setPromptRole(e.target.value)}
+                placeholder="Define the format, structure, or role for the AI"
+                rows={2}
               />
             </div>
             <div>
@@ -590,15 +756,28 @@ const AdminPrompts = () => {
               />
             </div>
             <div>
-              <Label htmlFor="promptKeyword">Keywords</Label>
+              <Label htmlFor="promptKeyword">Tags</Label>
               <Input
                 id="promptKeyword"
                 value={promptKeyword}
                 onChange={(e) => setPromptKeyword(e.target.value)}
-                placeholder="Enter keywords for sorting (e.g., AI, leadership, strategy)"
+                placeholder="Enter tags for categorizing (e.g., AI, leadership, strategy)"
+              />
+                        </div>
+            
+            {/* Additional Fields */}
+            <div>
+              <Label htmlFor="promptInterview">Interview</Label>
+              <Textarea
+                id="promptInterview"
+                value={promptInterview}
+                onChange={(e) => setPromptInterview(e.target.value)}
+                placeholder="Interview questions or dialogue structure"
+                rows={3}
               />
             </div>
-          </div>
+ 
+            </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPromptFormOpen(false)}>
               Cancel
@@ -667,6 +846,51 @@ const AdminPrompts = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add Category Dialog */}
+      <Dialog open={showAddCategory} onOpenChange={setShowAddCategory}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Category</DialogTitle>
+            <DialogDescription>
+              Create a new category for organizing prompts.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="newCategoryName">Category Name *</Label>
+              <Input
+                id="newCategoryName"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="Enter category name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="newCategoryDescription">Description</Label>
+              <Textarea
+                id="newCategoryDescription"
+                value={newCategoryDescription}
+                onChange={(e) => setNewCategoryDescription(e.target.value)}
+                placeholder="Optional description for the category"
+                rows={2}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddCategory(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleAddCategory}
+              disabled={createCategoryMutation.isPending}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {createCategoryMutation.isPending ? 'Creating...' : 'Create Category'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -309,44 +309,88 @@ export type Database = {
         }
         Relationships: []
       }
+      prompt_categories: {
+        Row: {
+          id: number
+          name: string
+          description: string | null
+          color: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          name: string
+          description?: string | null
+          color?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          name?: string
+          description?: string | null
+          color?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       prompts: {
         Row: {
           boundaries: string | null
           context: string
           created_at: string | null
+          description: string | null
           id: number
           interview: string | null
           keyword: string | null
+          persona: string | null
           reasoning: string | null
           role: string
           task: string
           title: string
+          category_id: number | null
         }
         Insert: {
           boundaries?: string | null
           context: string
           created_at?: string | null
+          description?: string | null
           id?: number
           interview?: string | null
           keyword?: string | null
+          persona?: string | null
           reasoning?: string | null
           role: string
           task: string
           title: string
+          category_id?: number | null
         }
         Update: {
           boundaries?: string | null
           context?: string
           created_at?: string | null
+          description?: string | null
           id?: number
           interview?: string | null
           keyword?: string | null
+          persona?: string | null
           reasoning?: string | null
           role?: string
           task?: string
           title?: string
+          category_id?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_prompts_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_categories"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       quiz_questions: {
         Row: {
