@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import ProgressCircle from '@/components/ProgressCircle';
-import SplitText from '@/components/SplitText';
-import CountUp from '@/components/CountUp';
 import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, FileText, MessageSquare, Zap, Heart, Copy, TrendingUp, Users, Award, ArrowRight } from 'lucide-react';
+import { ArrowRight, Play, BookOpen, FileText, MessageSquare, Zap, Users, Award, Lightbulb, Settings, Mic, Wrench, Bot } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -17,25 +13,20 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { data: stats, isLoading, error, isFetching } = useRealtimeDashboard();
   const [profile, setProfile] = useState<any>(null);
-  const [nextLessonInfo, setNextLessonInfo] = useState<any>(null);
+  const [userServices, setUserServices] = useState<any[]>([]);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchUserServices();
     }
   }, [user]);
-
-  useEffect(() => {
-    if (user && stats?.hasEnrolledCourses) {
-      findNextLesson();
-    }
-  }, [user, stats]);
 
   const fetchProfile = async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('name')
+        .select('name, profile_image')
         .eq('id', user?.id)
         .single();
 
@@ -46,182 +37,66 @@ const Dashboard = () => {
     }
   };
 
-  const findNextLesson = async () => {
+  const fetchUserServices = async () => {
     try {
-      console.log('Finding next lesson for user:', user?.id);
-      
-      // Get user's enrolled courses with explicit foreign key hint
-      const { data: enrolledCourses } = await supabase
-        .from('user_course_assignments')
+      const { data, error } = await supabase
+        .from('user_services')
         .select(`
-          course_id,
-          courses!user_course_assignments_course_id_fkey (id, title)
+          *,
+          services!user_services_service_id_fkey(
+            id,
+            title,
+            description,
+            type,
+            status
+          )
         `)
         .eq('user_id', user?.id);
 
-      console.log('Enrolled courses:', enrolledCourses);
-
-      if (!enrolledCourses || enrolledCourses.length === 0) {
-        setNextLessonInfo(null);
-        return;
-      }
-
-      // For each course, find the next incomplete lesson
-      for (const enrollment of enrolledCourses) {
-        const courseId = enrollment.course_id;
-        console.log('Processing course:', courseId);
-
-        // Get all lessons for this course ordered by order
-        const { data: lessons } = await supabase
-          .from('lessons')
-          .select('id, title, order, course_id')
-          .eq('course_id', courseId)
-          .order('order');
-
-        console.log('Lessons for course:', lessons);
-
-        if (!lessons || lessons.length === 0) continue;
-
-        // Get user progress for this course
-        const { data: progress } = await supabase
-          .from('user_progress')
-          .select('lesson_id, completed')
-          .eq('user_id', user?.id)
-          .eq('course_id', courseId);
-
-        console.log('User progress for course:', progress);
-
-        const completedLessonIds = progress?.filter(p => p.completed).map(p => p.lesson_id) || [];
-        console.log('Completed lesson IDs:', completedLessonIds);
-
-        // Find first incomplete lesson
-        const nextLesson = lessons.find(lesson => !completedLessonIds.includes(lesson.id));
-        console.log('Next incomplete lesson:', nextLesson);
-
-        if (nextLesson) {
-          const lessonInfo = {
-            courseId,
-            courseName: enrollment.courses.title,
-            lessonId: nextLesson.id,
-            lessonTitle: nextLesson.title,
-            allLessonsCompleted: false
-          };
-          console.log('Setting next lesson info:', lessonInfo);
-          setNextLessonInfo(lessonInfo);
-          return;
-        } else {
-          // All lessons completed for this course
-          const completedInfo = {
-            courseId,
-            courseName: enrollment.courses.title,
-            lessonId: null,
-            lessonTitle: null,
-            allLessonsCompleted: true
-          };
-          console.log('All lessons completed, setting info:', completedInfo);
-          setNextLessonInfo(completedInfo);
-          return;
-        }
-      }
+      if (error) throw error;
+      setUserServices(data || []);
     } catch (error) {
-      console.error('Error finding next lesson:', error);
+      console.error('Error fetching user services:', error);
     }
   };
 
-  const progressPercentage = stats?.totalLessons > 0 
-    ? Math.round((stats.completedLessons / stats.totalLessons) * 100) 
-    : 0;
-
-  const copyPrompt = (prompt: any) => {
-    const sections = [];
-    
-    // Add title
-    if (prompt.title) {
-      sections.push(`TITLE: ${prompt.title}`);
-    }
-    
-    // Add description
-    if (prompt.description) {
-      sections.push(`DESCRIPTION:\n${prompt.description}`);
-    }
-    
-    // Add persona
-    if (prompt.persona) {
-      sections.push(`PERSONA:\n${prompt.persona}`);
-    }
-    
-    // Add task
-    if (prompt.task) {
-      sections.push(`TASK:\n${prompt.task}`);
-    }
-    
-    // Add context
-    if (prompt.context) {
-      sections.push(`CONTEXT:\n${prompt.context}`);
-    }
-    
-    // Add format (role)
-    if (prompt.role) {
-      sections.push(`FORMAT:\n${prompt.role}`);
-    }
-    
-    // Add interview
-    if (prompt.interview) {
-      sections.push(`INTERVIEW:\n${prompt.interview}`);
-    }
-    
-    // Add boundaries
-    if (prompt.boundaries) {
-      sections.push(`BOUNDARIES:\n${prompt.boundaries}`);
-    }
-    
-    // Add reasoning
-    if (prompt.reasoning) {
-      sections.push(`REASONING:\n${prompt.reasoning}`);
-    }
-    
-    // Add tags (keywords)
-    if (prompt.keyword) {
-      sections.push(`TAGS:\n${prompt.keyword}`);
-    }
-    
-    const content = sections.join('\n\n');
-    
-    try {
-      navigator.clipboard.writeText(content);
-      toast.success('Prompt copied to clipboard!');
-    } catch (error) {
-      console.error('Error copying prompt:', error);
-      toast.error('Failed to copy prompt');
-    }
+  const getUserServiceStatus = (serviceTitle: string) => {
+    const userService = userServices.find(us => 
+      us.services?.title?.toLowerCase().includes(serviceTitle.toLowerCase())
+    );
+    return userService?.status || 'locked';
   };
 
-  const promptsToShow = stats?.favoritePrompts.length > 0 
-    ? stats.favoritePrompts.map(f => f.prompts).filter(Boolean)
-    : stats?.allPrompts || [];
-
-  const handleWelcomeAnimationComplete = () => {
-    console.log('Welcome animation completed!');
-  };
-
-  const handleNameAnimationComplete = () => {
-    console.log('Name animation completed!');
-  };
-
-  const handleServiceClick = (service: any, status: string) => {
+  const handleServiceClick = (serviceType: string, status: string) => {
     if (status === 'locked') {
       toast.error('This service is not available. Contact support for access.');
       return;
     }
     
-    // If it's AI Leadership Training service, navigate to courses
-    if (service.title?.toLowerCase().includes('leadership') || service.title?.toLowerCase().includes('training')) {
-      navigate('/courses');
-    } else if (service.title?.toLowerCase().includes('ai adoption') || service.title?.toLowerCase().includes('framework')) {
-      navigate('/ai-adoption-framework');
-    } else {
-      // For other services, go to the main services page
-      navigate('/services');
+    switch (serviceType) {
+      case 'ai-insights':
+        navigate('/services');
+        break;
+      case 'capabilities':
+        navigate('/services');
+        break;
+      case 'gpt-builder':
+        navigate('/services');
+        break;
+      case 'podcast':
+        navigate('/services');
+        break;
+      case 'prompt-builder':
+        navigate('/prompts-intro');
+        break;
+      case 'leadership-training':
+        navigate('/courses');
+        break;
+      case 'support':
+        navigate('/support');
+        break;
+      default:
+        navigate('/services');
     }
   };
 
@@ -246,42 +121,13 @@ const Dashboard = () => {
     );
   }
 
-  const getTrainingMaterialsLink = () => {
-    console.log('Getting training materials link, nextLessonInfo:', nextLessonInfo);
-    
-    if (!nextLessonInfo) return '/courses';
-    
-    // Always link to the course page instead of individual lessons
-    return `/courses/${nextLessonInfo.courseId}`;
-  };
-
-  const getTrainingMaterialsText = () => {
-    console.log('Getting training materials text, nextLessonInfo:', nextLessonInfo);
-    
-    if (!nextLessonInfo) return 'Access Training Materials';
-    
-    if (nextLessonInfo.allLessonsCompleted) {
-      return 'Review Course';
-    } else {
-      return 'Continue Learning';
-    }
-  };
-
-  const getTrainingDescription = () => {
-    if (!stats?.hasEnrolledCourses) {
-      return 'Contact us to get enrolled in exclusive AI leadership training courses.';
-    }
-    
-    if (!nextLessonInfo) {
-      return 'Loading your course progress...';
-    }
-    
-    if (nextLessonInfo.allLessonsCompleted) {
-      return 'Congratulations! You\'ve completed all lessons. Review your courses or explore new content.';
-    } else {
-      return `Continue with your next lesson: ${nextLessonInfo.lessonTitle}`;
-    }
-  };
+  // Check service access
+  const aiInsightsStatus = getUserServiceStatus('insights');
+  const capabilitiesStatus = getUserServiceStatus('capabilities');
+  const gptBuilderStatus = getUserServiceStatus('gpt builder');
+  const podcastStatus = getUserServiceStatus('podcast');
+  const promptBuilderStatus = getUserServiceStatus('prompt builder');
+  const leadershipTrainingStatus = getUserServiceStatus('leadership');
 
   return (
     <div className="space-y-8">
@@ -292,254 +138,373 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Welcome Header */}
-      <div className="relative bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-8 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative z-10">
-          <SplitText
-            text={`Welcome, ${userName}`}
-            className="text-3xl font-bold mb-2"
-            delay={50}
-            duration={0.8}
-            ease="power3.out"
-            splitType="chars"
-            from={{ opacity: 0, y: 50, rotationX: -90 }}
-            to={{ opacity: 1, y: 0, rotationX: 0 }}
-            threshold={0.1}
-            rootMargin="-50px"
-            textAlign="left"
-            onLetterAnimationComplete={handleWelcomeAnimationComplete}
-          />
-          <p className="text-white/90 text-lg max-w-2xl">
-            Explore AI innovations, access cutting-edge data management solutions, and connect with our expert services. 
-            Your journey into intelligent business transformation starts here.
-          </p>
+      {/* Welcome Section and Hero Banner - Side by Side */}
+      <div className="flex items-start justify-between space-x-8">
+        {/* Welcome Section - Left Side */}
+        <div className="flex items-start space-x-4 flex-shrink-0">
+          {/* Profile Picture */}
+          <div className="relative">
+            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+              {profile?.profile_image ? (
+                <img 
+                  src={profile.profile_image} 
+                  alt="Profile" 
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+              ) : (
+                <Users className="h-8 w-8 text-gray-500" />
+              )}
+            </div>
+          </div>
+          
+          {/* Welcome Text */}
+          <div>
+            <h1 
+              className="text-[30px] font-bold text-[#000000] tracking-[-0.9px] leading-[99.99%]"
+              style={{ fontFamily: 'Helvetica, sans-serif' }}
+            >
+              Hello, {userName}
+            </h1>
+            <p 
+              className="text-[16px] text-[#242424] tracking-[-0.48px] leading-[1.215] mt-2"
+              style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+            >
+              Welcome back!
+            </p>
+          </div>
         </div>
-        <div className="absolute top-4 right-4 opacity-20">
-          <div className="w-32 h-32 rounded-full border-4 border-white/30"></div>
+
+        {/* Hero Banner - Right Side */}
+        <div 
+          className="flex-shrink-0 relative overflow-hidden bg-white"
+          style={{
+            width: '744px',
+            height: '280px',
+            borderRadius: '17px',
+            border: '1px solid #D9D9D9'
+          }}
+        >
+          <div className="flex h-full">
+            {/* Left Half - Image */}
+            <div className="w-1/2 h-full">
+              <img 
+                src="/images/transformleadership.png" 
+                alt="Transform Leadership" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            
+            {/* Right Half - Text */}
+            <div className="w-1/2 h-full flex items-center p-8">
+              <div className="w-full">
+                <h2 
+                  className="text-[30px] font-bold text-[#242424] tracking-[-0.9px] leading-[1.215] mb-4"
+                  style={{ fontFamily: 'Helvetica, sans-serif' }}
+                >
+                  Transform Leadership through AI Mastery
+                </h2>
+                <p 
+                  className="text-[16px] text-[#706f6f] tracking-[-0.48px] leading-[1.215] mb-6"
+                  style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+                >
+                  Master the AI Leadership Series that's reshaping how executives think, decide, and lead in the data-driven era.
+                </p>
+                <Button 
+                  className="bg-[#026242] hover:bg-[#026242]/90 text-white px-3 py-2 rounded-[40px] h-10"
+                  onClick={() => handleServiceClick('leadership-training', leadershipTrainingStatus)}
+                  disabled={leadershipTrainingStatus === 'locked'}
+                >
+                  <span 
+                    className="text-[14px] font-medium tracking-[-0.56px] mr-3"
+                    style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+                  >
+                    Start Learning Now
+                  </span>
+                  <div className="bg-white rounded-[50px] p-[6px] w-5 h-5 flex items-center justify-center">
+                    <Play className="h-3 w-3 text-[#026242]" />
+                  </div>
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* AI Leadership Training */}
-        <Card className="relative overflow-hidden hover:shadow-lg transition-shadow duration-300 border-2 cursor-pointer">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
-          <CardHeader className="pb-4 relative z-10">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Award className="h-5 w-5 text-primary" />
-                <CardTitle className="text-card-foreground">AI Leadership Training</CardTitle>
-              </div>
-              <div className="flex items-center space-x-3">
-                <ProgressCircle progress={progressPercentage} size={48} strokeWidth={4} />
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">
-                    <CountUp to={stats?.completedLessons || 0} duration={1.2} className="font-medium" /> of <CountUp to={stats?.totalLessons || 0} duration={1.2} className="font-medium" /> lessons
-                  </p>
-                </div>
-              </div>
-            </div>           
-            <CardDescription className="text-muted-foreground">Advance your AI leadership skills with personalized learning paths</CardDescription>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="space-y-4">
-              <div className="p-4 bg-muted/50 dark:bg-muted/30 rounded-lg border border-border">
-                <h3 className="font-semibold text-lg mb-2 text-card-foreground">Ready to Lead the AI Revolution?</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {getTrainingDescription()}
+      {/* Content Cards Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Two rows of cards */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Top Row - AI Insights and Capabilities */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* AI Insights Card */}
+            <Card className="rounded-[10px] border-[#d9d9d9] overflow-hidden">
+              <CardContent className="p-6">
+                <h3 
+                  className="text-[25px] font-bold text-[#242424] tracking-[-0.75px] leading-[1.215] mb-4"
+                  style={{ fontFamily: 'Helvetica, sans-serif' }}
+                >
+                  AI Insights
+                </h3>
+                <p 
+                  className="text-[16px] text-[#7e7e7e] tracking-[-0.48px] leading-[1.215] mb-6"
+                  style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+                >
+                  Curated intelligence delivered to you. Industry trends, leadership strategies, and AI breakthroughs that matter to executives like you.
                 </p>
-                {stats?.hasEnrolledCourses ? (
-                  <Link to={getTrainingMaterialsLink()} className="block w-full">
-                    <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground relative z-20">
-                      <BookOpen className="h-4 w-4 mr-2" />
-                      {getTrainingMaterialsText()}
-                    </Button>
-                  </Link>
-                ) : (
-                  <Link to="/support" className="block w-full">
-                    <Button variant="outline" className="w-full relative z-20">
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      Contact Support for Enrollment
-                    </Button>
-                  </Link>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <CardTitle>Quick Actions</CardTitle>
-            </div>
-            <CardDescription>Access your most-used features</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              <Link to="/files">
-                <Button variant="outline" className="w-full h-20 flex flex-col space-y-1">
-                  <FileText className="h-5 w-5" />
-                  <span className="text-xs">Browse Files</span>
-                </Button>
-              </Link>
-              <Link to="/prompts">
-                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
-                  <MessageSquare className="h-5 w-5" />
-                  <span className="text-xs">Explore Prompts</span>
-                </Button>
-              </Link>
-              <Link to="/services">
-                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
-                  <Zap className="h-5 w-5" />
-                  <span className="text-xs">View Services</span>
-                </Button>
-              </Link>
-              <Link to="/profile">
-                <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
-                  <Users className="h-5 w-5" />
-                  <span className="text-xs">My Profile</span>
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Prompts */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <MessageSquare className="h-5 w-5 text-primary" />
-                <CardTitle>
-                  {stats?.favoritePrompts.length > 0 ? 'Favorite Prompts' : 'Prompts'}
-                </CardTitle>
-              </div>
-              <Link to="/prompts">
-                <Button variant="outline" size="sm">View All</Button>
-              </Link>
-            </div>
-            <CardDescription>
-              {stats?.favoritePrompts.length > 0 
-                ? 'Your bookmarked prompts' 
-                : 'Discover powerful AI prompts'
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {promptsToShow.length === 0 ? (
-                <div className="text-center py-6">
-                  <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No prompts available</p>
-                </div>
-              ) : (
-                promptsToShow.slice(0, 2).map((prompt: any) => (
-                  <div key={prompt.id} className="p-3 border rounded-lg hover:bg-accent/50 transition-colors">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-sm line-clamp-1">{prompt.title}</h3>
-                        {prompt.description && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{prompt.description}</p>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyPrompt(prompt)}
-                        className="h-6 w-6 p-0 flex-shrink-0"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    <div className="space-y-1">
-                      {prompt.persona && (
-                        <p className="text-xs text-muted-foreground line-clamp-1">
-                          <span className="font-medium">Persona:</span> {prompt.persona}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        <span className="font-medium">Task:</span> {prompt.task}
-                      </p>
-                      {prompt.keyword && (
-                        <p className="text-xs text-muted-foreground line-clamp-1">
-                          <span className="font-medium">Tags:</span> {prompt.keyword}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Services Overview */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-primary" />
-                <div>
-                  <CardTitle>My Services</CardTitle>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <span className="text-2xl font-bold text-primary">
-                      <CountUp to={stats?.enrolledServices.length || 0} duration={1.5} className="text-2xl font-bold" />
-                    </span>
-                    <span className="text-sm text-muted-foreground">active services</span>
-                  </div>
-                </div>
-              </div>
-              <Link to="/services">
-                <Button variant="outline" size="sm">View All</Button>
-              </Link>
-            </div>
-            <CardDescription>Manage your active and available services</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {(!stats?.enrolledServices || stats.enrolledServices.length === 0) ? (
-                <div className="text-center py-6">
-                  <Zap className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground mb-3">No active services</p>
-                  <Link to="/services">
-                    <Button variant="outline" size="sm">Explore Services</Button>
-                  </Link>
-                </div>
-              ) : (
-                stats.enrolledServices.slice(0, 3).map((userService: any) => (
-                  <div 
-                    key={userService.service_id} 
-                    className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${
-                      userService.status === 'active' 
-                        ? 'hover:bg-accent/50 cursor-pointer hover:border-primary/50' 
-                        : 'opacity-75'
-                    }`}
-                    onClick={() => userService.status === 'active' && handleServiceClick(userService.services, userService.status)}
+                <Button 
+                  className="bg-[#026242] hover:bg-[#026242]/90 text-white px-3 py-2 rounded-[40px] h-10"
+                  onClick={() => handleServiceClick('ai-insights', aiInsightsStatus)}
+                  disabled={aiInsightsStatus === 'locked'}
+                >
+                  <span 
+                    className="text-[14px] font-medium tracking-[-0.56px]"
+                    style={{ fontFamily: '"SF Pro Text", sans-serif' }}
                   >
-                    <div className="flex items-center space-x-3 flex-1">
-                      <div className={`w-2 h-2 rounded-full ${
-                        userService.status === 'active' ? 'bg-green-500' : 
-                        userService.status === 'pending' ? 'bg-yellow-500' : 'bg-gray-400'
-                      }`}></div>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{userService.services.title}</p>
-                        <div className="flex items-center space-x-2 mt-1">
-                        </div>
-                      </div>
-                    </div>
-                    {userService.status === 'active' && (
-                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                    Read More
+                  </span>
+                </Button>
+                <div className="mt-4 -mx-6 -mb-6 h-[280px] overflow-hidden">
+                  <img 
+                    src="/images/aiinsights.png" 
+                    alt="AI Insights" 
+                    className="w-full h-full object-cover"
+                    style={{
+                      width: '100%',
+                      position: 'relative',
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      height: '280px',
+                      objectFit: 'cover'
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Capabilities Card */}
+            <Card className="rounded-[10px] border-[#d9d9d9] overflow-hidden">
+              <CardContent className="p-6">
+                <h3 
+                  className="text-[25px] font-bold text-[#242424] tracking-[-0.75px] leading-[1.215] mb-4"
+                  style={{ fontFamily: 'Helvetica, sans-serif' }}
+                >
+                  Capabilities
+                </h3>
+                <p 
+                  className="text-[16px] text-[#7e7e7e] tracking-[-0.48px] leading-[1.215] mb-6"
+                  style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+                >
+                  Transform possibilities into results. Explore our comprehensive capabilities through client case studies, interactive demos, and real-world examples of AI-powered business transformation.
+                </p>
+                <Button 
+                  className="bg-[#026242] hover:bg-[#026242]/90 text-white px-3 py-2 rounded-[40px] h-10"
+                  onClick={() => handleServiceClick('capabilities', capabilitiesStatus)}
+                  disabled={capabilitiesStatus === 'locked'}
+                >
+                  <span 
+                    className="text-[14px] font-medium tracking-[-0.56px]"
+                    style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+                  >
+                    Read More
+                  </span>
+                </Button>
+                <div className="mt-4 -mx-6 -mb-6 h-[280px] overflow-hidden">
+                  <img 
+                    src="/images/capabilities.png" 
+                    alt="Capabilities" 
+                    className="w-full h-full object-cover"
+                    style={{
+                      width: '100%',
+                      position: 'relative',
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      height: '280px',
+                      objectFit: 'cover'
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Bottom Row - Podcast and AIDM Prompt Builder */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Podcast Card */}
+            <Card className="rounded-[10px] border-[#d9d9d9] overflow-hidden">
+              <CardContent className="p-6">
+                <h3 
+                  className="text-[25px] font-bold text-[#242424] tracking-[-0.75px] leading-[1.215] mb-4"
+                  style={{ fontFamily: 'Helvetica, sans-serif' }}
+                >
+                  Podcast
+                </h3>
+                <p 
+                  className="text-[16px] text-[#7e7e7e] tracking-[-0.48px] leading-[1.215] mb-6"
+                  style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+                >
+                  Weekly strategic conversations with leaders driving AI transformation. Real implementation stories, breakthrough insights, and the executive decisions that reshape industries.
+                </p>
+                <Button 
+                  className="bg-[#026242] hover:bg-[#026242]/90 text-white px-3 py-2 rounded-[40px] h-10"
+                  onClick={() => handleServiceClick('podcast', podcastStatus)}
+                  disabled={podcastStatus === 'locked'}
+                >
+                  <span 
+                    className="text-[14px] font-medium tracking-[-0.56px]"
+                    style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+                  >
+                    Listen Now
+                  </span>
+                </Button>
+                <div className="mt-4 -mx-6 -mb-6 h-[280px] overflow-hidden">
+                  <img 
+                    src="/images/podcast.png" 
+                    alt="Podcast" 
+                    className="w-full h-full object-cover"
+                    style={{
+                      width: '100%',
+                      position: 'relative',
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      height: '280px',
+                      objectFit: 'cover'
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* AIDM Prompt Builder Card */}
+            <Card className="rounded-[10px] border-[#d9d9d9] overflow-hidden bg-[#eeeeee]">
+              <CardContent className="p-6">
+                <h3 
+                  className="text-[25px] font-bold text-[#242424] tracking-[-0.75px] leading-[1.215] mb-4"
+                  style={{ fontFamily: 'Helvetica, sans-serif' }}
+                >
+                  AIDM Prompt Builder
+                </h3>
+                <p 
+                  className="text-[16px] text-[#656565] tracking-[-0.48px] leading-[1.215] mb-6"
+                  style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+                >
+                  Access hundreds of expertly crafted prompts designed specifically for business leaders, executives, and teams ready to harness AI's full potential.
+                </p>
+                <Button 
+                  className="bg-[#026242] hover:bg-[#026242]/90 text-white px-3 py-2 rounded-[40px] h-10"
+                  onClick={() => handleServiceClick('prompt-builder', promptBuilderStatus)}
+                  disabled={promptBuilderStatus === 'locked'}
+                >
+                  <span 
+                    className="text-[14px] font-medium tracking-[-0.56px]"
+                    style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+                  >
+                    Read More
+                  </span>
+                </Button>
+                <div className="mt-4 -mx-6 -mb-6 h-[280px] overflow-hidden">
+                  <img 
+                    src="/images/promptbuilderdash.png" 
+                    alt="AIDM Prompt Builder" 
+                    className="w-full h-full object-cover"
+                    style={{
+                      width: '100%',
+                      position: 'relative',
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      height: '280px',
+                      objectFit: 'cover'
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Right Column - GPT Builder Card */}
+        <div className="lg:col-span-1">
+          {/* The GPT Builder Card (Dark Background) */}
+          <Card className="rounded-[10px] border-[#d9d9d9] overflow-hidden bg-black text-white" style={{ height: 'calc(100% - 24px)' }}>
+            <CardContent className="p-6">
+              <h3 
+                className="text-[25px] font-bold text-white tracking-[-0.75px] leading-[1.215] mb-4"
+                style={{ fontFamily: 'Helvetica, sans-serif' }}
+              >
+                The GPT Builder.
+              </h3>
+              <p 
+                className="text-[16px] text-[#eef0f3] tracking-[-0.48px] leading-[1.215] mb-6"
+                style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+              >
+                Transform your organizational knowledge into powerful AI assistants with our comprehensive GPT Builder service. We guide you through document auditing, organization, and custom GPT training, including file optimization and bundling strategies to maximize AI performance. More than just implementation, GPT Builder opens the door to advanced automation opportunities and positions your organization for intelligent business transformation.
+              </p>
+              <Button 
+                className="bg-[#026242] hover:bg-[#026242]/90 text-white px-3 py-2 rounded-[40px] h-10"
+                onClick={() => handleServiceClick('gpt-builder', gptBuilderStatus)}
+                disabled={gptBuilderStatus === 'locked'}
+              >
+                <span 
+                  className="text-[14px] font-medium tracking-[-0.56px]"
+                  style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+                >
+                  Read More
+                </span>
+              </Button>
+                              <div className="mt-4 -mx-6 -mb-6 flex-1 overflow-hidden">
+                  <img 
+                    src="/images/gptbuilder.png" 
+                    alt="GPT Builder" 
+                    className="w-full h-full object-cover"
+                    style={{
+                      width: '100%',
+                      position: 'relative',
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      objectFit: 'cover'
+                    }}
+                  />
+                </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Footer CTA */}
+      <div className="relative bg-black rounded-[17px] p-8 text-white overflow-hidden">
+        <div className="flex items-center justify-between">
+          <div className="flex-1 max-w-2xl">
+            <h2 
+              className="text-[40px] font-bold text-white tracking-[-1.2px] leading-[1.215] mb-4"
+              style={{ fontFamily: 'Helvetica, sans-serif' }}
+            >
+              Let's work together.
+            </h2>
+            <p 
+              className="text-[16px] text-white tracking-[-0.48px] leading-[1.215] mb-6"
+              style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+            >
+              Join our subscription service and get your dream website designed and launched by experts. Start today, scale tomorrow!
+            </p>
+            <Button 
+              className="bg-[#026242] hover:bg-[#026242]/90 text-white px-3 py-2 rounded-[40px] h-10"
+              onClick={() => handleServiceClick('support', 'active')}
+            >
+              <span 
+                className="text-[14px] font-medium tracking-[-0.56px] mr-3"
+                style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+              >
+                Schedule an appointment
+              </span>
+              <div className="bg-white rounded-[50px] p-[6px] w-5 h-5 flex items-center justify-center">
+                <ArrowRight className="h-3 w-3 text-[#026242]" />
+              </div>
+            </Button>
+          </div>
+          <div className="hidden lg:block">
+            {/* Placeholder for decorative elements */}
+            <div className="w-32 h-32 bg-gray-800 rounded-full opacity-50"></div>
+          </div>
+        </div>
       </div>
     </div>
   );

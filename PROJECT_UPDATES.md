@@ -63,3 +63,10 @@
 - Duplicate assignment prevention
 - Enhanced user experience with informative feedback
 - Seamless integration with existing service assignment workflows
+
+## 2025-01-02
+- Updated dashboard layout with new card arrangement: AI Insights and Capabilities side by side on top, Podcast and AIDM Prompt Builder side by side below, GPT Builder positioned on the right spanning both rows
+- Reduced image heights for all cards from 415px to 280px for better proportions
+- Removed gaps between images and card borders using negative margins
+- Updated all cards to use proper images: aiinsights.png, capabilities.png, podcast.png, promptbuilderdash.png, and gptbuilder.png
+- Fixed image visibility and sizing issues across all dashboard cards
