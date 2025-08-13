@@ -70,3 +70,4 @@
 - Removed gaps between images and card borders using negative margins
 - Updated all cards to use proper images: aiinsights.png, capabilities.png, podcast.png, promptbuilderdash.png, and gptbuilder.png
 - Fixed image visibility and sizing issues across all dashboard cards
+- Made sidebar sticky/fixed so it doesn't scroll with page content for better navigation experience
