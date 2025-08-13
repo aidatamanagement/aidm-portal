@@ -213,12 +213,12 @@ const CourseDetail = () => {
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <CardTitle className="text-card-foreground">Lesson Content</CardTitle>
-                    {currentLessonProgress?.completed && (
-                      <Badge variant="default" className="bg-green-500 hover:bg-green-600">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Completed
-                      </Badge>
-                    )}
+                                         {currentLessonProgress?.completed && (
+                       <Badge variant="default" className="bg-primary hover:bg-primary/90">
+                         <CheckCircle className="h-3 w-3 mr-1" />
+                         Completed
+                       </Badge>
+                     )}
                   </div>
                   <div className="flex items-center space-x-2">
                     {currentLesson.pdf_url && (
@@ -328,9 +328,9 @@ const CourseDetail = () => {
 
         {/* Course Overview Sidebar - Right Side */}
         <div className="w-80 bg-background border-l p-4 space-y-6">
-          {/* Current Module Status Card */}
-          {currentLesson && (
-            <Card className={`${currentLessonProgress?.completed ? 'bg-green-600' : 'bg-primary'} text-primary-foreground`}>
+                     {/* Current Module Status Card */}
+           {currentLesson && (
+             <Card className={`${currentLessonProgress?.completed ? 'bg-primary' : 'bg-primary'} text-primary-foreground`}>
               <CardContent className="p-4">
                 <div className="flex items-center space-x-3 mb-4">
                   <div className="bg-white/20 rounded-full p-2">
@@ -357,20 +357,20 @@ const CourseDetail = () => {
                   <Progress value={progressPercentage} className="h-2" />
                 </div>
                 
-                <Button 
-                  onClick={markComplete}
-                  disabled={markCompleteMutation.isPending || currentLessonProgress?.completed}
-                  className={`w-full ${
-                    currentLessonProgress?.completed 
-                      ? 'bg-green-500 text-white hover:bg-green-600' 
-                      : 'bg-white text-primary hover:bg-white/90'
-                  }`}
-                  size="sm"
-                >
-                  {markCompleteMutation.isPending ? 'Marking...' : 
-                   currentLessonProgress?.completed ? 'Completed ✓' : 'Mark Complete'}
-                  {!currentLessonProgress?.completed && <ChevronRight className="h-4 w-4 ml-2" />}
-                </Button>
+                                 <Button 
+                   onClick={markComplete}
+                   disabled={markCompleteMutation.isPending || currentLessonProgress?.completed}
+                   className={`w-full ${
+                     currentLessonProgress?.completed 
+                       ? 'bg-primary text-white hover:bg-primary/90' 
+                       : 'bg-white text-primary hover:bg-white/90'
+                   }`}
+                   size="sm"
+                 >
+                   {markCompleteMutation.isPending ? 'Marking...' : 
+                    currentLessonProgress?.completed ? 'Completed ✓' : 'Mark Complete'}
+                   {!currentLessonProgress?.completed && <ChevronRight className="h-4 w-4 ml-2" />}
+                 </Button>
               </CardContent>
             </Card>
           )}
@@ -429,12 +429,12 @@ const CourseDetail = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        {isCompleted && (
-                          <CheckCircle className="h-5 w-5 text-green-500" />
-                        )}
-                        <Download className="h-4 w-4 text-gray-400" />
-                      </div>
+                                             <div className="flex items-center space-x-2">
+                         {isCompleted && (
+                           <CheckCircle className="h-5 w-5 text-primary" />
+                         )}
+                         <Download className="h-4 w-4 text-gray-400" />
+                       </div>
                     </div>
                   </div>
                 );
