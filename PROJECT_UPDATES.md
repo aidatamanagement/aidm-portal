@@ -728,3 +728,5 @@ Added keyword column to prompts table - created migration to add keyword field f
 - **Reordered prompt form fields** - updated AdminPrompts form to follow specified order: Persona, Task, Context, Format, Boundaries, Reasoning, Tags, with additional fields (Interview) moved below main headings, updated card display and copy function to maintain consistent field ordering
 
 - **Removed default categories from database migration** - updated migration to not insert any default categories, allowing categories to be added only through the admin interface for a clean slate approach
+
+- **Removed sequential lesson locking feature** - completely eliminated all sequential progression restrictions from frontend, updated CourseDetail.tsx and LessonViewer.tsx to remove sequential lock logic, removed completion requirements for lesson navigation, students can now freely navigate between any lessons unless specifically restricted by admin, simplified navigation controls and removed helper text about completion requirements

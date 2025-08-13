@@ -126,8 +126,7 @@ const CourseDetail = () => {
               const lessonProgress = userProgress.find(p => p.lesson_id === lesson.id);
               const isCompleted = lessonProgress?.completed || false;
               const isAdminLocked = lessonLocks[lesson.id] || false;
-              const isSequentiallyLocked = index > 0 && !userProgress.find(p => p.lesson_id === lessons[index - 1].id)?.completed;
-              const isLocked = isAdminLocked || isSequentiallyLocked;
+              const isLocked = isAdminLocked;
 
               return (
                 <div
@@ -154,11 +153,6 @@ const CourseDetail = () => {
                             🔒 Restricted
                           </Badge>
                         )}
-                        {isSequentiallyLocked && !isAdminLocked && (
-                          <Badge variant="outline" className="text-xs">
-                            Complete previous lesson
-                          </Badge>
-                        )}
                       </div>
                       <p className="text-sm text-gray-600">{lesson.description}</p>
                       {isAdminLocked && (
@@ -179,7 +173,7 @@ const CourseDetail = () => {
                       </Link>
                     ) : (
                       <Button variant="outline" size="sm" disabled>
-                        {isAdminLocked ? 'Restricted' : 'Locked'}
+                        Restricted
                       </Button>
                     )}
                   </div>

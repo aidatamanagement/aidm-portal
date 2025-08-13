@@ -231,6 +231,7 @@ const LessonViewer = () => {
   };
 
   const isNextLessonLocked = () => {
+    // Removed sequential lock restrictions - only check admin locks
     const nextLesson = getNextLesson();
     return nextLesson ? isLessonLockedForUser(nextLesson.id) : false;
   };
@@ -637,7 +638,7 @@ const LessonViewer = () => {
                         userProgress,
                         isCompleted: userProgress?.completed,
                         navigating,
-                        buttonDisabled: navigating || !userProgress?.completed
+                        buttonDisabled: navigating
                       });
                       goToNextLesson();
                     }}
@@ -663,14 +664,7 @@ const LessonViewer = () => {
             </div>
           </div>
 
-          {/* Helper Text */}
-          {nextLesson && !userProgress?.completed && (
-            <div className="text-center mt-4">
-              <p className="text-sm text-muted-foreground">
-                You can navigate to the next lesson or mark this one complete first
-              </p>
-            </div>
-          )}
+          {/* Helper Text - Removed completion requirement */}
         </div>
       </div>
     </div>
