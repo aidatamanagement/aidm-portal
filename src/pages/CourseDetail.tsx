@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { FileText, Video, Lock, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 
 const CourseDetail = () => {
   const { id } = useParams();
@@ -15,7 +15,6 @@ const CourseDetail = () => {
   const [course, setCourse] = useState<any>(null);
   const [lessons, setLessons] = useState<any[]>([]);
   const [userProgress, setUserProgress] = useState<any[]>([]);
-  const [lessonLocks, setLessonLocks] = useState<{ [key: string]: boolean }>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,23 +46,9 @@ const CourseDetail = () => {
         .eq('course_id', id)
         .eq('user_id', user?.id);
 
-      // Fetch lesson locks for this user
-      const { data: locksData } = await supabase
-        .from('user_lesson_locks')
-        .select('lesson_id, locked')
-        .eq('user_id', user?.id)
-        .eq('course_id', id);
-
-      // Convert locks to a map for easy lookup
-      const locksMap: { [key: string]: boolean } = {};
-      locksData?.forEach(lock => {
-        locksMap[lock.lesson_id] = lock.locked;
-      });
-
       setCourse(courseData);
       setLessons(lessonsData || []);
       setUserProgress(progressData || []);
-      setLessonLocks(locksMap);
     } catch (error) {
       console.error('Error fetching course data:', error);
     } finally {
@@ -125,57 +110,32 @@ const CourseDetail = () => {
             {lessons.map((lesson, index) => {
               const lessonProgress = userProgress.find(p => p.lesson_id === lesson.id);
               const isCompleted = lessonProgress?.completed || false;
-              const isAdminLocked = lessonLocks[lesson.id] || false;
-              const isLocked = isAdminLocked;
 
               return (
                 <div
                   key={lesson.id}
-                  className={`flex items-center justify-between p-4 rounded-lg border ${
-                    isLocked ? 'bg-gray-50 opacity-60' : 'bg-white hover:bg-gray-50'
-                  }`}
+                  className="flex items-center justify-between p-4 rounded-lg border bg-white hover:bg-gray-50"
                 >
                   <div className="flex items-center space-x-3">
                     <div className="flex-shrink-0">
                       {isCompleted ? (
                         <CheckCircle className="h-5 w-5 text-green-600" />
-                      ) : isLocked ? (
-                        <Lock className="h-5 w-5 text-gray-400" />
                       ) : (
                         <FileText className="h-5 w-5 text-primary" />
                       )}
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center space-x-2">
                       <h3 className="font-medium">{lesson.title}</h3>
-                        {isAdminLocked && (
-                          <Badge variant="destructive" className="text-xs">
-                            🔒 Restricted
-                          </Badge>
-                        )}
-                      </div>
                       <p className="text-sm text-gray-600">{lesson.description}</p>
-                      {isAdminLocked && (
-                        <div className="flex items-center mt-1 text-xs text-red-600">
-                          <AlertCircle className="h-3 w-3 mr-1" />
-                          <span>This lesson has been restricted by Admin</span>
-                        </div>
-                      )}
                     </div>
                   </div>
                   
                   <div className="flex-shrink-0">
-                    {!isLocked ? (
-                      <Link to={`/courses/${course.id}/lessons/${lesson.id}`}>
-                        <Button variant="outline" size="sm">
-                          {isCompleted ? 'Review' : 'Start'}
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Button variant="outline" size="sm" disabled>
-                        Restricted
+                    <Link to={`/courses/${course.id}/lessons/${lesson.id}`}>
+                      <Button variant="outline" size="sm">
+                        {isCompleted ? 'Review' : 'Start'}
                       </Button>
-                    )}
+                    </Link>
                   </div>
                 </div>
               );

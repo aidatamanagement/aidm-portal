@@ -40,22 +40,72 @@ const AssignServiceModal = ({ open, onOpenChange, studentId, assignedServiceIds 
     },
   });
 
+  // Get the AI Leadership course ID
+  const { data: aiLeadershipCourse } = useQuery({
+    queryKey: ['ai-leadership-course'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('id, title')
+        .ilike('title', '%leadership%')
+        .limit(1);
+
+      if (error) throw error;
+      return data?.[0] || null;
+    },
+  });
+
   const assignServiceMutation = useMutation({
     mutationFn: async (serviceId: string) => {
-      const { error } = await supabase
+      // First, assign the service
+      const { error: serviceError } = await supabase
         .from('user_services')
         .insert({
           user_id: studentId,
           service_id: serviceId,
           status: 'active'
         });
-      if (error) throw error;
+      
+      if (serviceError) throw serviceError;
+
+      // Check if this is the AI Leadership service and automatically assign the course
+      const selectedService = availableServices?.find(service => service.id === serviceId);
+      if (selectedService && aiLeadershipCourse) {
+        const isLeadershipService = selectedService.title.toLowerCase().includes('leadership') || 
+                                   selectedService.title.toLowerCase().includes('training');
+        
+        if (isLeadershipService) {
+          // Check if user is already assigned to this course
+          const { data: existingAssignment } = await supabase
+            .from('user_course_assignments')
+            .select('id')
+            .eq('user_id', studentId)
+            .eq('course_id', aiLeadershipCourse.id);
+
+          // Only assign if not already assigned
+          if (!existingAssignment || existingAssignment.length === 0) {
+            const { error: courseError } = await supabase
+              .from('user_course_assignments')
+              .insert({
+                user_id: studentId,
+                course_id: aiLeadershipCourse.id,
+                locked: false
+              });
+
+            if (courseError) {
+              console.error('Failed to auto-assign AI Leadership course:', courseError);
+              // Don't throw error here as service assignment was successful
+            }
+          }
+        }
+      }
     },
     onSuccess: () => {
       toast.success('Service assigned successfully');
       onOpenChange(false);
       setSelectedServiceId('');
       queryClient.invalidateQueries({ queryKey: ['admin-student-services', studentId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-student-courses', studentId] });
     },
     onError: (error) => {
       toast.error('Failed to assign service');
@@ -82,6 +132,11 @@ const AssignServiceModal = ({ open, onOpenChange, studentId, assignedServiceIds 
           <DialogTitle>Assign Service</DialogTitle>
           <DialogDescription>
             Select a service to assign to this student.
+            {aiLeadershipCourse && (
+              <span className="block mt-2 text-sm text-muted-foreground">
+                Note: AI Leadership services will automatically assign the "{aiLeadershipCourse.title}" course.
+              </span>
+            )}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
