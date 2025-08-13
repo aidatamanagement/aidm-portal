@@ -15,6 +15,7 @@ import LessonViewer from "./pages/LessonViewer";
 import Services from "./pages/Services";
 import Files from "./pages/Files";
 import Prompts from "./pages/Prompts";
+import PromptsIntro from "./pages/PromptsIntro";
 import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
@@ -133,6 +134,14 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <Files />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/prompts-intro" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <PromptsIntro />
                   </Layout>
                 </ProtectedRoute>
               } />

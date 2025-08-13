@@ -32,7 +32,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Services', href: '/services' },
     { name: 'Files', href: '/files' },
-    { name: 'Prompts', href: '/prompts' },
+    { name: 'Prompts', href: '/prompts-intro' },
   ];
 
   useEffect(() => {

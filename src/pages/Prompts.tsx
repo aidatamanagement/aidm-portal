@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ import { toast } from 'sonner';
 
 const Prompts = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [prompts, setPrompts] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -212,7 +214,18 @@ const Prompts = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Writing Prompts</h1>
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/prompts-intro')}
+            className="flex items-center space-x-2"
+          >
+            <ChevronRight className="h-4 w-4 rotate-180" />
+            <span>Back to Intro</span>
+          </Button>
+          <h1 className="text-2xl font-bold">Writing Prompts</h1>
+        </div>
         <div className="flex space-x-2">
           <Button
             variant={showFavoritesOnly ? "outline" : "default"}
