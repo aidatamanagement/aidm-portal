@@ -309,9 +309,7 @@ const CourseDetail = () => {
                   <div>
                     <h3 className="font-semibold text-white">Module : {currentLessonIndex + 1}</h3>
                     <p className="text-white/70 text-sm">{currentLesson.title}</p>
-                    {currentLessonProgress?.completed && (
-                      <p className="text-white/90 text-xs mt-1">✓ Completed</p>
-                    )}
+
                   </div>
                 </div>
                 
@@ -411,9 +409,17 @@ const CourseDetail = () => {
                         </div>
                       </div>
                       <div className="flex items-center">
-                        <Download className={`h-6 w-6 ${
-                          isCurrent ? 'text-white' : 'text-[#696969]'
-                        }`} />
+                        <Download 
+                          className={`h-6 w-6 cursor-pointer ${
+                            isCurrent ? 'text-white' : 'text-[#696969]'
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (moduleLesson.pdf_url) {
+                              window.open(moduleLesson.pdf_url, '_blank');
+                            }
+                          }}
+                        />
                       </div>
                     </div>
                   </div>
