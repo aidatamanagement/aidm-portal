@@ -135,6 +135,13 @@ const CourseDetail = () => {
     markCompleteMutation.mutate();
   };
 
+  const goToNextLesson = () => {
+    const nextLesson = allLessons?.[currentLessonIndex + 1];
+    if (nextLesson) {
+      setSelectedLessonId(nextLesson.id);
+    }
+  };
+
   const downloadPDF = () => {
     if (currentLesson?.pdf_url) {
       window.open(currentLesson.pdf_url, '_blank');
@@ -194,66 +201,10 @@ const CourseDetail = () => {
         {/* Main Content Area - Left Side */}
         <div className="flex-1 p-4 sm:p-6">
           <div className="max-w-4xl mx-auto space-y-6">
-            {/* Course Header */}
-            <div className="space-y-4">
-              <h1 className="text-3xl font-bold">{course.title}</h1>
-              <p className="text-muted-foreground text-lg leading-relaxed">
-                {course.description}
-              </p>
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>Progress</span>
-                <span>{completedLessons} of {totalLessons} lessons</span>
-              </div>
-              <Progress value={progressPercentage} className="h-2" />
-            </div>
 
             {/* PDF Viewer */}
             {currentLesson && (
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <CardTitle className="text-card-foreground">Lesson Content</CardTitle>
-                                         {currentLessonProgress?.completed && (
-                       <Badge variant="default" className="bg-primary hover:bg-primary/90">
-                         <CheckCircle className="h-3 w-3 mr-1" />
-                         Completed
-                       </Badge>
-                     )}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {currentLesson.pdf_url && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={downloadPDF}
-                          className="flex items-center space-x-1"
-                        >
-                          <Download className="h-4 w-4" />
-                          <span className="hidden sm:inline">Download</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={openPDFInNewTab}
-                          className="flex items-center space-x-1"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                          <span className="hidden sm:inline">Open</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={refreshPDF}
-                          className="flex items-center space-x-1"
-                        >
-                          <RefreshCw className="h-4 w-4" />
-                          <span className="hidden sm:inline">Refresh</span>
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </CardHeader>
                 <CardContent>
                   {currentLesson.pdf_url ? (
                     <div className="w-full h-[500px] border rounded-lg overflow-hidden">
@@ -323,6 +274,21 @@ const CourseDetail = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Go to next module button */}
+            <div className="flex justify-center mt-8">
+              <div
+                onClick={goToNextLesson}
+                className="bg-primary box-border content-stretch flex flex-row gap-3 h-10 items-center justify-center px-3 py-2 rounded-[40px] cursor-pointer"
+              >
+                <div className="font-['SF_Pro_Text:Medium',_sans-serif] leading-[0] not-italic relative shrink-0 text-white text-[14px] text-nowrap text-right tracking-[-0.42px]">
+                  <p className="block leading-[normal] whitespace-pre">Go to next module</p>
+                </div>
+                <div className="bg-white box-border content-stretch flex flex-row gap-2.5 items-center justify-center p-[6px] relative rounded-[50px] shrink-0 size-5">
+                  <ChevronRight className="h-3 w-3 text-primary" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -354,23 +320,34 @@ const CourseDetail = () => {
                     <span>{currentLessonProgress?.completed ? 'Completed' : 'In Progress'}</span>
                     <span>{Math.round(progressPercentage)}%</span>
                   </div>
-                  <Progress value={progressPercentage} className="h-2" />
+                  <Progress 
+                    value={progressPercentage} 
+                    className="h-2 bg-[#4E917B] [&>div]:bg-white rounded-full [&>div]:rounded-full" 
+                  />
                 </div>
                 
-                                 <Button 
-                   onClick={markComplete}
-                   disabled={markCompleteMutation.isPending || currentLessonProgress?.completed}
-                   className={`w-full ${
-                     currentLessonProgress?.completed 
-                       ? 'bg-primary text-white hover:bg-primary/90' 
-                       : 'bg-white text-primary hover:bg-white/90'
-                   }`}
-                   size="sm"
-                 >
-                   {markCompleteMutation.isPending ? 'Marking...' : 
-                    currentLessonProgress?.completed ? 'Completed ✓' : 'Mark Complete'}
-                   {!currentLessonProgress?.completed && <ChevronRight className="h-4 w-4 ml-2" />}
-                 </Button>
+                                                 <div className="flex flex-row gap-2 items-start justify-start w-full">
+                  <div
+                    onClick={markComplete}
+                    className={`box-border content-stretch flex flex-row gap-1.5 items-center justify-center p-[10px] relative rounded-[52px] shrink-0 w-full cursor-pointer ${
+                      currentLessonProgress?.completed 
+                        ? 'bg-[#f0f0f0] text-[#242424]' 
+                        : 'bg-[#f0f0f0] text-[#242424]'
+                    }`}
+                  >
+                    <div className="font-['Inter:Medium',_sans-serif] font-medium leading-[0] not-italic relative shrink-0 text-[14px] text-left text-nowrap">
+                      <p className="block leading-[20px] whitespace-pre">
+                        {markCompleteMutation.isPending ? 'Marking...' : 
+                         currentLessonProgress?.completed ? 'Completed ✓' : 'Mark Complete'}
+                      </p>
+                    </div>
+                    {!currentLessonProgress?.completed && (
+                      <div className="relative shrink-0 size-5">
+                        <ChevronRight className="h-5 w-5" />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -391,10 +368,10 @@ const CourseDetail = () => {
                 return (
                   <div
                     key={moduleLesson.id}
-                    className={`p-4 rounded-xl border cursor-pointer transition-colors ${
+                    className={`h-[87px] rounded-xl border cursor-pointer transition-colors ${
                       isCurrent 
-                        ? 'bg-gray-900 text-white border-gray-900' 
-                        : 'bg-white hover:bg-gray-50'
+                        ? 'bg-[#242424] border-[rgba(25,25,25,0.2)]' 
+                        : 'bg-white border-[#d1d1d1] hover:bg-gray-50'
                     }`}
                     onClick={() => {
                       if (!isLocked) {
@@ -402,39 +379,42 @@ const CourseDetail = () => {
                       }
                     }}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className={`rounded-full p-2 ${
-                          isCurrent ? 'bg-white/20' : 'bg-gray-100'
+                    <div className="flex items-center justify-between h-full px-4 py-[21px]">
+                      <div className="flex items-center space-x-[11px]">
+                        <div className={`rounded-full p-[11.429px] size-11 ${
+                          isCurrent ? 'bg-white' : 'bg-[#242424]'
                         }`}>
                           {isLocked ? (
-                            <Lock className={`h-5 w-5 ${isCurrent ? 'text-white' : 'text-gray-500'}`} />
+                            <Lock className={`h-5 w-5 ${isCurrent ? 'text-[#242424]' : 'text-white'}`} />
+                          ) : isCompleted ? (
+                            <CheckCircle className={`h-5 w-5 ${isCurrent ? 'text-[#242424]' : 'text-white'}`} />
                           ) : (
-                            <Play className={`h-5 w-5 ${isCurrent ? 'text-white' : 'text-gray-900'}`} />
+                            <Play className={`h-5 w-5 ${isCurrent ? 'text-[#242424]' : 'text-white'}`} />
                           )}
                         </div>
-                        <div>
-                          <h4 className={`font-semibold text-sm ${
-                            isCurrent ? 'text-white' : 'text-gray-900'
+                        <div className="flex flex-col gap-1.5">
+                          <h4 className={`font-semibold text-[16px] leading-[normal] ${
+                            isCurrent ? 'text-white' : 'text-[#242424]'
                           }`}>
                             {moduleLesson.title}
                           </h4>
-                          <div className="flex items-center space-x-1 mt-1">
-                            <Clock className="h-4 w-4 text-gray-400" />
-                            <span className={`text-xs ${
-                              isCurrent ? 'text-gray-300' : 'text-gray-500'
+                          <div className="flex items-center space-x-[5px]">
+                            <Clock className={`h-4 w-4 ${
+                              isCurrent ? 'text-[#bababa]' : 'text-[#696969]'
+                            }`} />
+                            <span className={`text-[14px] leading-[10px] ${
+                              isCurrent ? 'text-[#bababa]' : 'text-[#696969]'
                             }`}>
                               08 min, 27 Sec
                             </span>
                           </div>
                         </div>
                       </div>
-                                             <div className="flex items-center space-x-2">
-                         {isCompleted && (
-                           <CheckCircle className="h-5 w-5 text-primary" />
-                         )}
-                         <Download className="h-4 w-4 text-gray-400" />
-                       </div>
+                      <div className="flex items-center">
+                        <Download className={`h-6 w-6 ${
+                          isCurrent ? 'text-white' : 'text-[#696969]'
+                        }`} />
+                      </div>
                     </div>
                   </div>
                 );
