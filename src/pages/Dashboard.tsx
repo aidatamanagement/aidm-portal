@@ -129,8 +129,8 @@ const Dashboard = () => {
   const promptBuilderStatus = getUserServiceStatus('prompt builder');
   const leadershipTrainingStatus = getUserServiceStatus('leadership');
 
-  return (
-    <div className="space-y-8">
+      return (
+      <div className="space-y-8 pr-8">
       {/* Real-time indicator */}
       {isFetching && (
         <div className="fixed top-20 right-4 z-50 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs">
@@ -138,10 +138,10 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Welcome Section and Hero Banner - Side by Side */}
-      <div className="flex items-start justify-between space-x-8">
-        {/* Welcome Section - Left Side */}
-        <div className="flex items-start space-x-4 flex-shrink-0">
+              {/* Welcome Section and Hero Banner - Side by Side */}
+        <div className="flex items-start justify-between space-x-8">
+          {/* Welcome Section - Left Side */}
+          <div className="flex items-start space-x-4 flex-shrink-0 mt-20">
           {/* Profile Picture */}
           <div className="relative">
             <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
@@ -423,8 +423,8 @@ const Dashboard = () => {
         {/* Right Column - GPT Builder Card */}
         <div className="lg:col-span-1">
           {/* The GPT Builder Card (Dark Background) */}
-          <Card className="rounded-[10px] border-[#d9d9d9] overflow-hidden bg-black text-white" style={{ height: 'calc(100% - 24px)' }}>
-            <CardContent className="p-6">
+          <Card className="rounded-[10px] border-[#d9d9d9] overflow-hidden text-white relative" style={{ height: 'calc(100% - 24px)', backgroundColor: '#000000' }}>
+            <CardContent className="p-6 flex flex-col h-full" style={{ backgroundColor: '#000000' }}>
               <h3 
                 className="text-[25px] font-bold text-white tracking-[-0.75px] leading-[1.215] mb-4"
                 style={{ fontFamily: 'Helvetica, sans-serif' }}
@@ -438,7 +438,8 @@ const Dashboard = () => {
                 Transform your organizational knowledge into powerful AI assistants with our comprehensive GPT Builder service. We guide you through document auditing, organization, and custom GPT training, including file optimization and bundling strategies to maximize AI performance. More than just implementation, GPT Builder opens the door to advanced automation opportunities and positions your organization for intelligent business transformation.
               </p>
               <Button 
-                className="bg-[#026242] hover:bg-[#026242]/90 text-white px-3 py-2 rounded-[40px] h-10"
+                className="bg-[#026242] text-white px-3 py-2 rounded-[40px] h-10"
+                style={{ backgroundColor: '#026242' }}
                 onClick={() => handleServiceClick('gpt-builder', gptBuilderStatus)}
                 disabled={gptBuilderStatus === 'locked'}
               >
@@ -449,20 +450,54 @@ const Dashboard = () => {
                   Read More
                 </span>
               </Button>
-                              <div className="mt-4 -mx-6 -mb-6 flex-1 overflow-hidden">
-                  <img 
-                    src="/images/gptbuilder.png" 
-                    alt="GPT Builder" 
-                    className="w-full h-full object-cover"
-                    style={{
-                      width: '100%',
-                      position: 'relative',
-                      maxWidth: '100%',
-                      overflow: 'hidden',
-                      objectFit: 'cover'
-                    }}
-                  />
+              
+              {/* Spacer to push images to bottom */}
+              <div className="flex-1"></div>
+              
+              {/* New Image Layout with Overlapping Images at Bottom */}
+              <div className="mt-4 -mx-6 overflow-hidden" style={{ height: '450px' }}>
+                <div className="relative w-full h-full">
+                  {/* gptbuilder2 - Base image (full width) */}
+                  <div className="absolute inset-0 w-full h-full">
+                    <img 
+                      src="/images/gptbuilder2.png" 
+                      alt="GPT Builder Interface" 
+                      className="w-full h-full object-contain"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  </div>
+                  
+                  {/* gptbuilder1 - Overlapping image on top */}
+                  <div className="absolute right-4 top-4 w-1/2 h-2/3 z-10">
+                    <img 
+                      src="/images/gptbuilder1.png" 
+                      alt="GPT Builder Details" 
+                      className="w-full h-full object-contain rounded-lg shadow-lg"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        borderRadius: '8px',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
+                        backgroundColor: 'rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                  </div>
                 </div>
+              </div>
+              
+              {/* Green Gradient at End */}
+              <div 
+                className="absolute bottom-0 left-0 right-0 h-16"
+                style={{
+                  background: 'linear-gradient(to top, #026242, transparent)',
+                  borderRadius: '0 0 10px 10px'
+                }}
+              ></div>
             </CardContent>
           </Card>
         </div>
@@ -470,7 +505,21 @@ const Dashboard = () => {
 
       {/* Footer CTA */}
       <div className="relative bg-black rounded-[17px] p-8 text-white overflow-hidden">
-        <div className="flex items-center justify-between">
+        {/* Top-left orbital rings */}
+        <div className="absolute top-0 left-0 w-32 h-32 opacity-20">
+          <div className="absolute top-2 left-2 w-8 h-8 border border-gray-400 rounded-full" style={{ borderStyle: 'dashed', borderWidth: '1px' }}></div>
+          <div className="absolute top-4 left-4 w-16 h-16 border border-gray-400 rounded-full" style={{ borderStyle: 'dashed', borderWidth: '1px' }}></div>
+          <div className="absolute top-6 left-6 w-24 h-24 border border-gray-400 rounded-full" style={{ borderStyle: 'dashed', borderWidth: '1px' }}></div>
+        </div>
+        
+        {/* Bottom-right orbital rings */}
+        <div className="absolute bottom-0 right-0 w-32 h-32 opacity-20">
+          <div className="absolute bottom-2 right-2 w-8 h-8 border border-gray-400 rounded-full" style={{ borderStyle: 'dashed', borderWidth: '1px' }}></div>
+          <div className="absolute bottom-4 right-4 w-16 h-16 border border-gray-400 rounded-full" style={{ borderStyle: 'dashed', borderWidth: '1px' }}></div>
+          <div className="absolute bottom-6 right-6 w-24 h-24 border border-gray-400 rounded-full" style={{ borderStyle: 'dashed', borderWidth: '1px' }}></div>
+        </div>
+        
+        <div className="flex items-center justify-between relative z-10">
           <div className="flex-1 max-w-2xl">
             <h2 
               className="text-[40px] font-bold text-white tracking-[-1.2px] leading-[1.215] mb-4"
@@ -485,8 +534,8 @@ const Dashboard = () => {
               Join our subscription service and get your dream website designed and launched by experts. Start today, scale tomorrow!
             </p>
             <Button 
-              className="bg-[#026242] hover:bg-[#026242]/90 text-white px-3 py-2 rounded-[40px] h-10"
-              onClick={() => handleServiceClick('support', 'active')}
+              className="bg-gray-500 text-gray-300 px-3 py-2 rounded-[40px] h-10 cursor-not-allowed"
+              disabled={true}
             >
               <span 
                 className="text-[14px] font-medium tracking-[-0.56px] mr-3"
@@ -494,14 +543,13 @@ const Dashboard = () => {
               >
                 Schedule an appointment
               </span>
-              <div className="bg-white rounded-[50px] p-[6px] w-5 h-5 flex items-center justify-center">
-                <ArrowRight className="h-3 w-3 text-[#026242]" />
+              <div className="bg-gray-300 rounded-[50px] p-[6px] w-5 h-5 flex items-center justify-center">
+                <ArrowRight className="h-3 w-3 text-gray-500" />
               </div>
             </Button>
           </div>
           <div className="hidden lg:block">
-            {/* Placeholder for decorative elements */}
-            <div className="w-32 h-32 bg-gray-800 rounded-full opacity-50"></div>
+            {/* Removed decorative circle */}
           </div>
         </div>
       </div>

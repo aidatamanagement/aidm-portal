@@ -159,6 +159,60 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               );
             })}
           </nav>
+          
+          {/* Need Help Card - Bottom of Sidebar */}
+          <div className="p-4">
+            <div 
+              className="bg-[#026242] rounded-[17px] p-4 text-white relative overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, #026242 0%, #026242 100%)'
+              }}
+            >
+              {/* Orbital patterns in background */}
+              <div className="absolute top-0 left-0 w-16 h-16 opacity-10">
+                <div className="absolute top-1 left-1 w-4 h-4 border border-[#4E917B] rounded-full" style={{ borderStyle: 'dashed', borderWidth: '1px' }}></div>
+                <div className="absolute top-2 left-2 w-8 h-8 border border-[#4E917B] rounded-full" style={{ borderStyle: 'dashed', borderWidth: '1px' }}></div>
+                <div className="absolute top-3 left-3 w-12 h-12 border border-[#4E917B] rounded-full" style={{ borderStyle: 'dashed', borderWidth: '1px' }}></div>
+              </div>
+              
+              <div className="absolute bottom-0 right-0 w-16 h-16 opacity-10">
+                <div className="absolute bottom-1 right-1 w-4 h-4 border border-[#4E917B] rounded-full" style={{ borderStyle: 'dashed', borderWidth: '1px' }}></div>
+                <div className="absolute bottom-2 right-2 w-8 h-8 border border-[#4E917B] rounded-full" style={{ borderStyle: 'dashed', borderWidth: '1px' }}></div>
+                <div className="absolute bottom-3 right-3 w-12 h-12 border border-[#4E917B] rounded-full" style={{ borderStyle: 'dashed', borderWidth: '1px' }}></div>
+              </div>
+              
+              {/* Content */}
+              <div className="relative z-10">
+                {/* Help Icon */}
+                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center mb-3">
+                  <span className="text-[#026242] font-bold text-lg">?</span>
+                </div>
+                
+                {/* Text Content */}
+                <h3 
+                  className="text-white font-bold text-sm mb-1"
+                  style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+                >
+                  Need Help?
+                </h3>
+                <p 
+                  className="text-white text-xs mb-4 opacity-90"
+                  style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+                >
+                  Take a quick tour
+                </p>
+                
+                {/* Button */}
+                <button 
+                  className="w-full bg-gray-300 text-gray-500 rounded-full py-2 px-3 text-xs font-medium cursor-not-allowed"
+                  style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+                  disabled={true}
+                >
+                  Click for tour
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Main Content */}
