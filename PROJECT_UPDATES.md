@@ -71,3 +71,4 @@
 - Updated all cards to use proper images: aiinsights.png, capabilities.png, podcast.png, promptbuilderdash.png, and gptbuilder.png
 - Fixed image visibility and sizing issues across all dashboard cards
 - Made sidebar sticky/fixed so it doesn't scroll with page content for better navigation experience
+- Fixed AIDM Prompt Builder "Read More" button to directly navigate to prompts intro page without service status restrictions

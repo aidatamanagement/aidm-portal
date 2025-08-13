@@ -391,8 +391,7 @@ const Dashboard = () => {
                 </p>
                 <Button 
                   className="bg-[#026242] hover:bg-[#026242]/90 text-white px-3 py-2 rounded-[40px] h-10"
-                  onClick={() => handleServiceClick('prompt-builder', promptBuilderStatus)}
-                  disabled={promptBuilderStatus === 'locked'}
+                  onClick={() => navigate('/prompts-intro')}
                 >
                   <span 
                     className="text-[14px] font-medium tracking-[-0.56px]"
