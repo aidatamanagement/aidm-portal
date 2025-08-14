@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/components/ThemeProvider';
-import { Moon, Sun, Home, FileText, FolderOpen, MessageSquare } from 'lucide-react';
+import { Moon, Sun, Home, FileText, FolderOpen, MessageSquare, ChevronDown } from 'lucide-react';
 import ChatSupport from './ChatSupport';
 import { supabase } from '@/integrations/supabase/client';
 import { Logo } from '@/components/Logo';
@@ -30,9 +30,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Services', href: '/services', icon: FileText },
     { name: 'Files', href: '/files', icon: FolderOpen },
     { name: 'Prompts', href: '/prompts-intro', icon: MessageSquare },
+  ];
+
+  const servicesDropdown = [
+    { name: 'AI Leadership Training', href: '/courses' },
+    { name: 'AI Adoption Framework', href: '/ai-adoption-framework' },
+    { name: 'AI Advisory Services', href: '/ai-advisory-services' },
+    { name: 'AI Digital Transformation', href: '/ai-digital-transformation' },
+    { name: 'AI Architecture & Custom Agents', href: '/ai-architecture-custom-agents' },
   ];
 
   useEffect(() => {
@@ -158,6 +165,50 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </Link>
               );
             })}
+
+            {/* Services Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={`w-full justify-between px-2 py-2 rounded-[10px] text-[14px] font-normal transition-colors ${
+                    servicesDropdown.some(service => isActive(service.href))
+                      ? 'bg-[#026242] text-white'
+                      : 'text-[#000000] hover:bg-gray-50'
+                  }`}
+                  style={{
+                    fontFamily: '"SF Pro Text", sans-serif',
+                    lineHeight: '20px'
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    <span>Services</span>
+                  </div>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="start">
+                {servicesDropdown.map((service) => (
+                  <DropdownMenuItem key={service.name} asChild>
+                    <Link
+                      to={service.href}
+                      className={`flex items-center px-2 py-2 text-[14px] font-normal transition-colors ${
+                        isActive(service.href)
+                          ? 'bg-[#026242] text-white'
+                          : 'text-[#000000] hover:bg-gray-50'
+                      }`}
+                      style={{
+                        fontFamily: '"SF Pro Text", sans-serif',
+                        lineHeight: '20px'
+                      }}
+                    >
+                      {service.name}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </nav>
           
           {/* Need Help Card - Bottom of Sidebar */}

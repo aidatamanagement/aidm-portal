@@ -12,7 +12,7 @@ import Profile from "./pages/Profile";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
 import LessonViewer from "./pages/LessonViewer";
-import Services from "./pages/Services";
+
 import Files from "./pages/Files";
 import Prompts from "./pages/Prompts";
 import PromptsIntro from "./pages/PromptsIntro";
@@ -122,13 +122,7 @@ function App() {
                 </ProtectedRoute>
               } />
               
-              <Route path="/services" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Services />
-                  </Layout>
-                </ProtectedRoute>
-              } />
+
               
               <Route path="/files" element={
                 <ProtectedRoute>

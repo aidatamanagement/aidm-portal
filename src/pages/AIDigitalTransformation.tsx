@@ -182,8 +182,8 @@ const AIDigitalTransformation = () => {
       <div className="flex items-center justify-between">
         <Button
           variant="outline" 
-          onClick={() => navigate('/services')}
-          className="flex items-center space-x-2"
+          disabled
+          className="flex items-center space-x-2 bg-gray-100 text-gray-400 cursor-not-allowed"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Back to Services</span>
