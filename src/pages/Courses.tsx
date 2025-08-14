@@ -17,12 +17,50 @@ const Courses = () => {
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [userProgress, setUserProgress] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
+
+  // Module data for the carousel
+  const modules = [
+    {
+      id: 1,
+      title: "Introduction to Generative AI: Part 1",
+      description: "Exploring the basics and everyday applications",
+      image: "/images/Introduction-to-Generative-AI-Part-1.png"
+    },
+    {
+      id: 2,
+      title: "Introduction to Generative AI: Part 2",
+      description: "Advanced concepts and practical implementation",
+      image: "/images/Introduction-to-Generative-AI-Part-2.png"
+    },
+    {
+      id: 3,
+      title: "Generative AI: Using AI to Build Tools",
+      description: "Building comprehensive AI roadmaps",
+      image: "/images/Generative-AI-Using-AI-to-Build-Tools.png"
+    },
+    {
+      id: 4,
+      title: "Building Your Own Custom GPT",
+      description: "Leading organizational transformation",
+      image: "/images/Building-Your-Own-Custom-GPT.png"
+    }
+  ];
 
   useEffect(() => {
     if (user) {
       fetchCoursesData();
     }
   }, [user]);
+
+  // Auto-scroll effect for modules carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentModuleIndex((prev) => (prev + 1) % modules.length);
+    }, 3000); // Change module every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [modules.length]);
 
   const fetchCoursesData = async () => {
     try {
@@ -80,6 +118,22 @@ const Courses = () => {
       return <Badge variant="default" className="bg-blue-100 text-blue-800">In Progress</Badge>;
     }
     return <Badge variant="outline">Not Started</Badge>;
+  };
+
+  const nextModule = () => {
+    setCurrentModuleIndex((prev) => (prev + 1) % modules.length);
+  };
+
+  const prevModule = () => {
+    setCurrentModuleIndex((prev) => (prev - 1 + modules.length) % modules.length);
+  };
+
+  const handleModuleClick = (moduleIndex: number) => {
+    // Navigate to the course detail page with the specific lesson
+    if (courses.length > 0) {
+      const courseId = courses[0].id;
+      navigate(`/courses/${courseId}?lesson=${moduleIndex + 1}`);
+    }
   };
 
   const getActionButton = (course: any, status: string, progress: number) => {
@@ -274,7 +328,172 @@ const Courses = () => {
           </div>
         </div>
 
-                <div className="grid lg:grid-cols-4 gap-8">
+        {/* Modules Section */}
+        <section className="mt-16">
+          <div className="relative">
+                          {/* Background Container */}
+              <div 
+                className="w-full h-[593px] rounded-[10px] relative"
+                style={{
+                  background: '#FAFAFA',
+                  borderRadius: 10,
+                  boxShadow: '0px 4px 4px 0px rgba(0,0,0,0.25)',
+                  border: '1px solid #D4D4D8'
+                }}
+              >
+                {/* Modules Title and Description */}
+                <div className="absolute inset-0 p-4">
+                {/* Modules Title */}
+                <div 
+                  className="text-2xl font-bold text-black mb-4"
+                  style={{ 
+                    fontFamily: 'Helvetica', 
+                    fontSize: '24px', 
+                    fontWeight: 700, 
+                    lineHeight: '32px',
+                    width: '240px',
+                    height: '20px'
+                  }}
+                >
+                  Modules
+                </div>
+                
+                {/* Modules Description */}
+                <div 
+                  className="text-base text-stone-500 mb-8"
+                  style={{ 
+                    fontFamily: '"SF Pro Text"', 
+                    fontSize: '16px', 
+                    fontWeight: 400, 
+                    lineHeight: '20px',
+                    width: '948px',
+                    height: '44px'
+                  }}
+                >
+                  This comprehensive leadership series empowers executives and senior managers to successfully navigate AI adoption across their organizations. Through nine strategic episodes, you'll master the essential frameworks, decision-making processes, and leadership principles needed to drive meaningful AI transformation.
+                </div>
+                
+                {/* Modules Cards */}
+                <div className="mt-8 relative">
+                  <div className="flex space-x-4 overflow-hidden">
+                    {/* First Module Card */}
+                    <div 
+                      className="flex-shrink-0 w-[420px] bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer"
+                      onClick={() => handleModuleClick(currentModuleIndex)}
+                    >
+                      <div className="aspect-video overflow-hidden rounded-t-lg">
+                        <img 
+                          className="w-full h-full object-cover"
+                          src={modules[currentModuleIndex]?.image}
+                          alt={modules[currentModuleIndex]?.title}
+                        />
+                      </div>
+                      <div className="p-3">
+                        <h3 className="text-base font-semibold text-[#1A1A1A] mb-1 leading-tight">
+                          {modules[currentModuleIndex]?.title}
+                        </h3>
+                        <p className="text-xs text-[#555] leading-relaxed">
+                          {modules[currentModuleIndex]?.description}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Second Module Card */}
+                    <div 
+                      className="flex-shrink-0 w-[420px] bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer"
+                      onClick={() => handleModuleClick((currentModuleIndex + 1) % modules.length)}
+                    >
+                      <div className="aspect-video overflow-hidden rounded-t-lg">
+                        <img 
+                          className="w-full h-full object-cover"
+                          src={modules[(currentModuleIndex + 1) % modules.length]?.image}
+                          alt={modules[(currentModuleIndex + 1) % modules.length]?.title}
+                        />
+                      </div>
+                      <div className="p-3">
+                        <h3 className="text-base font-semibold text-[#1A1A1A] mb-1 leading-tight">
+                          {modules[(currentModuleIndex + 1) % modules.length]?.title}
+                        </h3>
+                        <p className="text-xs text-[#555] leading-relaxed">
+                          {modules[(currentModuleIndex + 1) % modules.length]?.description}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Third Module Card */}
+                    <div 
+                      className="flex-shrink-0 w-[420px] bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer"
+                      onClick={() => handleModuleClick((currentModuleIndex + 2) % modules.length)}
+                    >
+                      <div className="aspect-video overflow-hidden rounded-t-lg">
+                        <img 
+                          className="w-full h-full object-cover"
+                          src={modules[(currentModuleIndex + 2) % modules.length]?.image}
+                          alt={modules[(currentModuleIndex + 2) % modules.length]?.title}
+                        />
+                      </div>
+                      <div className="p-3">
+                        <h3 className="text-base font-semibold text-[#1A1A1A] mb-1 leading-tight">
+                          {modules[(currentModuleIndex + 2) % modules.length]?.title}
+                        </h3>
+                        <p className="text-xs text-[#555] leading-relaxed">
+                          {modules[(currentModuleIndex + 2) % modules.length]?.description}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Fourth Module Card */}
+                    <div 
+                      className="flex-shrink-0 w-[420px] bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer"
+                      onClick={() => handleModuleClick((currentModuleIndex + 3) % modules.length)}
+                    >
+                      <div className="aspect-video overflow-hidden rounded-t-lg">
+                        <img 
+                          className="w-full h-full object-cover"
+                          src={modules[(currentModuleIndex + 3) % modules.length]?.image}
+                          alt={modules[(currentModuleIndex + 3) % modules.length]?.title}
+                        />
+                      </div>
+                      <div className="p-3">
+                        <h3 className="text-base font-semibold text-[#1A1A1A] mb-1 leading-tight">
+                          {modules[(currentModuleIndex + 3) % modules.length]?.title}
+                        </h3>
+                        <p className="text-xs text-[#555] leading-relaxed">
+                          {modules[(currentModuleIndex + 3) % modules.length]?.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Navigation Arrows - Outside Card Row */}
+                  <div className="flex justify-end mt-3 space-x-3">
+                    {/* Left Arrow Circle */}
+                    <button 
+                      onClick={prevModule}
+                      className="w-12 h-12 rounded-full border border-gray-300 bg-white flex items-center justify-center hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 cursor-pointer shadow-sm"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.5 15L7.5 10L12.5 5" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                    
+                    {/* Right Arrow Circle */}
+                    <button 
+                      onClick={nextModule}
+                      className="w-12 h-12 rounded-full border border-gray-300 bg-white flex items-center justify-center hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 cursor-pointer shadow-sm"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7.5 15L12.5 10L7.5 5" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid lg:grid-cols-4 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-12">
             {/* Course Access Section */}
