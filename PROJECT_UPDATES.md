@@ -87,3 +87,8 @@
 - Updated GPT Builder card with overlapping images and green gradient, enhanced dashboard layout with orbital rings and disabled appointment button
 - Added "Need Help?" card to bottom of sidebar with orbital patterns and disabled "Click for tour" button
 - Enhanced sidebar with help card featuring orbital patterns and disabled tour functionality
+- Completely redesigned Courses page using Prompts Intro design structure with hero section, sidebar navigation, and improved layout while maintaining all functional links and course access features
+- Updated Courses page to change "Start Your Journey" to "Start Learning Now" and simplified "Your Course Access" to "Course Access" for better user experience
+- Enhanced "Start Learning Now" buttons to directly navigate to course functionality instead of scrolling, and removed "Course Access" section title for cleaner design
+- Added course overview section next to hero with side-by-side layout featuring course details and action buttons
+- Updated course overview card styling to match Figma design with #F9F9F9 background and #D9D9D9 border
