@@ -18,6 +18,7 @@ const Courses = () => {
   const [userProgress, setUserProgress] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
+  const [openFAQ, setOpenFAQ] = useState<number>(0); // 0 = first FAQ item is open by default
 
   // Module data for the carousel
   const modules = [
@@ -97,6 +98,10 @@ const Courses = () => {
     if (!enrollment) return 'locked';
     if (enrollment.locked) return 'locked';
     return 'enrolled';
+  };
+
+  const toggleFAQ = (index: number) => {
+    setOpenFAQ(openFAQ === index ? -1 : index); // Close if already open, otherwise open the clicked one
   };
 
   const getCourseProgress = (courseId: string) => {
@@ -686,42 +691,12 @@ const Courses = () => {
           {/* Right Column - FAQ */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="space-y-4">
-              {/* FAQ Item 1 - Expanded */}
+              {/* FAQ Item 1 */}
               <div className="border-b border-gray-200 pb-4">
-                <div className="flex items-center justify-between cursor-pointer">
-                  <h3 
-                    className="font-semibold"
-                    style={{ 
-                      color: '#242424', 
-                      fontFamily: 'Helvetica', 
-                      fontSize: '16px', 
-                      fontWeight: 700, 
-                      lineHeight: '121.525%', 
-                      letterSpacing: '-0.48px' 
-                    }}
-                  >
-                    Who is eligible for ViaQuest Hospice services?
-                  </h3>
-                  <span className="text-gray-500">−</span>
-                </div>
-                <p 
-                  className="mt-2 text-sm"
-                  style={{ 
-                    color: '#706F6F', 
-                    fontFamily: '"SF Pro Text"', 
-                    fontSize: '16px', 
-                    fontWeight: 400, 
-                    lineHeight: '140%', 
-                    letterSpacing: '-0.48px' 
-                  }}
+                <div 
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => toggleFAQ(0)}
                 >
-                  ViaQuest Hospice serves individuals with a life-limiting illness who have a physician's prognosis of six months or less to live. We provide care regardless of age, diagnosis, or ability to pay. Our services are available to patients in their own homes, nursing homes, assisted living facilities, or other residential settings.
-                </p>
-              </div>
-
-              {/* FAQ Item 2 - Collapsed */}
-              <div className="border-b border-gray-200 pb-4">
-                <div className="flex items-center justify-between cursor-pointer">
                   <h3 
                     className="font-semibold"
                     style={{ 
@@ -733,15 +708,33 @@ const Courses = () => {
                       letterSpacing: '-0.48px' 
                     }}
                   >
-                    What are the admission criteria for ViaQuest Hospice?
+                    Who can benefit from AIDM's services?
                   </h3>
-                  <span className="text-gray-500">+</span>
+                  <span className="text-gray-500">{openFAQ === 0 ? '−' : '+'}</span>
                 </div>
+                {openFAQ === 0 && (
+                  <p 
+                    className="mt-2 text-sm"
+                    style={{ 
+                      color: '#706F6F', 
+                      fontFamily: '"SF Pro Text"', 
+                      fontSize: '16px', 
+                      fontWeight: 400, 
+                      lineHeight: '140%', 
+                      letterSpacing: '-0.48px' 
+                    }}
+                  >
+                    AIDM is designed for organizations across industries that are looking to leverage Artificial Intelligence (AI) for business transformation. Whether you're a small team just beginning your AI journey or a large enterprise scaling AI initiatives, AIDM's frameworks, consulting, and automation tools help align AI adoption with business outcomes.
+                  </p>
+                )}
               </div>
 
-              {/* FAQ Item 3 - Collapsed */}
+              {/* FAQ Item 2 */}
               <div className="border-b border-gray-200 pb-4">
-                <div className="flex items-center justify-between cursor-pointer">
+                <div 
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => toggleFAQ(1)}
+                >
                   <h3 
                     className="font-semibold"
                     style={{ 
@@ -753,15 +746,33 @@ const Courses = () => {
                       letterSpacing: '-0.48px' 
                     }}
                   >
-                    What types of illnesses qualify for hospice care?
+                    What does AIDM help companies achieve?
                   </h3>
-                  <span className="text-gray-500">+</span>
+                  <span className="text-gray-500">{openFAQ === 1 ? '−' : '+'}</span>
                 </div>
+                {openFAQ === 1 && (
+                  <p 
+                    className="mt-2 text-sm"
+                    style={{ 
+                      color: '#706F6F', 
+                      fontFamily: '"SF Pro Text"', 
+                      fontSize: '16px', 
+                      fontWeight: 400, 
+                      lineHeight: '140%', 
+                      letterSpacing: '-0.48px' 
+                    }}
+                  >
+                    AIDM empowers organizations to assess, plan, and execute their AI strategy. Our services include the AI Readiness Framework, AI Maturity Assessment, 12-Month AI Adoption Plan, and access to tools and consultants to integrate AI into operations, marketing, sales, HR, and customer service workflows. The ultimate goal is to drive measurable ROI through intelligent automation.
+                  </p>
+                )}
               </div>
 
-              {/* FAQ Item 4 - Collapsed */}
+              {/* FAQ Item 3 */}
               <div className="border-b border-gray-200 pb-4">
-                <div className="flex items-center justify-between cursor-pointer">
+                <div 
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => toggleFAQ(2)}
+                >
                   <h3 
                     className="font-semibold"
                     style={{ 
@@ -773,15 +784,33 @@ const Courses = () => {
                       letterSpacing: '-0.48px' 
                     }}
                   >
-                    What does ViaQuest Hospice care cost, and what is covered?
+                    How does AIDM support clients with limited technical expertise?
                   </h3>
-                  <span className="text-gray-500">+</span>
+                  <span className="text-gray-500">{openFAQ === 2 ? '−' : '+'}</span>
                 </div>
+                {openFAQ === 2 && (
+                  <p 
+                    className="mt-2 text-sm"
+                    style={{ 
+                      color: '#706F6F', 
+                      fontFamily: '"SF Pro Text"', 
+                      fontSize: '16px', 
+                      fontWeight: 400, 
+                      lineHeight: '140%', 
+                      letterSpacing: '-0.48px' 
+                    }}
+                  >
+                    You don't need a technical background to start. AIDM provides guided onboarding, use-case discovery, and prebuilt frameworks that help non-technical business leaders understand how AI applies to their work. We offer strategic sessions, templates, and expert support to bridge the gap between business goals and AI solutions.
+                  </p>
+                )}
               </div>
 
-              {/* FAQ Item 5 - Collapsed */}
+              {/* FAQ Item 4 */}
               <div className="border-b border-gray-200 pb-4">
-                <div className="flex items-center justify-between cursor-pointer">
+                <div 
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => toggleFAQ(3)}
+                >
                   <h3 
                     className="font-semibold"
                     style={{ 
@@ -793,10 +822,63 @@ const Courses = () => {
                       letterSpacing: '-0.48px' 
                     }}
                   >
-                    What Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    What types of solutions does AIDM implement?
                   </h3>
-                  <span className="text-gray-500">+</span>
+                  <span className="text-gray-500">{openFAQ === 3 ? '−' : '+'}</span>
                 </div>
+                {openFAQ === 3 && (
+                  <p 
+                    className="mt-2 text-sm"
+                    style={{ 
+                      color: '#706F6F', 
+                      fontFamily: '"SF Pro Text"', 
+                      fontSize: '16px', 
+                      fontWeight: 400, 
+                      lineHeight: '140%', 
+                      letterSpacing: '-0.48px' 
+                    }}
+                  >
+                    AIDM assists in designing and deploying AI agents, data workflows, and no-code automation tools. Solutions include intelligent customer support bots, lead scoring automation, sales enablement tools, content generation systems, and more—all customized to your industry and team's needs.
+                  </p>
+                )}
+              </div>
+
+              {/* FAQ Item 5 */}
+              <div className="border-b border-gray-200 pb-4">
+                <div 
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => toggleFAQ(4)}
+                >
+                  <h3 
+                    className="font-semibold"
+                    style={{ 
+                      color: '#242424', 
+                      fontFamily: 'Helvetica', 
+                      fontSize: '16px', 
+                      fontWeight: 700, 
+                      lineHeight: '121.525%', 
+                      letterSpacing: '-0.48px' 
+                    }}
+                  >
+                    What is the first step to getting started with AIDM?
+                  </h3>
+                  <span className="text-gray-500">{openFAQ === 4 ? '−' : '+'}</span>
+                </div>
+                {openFAQ === 4 && (
+                  <p 
+                    className="mt-2 text-sm"
+                    style={{ 
+                      color: '#706F6F', 
+                      fontFamily: '"SF Pro Text"', 
+                      fontSize: '16px', 
+                      fontWeight: 400, 
+                      lineHeight: '140%', 
+                      letterSpacing: '-0.48px' 
+                    }}
+                  >
+                    Begin by filling out our AI Readiness Assessment Form on our website. From there, one of our consultants will schedule an intro call to understand your goals. Based on that, we'll build a personalized roadmap that may include onboarding, training, and solution deployment using AIDM's proven 12-month transformation framework.
+                  </p>
+                )}
               </div>
             </div>
           </div>

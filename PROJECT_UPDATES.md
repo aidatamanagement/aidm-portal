@@ -102,3 +102,5 @@
 - Added What You'll Learn and FAQ section between modules and footer on Courses page with proper typography and styling
 - Restructured What You'll Learn and Questions sections to be vertical instead of side-by-side layout
 - Updated What You'll Learn section to match Figma design with two-column layout (overview left, learning categories right)
+- Replaced FAQ content with AIDM-specific questions and answers about services, benefits, and getting started
+- Made FAQ accordion functional with click handlers, state management, and dynamic plus/minus signs
