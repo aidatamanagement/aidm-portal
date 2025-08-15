@@ -99,3 +99,6 @@
 - Enhanced client file management with upload, create folder, delete, edit, and manage files functionality
 - Removed height restriction and scrollbar from lesson list in CourseDetail page to show all lessons without scrolling
 - Reduced chatbot circle size from 130px to 100px for a more compact appearance
+- Added What You'll Learn and FAQ section between modules and footer on Courses page with proper typography and styling
+- Restructured What You'll Learn and Questions sections to be vertical instead of side-by-side layout
+- Updated What You'll Learn section to match Figma design with two-column layout (overview left, learning categories right)

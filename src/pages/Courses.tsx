@@ -499,123 +499,304 @@ const Courses = () => {
                 </div>
               </div>
             </section>
+      </div>
 
-        <div className="grid lg:grid-cols-4 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-3 space-y-12">
-            {/* Course Access Section */}
-            <section id="course-access">
-              {courses.length === 0 ? (
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No courses available</h3>
-                    <p className="text-gray-600">Check back later for new courses.</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-6">
-                  {courses.map((course) => {
-                    const status = getCourseStatus(course.id);
-                    const progress = getCourseProgress(course.id);
-                    const isLocked = status === 'locked';
-
-                    return (
-                      <Card 
-                        key={course.id} 
-                        className={`hover:shadow-lg transition-shadow ${
-                          isLocked ? 'opacity-75' : ''
-                        }`}
-                      >
-                        <CardHeader className="pb-4">
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center space-x-3">
-                              <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                                isLocked ? 'bg-gray-100' : 'bg-primary/10'
-                              }`}>
-                                <BookOpen className={`h-6 w-6 ${
-                                  isLocked ? 'text-gray-400' : 'text-primary'
-                                }`} />
-                              </div>
-                              <div>
-                                <CardTitle className="text-xl leading-6 mb-1">{course.title}</CardTitle>
-                                {getStatusBadge(status, progress)}
-                              </div>
-                            </div>
-                          </div>
-                          <CardDescription className="text-base leading-relaxed">
-                            {course.description}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                          {!isLocked && (
-                            <div>
-                              <div className="flex justify-between text-sm text-muted-foreground mb-3">
-                                <span>Course Progress</span>
-                                <span className="font-medium">{progress}%</span>
-                              </div>
-                              <Progress value={progress} className="h-3" />
-                            </div>
-                          )}
-                          
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                              <Clock className="h-4 w-4" />
-                              <span>Self-paced learning</span>
-                            </div>
-                            {getActionButton(course, status, progress)}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-              </div>
-              )}
-            </section>
+      {/* What You'll Learn Section */}
+      <div className="mt-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Left Column - What You'll Learn Overview */}
+          <div>
+            <h2 
+              className="text-3xl font-bold mb-4"
+              style={{ 
+                color: '#242424', 
+                fontFamily: 'Helvetica', 
+                fontSize: '25px', 
+                fontWeight: 700, 
+                lineHeight: '121.525%', 
+                letterSpacing: '-0.75px' 
+              }}
+            >
+              What You'll Learn
+            </h2>
+            <p 
+              className="text-base"
+              style={{ 
+                color: '#706F6F', 
+                fontFamily: '"SF Pro Text"', 
+                fontSize: '16px', 
+                fontWeight: 400, 
+                lineHeight: '0%', 
+                letterSpacing: '-0.48px' 
+              }}
+            >
+              Discover foundational concepts, advanced strategies, and practical applications.
+            </p>
           </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-8">
-              <div className="rounded-[10px] border border-[#D9D9D9] bg-[#F9F9F9] p-6">
-                <h3 className="mb-4" style={{ color: '#242424', fontFamily: 'Helvetica', fontSize: '16px', fontWeight: 700, lineHeight: '121.525%', letterSpacing: '-0.48px' }}>On this Page</h3>
-                <nav className="space-y-2">
-                  <button 
-                    onClick={() => scrollToSection('key-outcomes')}
-                    className="block text-sm hover:text-foreground transition-colors text-left w-full"
-                    style={{ color: '#706F6F', fontFamily: '"SF Pro Text"', fontSize: '14px', fontWeight: 400, lineHeight: '100%', letterSpacing: '-0.42px' }}
+          {/* Right Column - Learning Categories */}
+          <div className="space-y-4">
+            {/* The Foundations */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="h-6 w-6 text-gray-600" />
+                </div>
+                <div>
+                  <h3 
+                    className="font-bold mb-2"
+                    style={{ 
+                      color: '#242424', 
+                      fontFamily: 'Helvetica', 
+                      fontSize: '25px', 
+                      fontWeight: 700, 
+                      lineHeight: '121.525%', 
+                      letterSpacing: '-0.75px' 
+                    }}
                   >
-                    Key Outcomes
-                  </button>
-                  <button 
-                    onClick={() => scrollToSection('ideal-audience')}
-                    className="block text-sm hover:text-foreground transition-colors text-left w-full"
-                    style={{ color: '#706F6F', fontFamily: '"SF Pro Text"', fontSize: '14px', fontWeight: 400, lineHeight: '100%', letterSpacing: '-0.42px' }}
+                    The Foundations
+                  </h3>
+                  <p 
+                    className="text-sm"
+                    style={{ 
+                      color: '#706F6F', 
+                      fontFamily: '"SF Pro Text"', 
+                      fontSize: '16px', 
+                      fontWeight: 400, 
+                      lineHeight: '0%', 
+                      letterSpacing: '-0.48px' 
+                    }}
                   >
-                    Ideal Audience
-                  </button>
-                  <button 
-                    onClick={() => scrollToSection('course-access')}
-                    className="block text-sm hover:text-foreground transition-colors text-left w-full"
-                    style={{ color: '#706F6F', fontFamily: '"SF Pro Text"', fontSize: '14px', fontWeight: 400, lineHeight: '100%', letterSpacing: '-0.42px' }}
+                    Grasp the basic principles and terminologies.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Advanced Strategies */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Target className="h-6 w-6 text-gray-600" />
+                </div>
+                <div>
+                  <h3 
+                    className="font-bold mb-2"
+                    style={{ 
+                      color: '#242424', 
+                      fontFamily: 'Helvetica', 
+                      fontSize: '25px', 
+                      fontWeight: 700, 
+                      lineHeight: '121.525%', 
+                      letterSpacing: '-0.75px' 
+                    }}
                   >
-                    Start Learning
-                  </button>
-                  <button 
-                    onClick={() => scrollToSection('training-journey')}
-                    className="block text-sm hover:text-foreground transition-colors text-left w-full"
-                    style={{ color: '#706F6F', fontFamily: '"SF Pro Text"', fontSize: '14px', fontWeight: 400, lineHeight: '100%', letterSpacing: '-0.42px' }}
+                    Advanced Strategies
+                  </h3>
+                  <p 
+                    className="text-sm"
+                    style={{ 
+                      color: '#706F6F', 
+                      fontFamily: '"SF Pro Text"', 
+                      fontSize: '16px', 
+                      fontWeight: 400, 
+                      lineHeight: '0%', 
+                      letterSpacing: '-0.48px' 
+                    }}
                   >
-                    Training Journey
-                  </button>
-                  <button 
-                    onClick={() => scrollToSection('why-choose-aidm')}
-                    className="block text-sm hover:text-foreground transition-colors text-left w-full"
-                    style={{ color: '#706F6F', fontFamily: '"SF Pro Text"', fontSize: '14px', fontWeight: 400, lineHeight: '100%', letterSpacing: '-0.42px' }}
+                    Delve into advanced techniques and methodologies.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Real-world Applications */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="h-6 w-6 text-gray-600" />
+                </div>
+                <div>
+                  <h3 
+                    className="font-bold mb-2"
+                    style={{ 
+                      color: '#242424', 
+                      fontFamily: 'Helvetica', 
+                      fontSize: '25px', 
+                      fontWeight: 700, 
+                      lineHeight: '121.525%', 
+                      letterSpacing: '-0.75px' 
+                    }}
                   >
-                    Why Choose AIDM
-                  </button>
-                </nav>
+                    Real-world Applications
+                  </h3>
+                  <p 
+                    className="text-sm"
+                    style={{ 
+                      color: '#706F6F', 
+                      fontFamily: '"SF Pro Text"', 
+                      fontSize: '16px', 
+                      fontWeight: 400, 
+                      lineHeight: '0%', 
+                      letterSpacing: '-0.48px' 
+                    }}
+                  >
+                    Practical assignments and real-world case studies.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Questions & FAQ Section */}
+      <div className="mt-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Left Column - Questions */}
+          <div>
+            <h2 
+              className="text-3xl font-bold mb-4"
+              style={{ 
+                color: '#242424', 
+                fontFamily: 'Helvetica', 
+                fontSize: '25px', 
+                fontWeight: 700, 
+                lineHeight: '121.525%', 
+                letterSpacing: '-0.75px' 
+              }}
+            >
+              You seem either very interested, or have questions.
+            </h2>
+            <p 
+              className="text-base"
+              style={{ 
+                color: '#706F6F', 
+                fontFamily: '"SF Pro Text"', 
+                fontSize: '16px', 
+                fontWeight: 400, 
+                lineHeight: '0%', 
+                letterSpacing: '-0.48px' 
+              }}
+            >
+              Here are a few answers.
+            </p>
+          </div>
+
+          {/* Right Column - FAQ */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="space-y-4">
+              {/* FAQ Item 1 - Expanded */}
+              <div className="border-b border-gray-200 pb-4">
+                <div className="flex items-center justify-between cursor-pointer">
+                  <h3 
+                    className="font-semibold"
+                    style={{ 
+                      color: '#242424', 
+                      fontFamily: 'Helvetica', 
+                      fontSize: '16px', 
+                      fontWeight: 700, 
+                      lineHeight: '121.525%', 
+                      letterSpacing: '-0.48px' 
+                    }}
+                  >
+                    Who is eligible for ViaQuest Hospice services?
+                  </h3>
+                  <span className="text-gray-500">−</span>
+                </div>
+                <p 
+                  className="mt-2 text-sm"
+                  style={{ 
+                    color: '#706F6F', 
+                    fontFamily: '"SF Pro Text"', 
+                    fontSize: '16px', 
+                    fontWeight: 400, 
+                    lineHeight: '140%', 
+                    letterSpacing: '-0.48px' 
+                  }}
+                >
+                  ViaQuest Hospice serves individuals with a life-limiting illness who have a physician's prognosis of six months or less to live. We provide care regardless of age, diagnosis, or ability to pay. Our services are available to patients in their own homes, nursing homes, assisted living facilities, or other residential settings.
+                </p>
+              </div>
+
+              {/* FAQ Item 2 - Collapsed */}
+              <div className="border-b border-gray-200 pb-4">
+                <div className="flex items-center justify-between cursor-pointer">
+                  <h3 
+                    className="font-semibold"
+                    style={{ 
+                      color: '#242424', 
+                      fontFamily: 'Helvetica', 
+                      fontSize: '16px', 
+                      fontWeight: 700, 
+                      lineHeight: '121.525%', 
+                      letterSpacing: '-0.48px' 
+                    }}
+                  >
+                    What are the admission criteria for ViaQuest Hospice?
+                  </h3>
+                  <span className="text-gray-500">+</span>
+                </div>
+              </div>
+
+              {/* FAQ Item 3 - Collapsed */}
+              <div className="border-b border-gray-200 pb-4">
+                <div className="flex items-center justify-between cursor-pointer">
+                  <h3 
+                    className="font-semibold"
+                    style={{ 
+                      color: '#242424', 
+                      fontFamily: 'Helvetica', 
+                      fontSize: '16px', 
+                      fontWeight: 700, 
+                      lineHeight: '121.525%', 
+                      letterSpacing: '-0.48px' 
+                    }}
+                  >
+                    What types of illnesses qualify for hospice care?
+                  </h3>
+                  <span className="text-gray-500">+</span>
+                </div>
+              </div>
+
+              {/* FAQ Item 4 - Collapsed */}
+              <div className="border-b border-gray-200 pb-4">
+                <div className="flex items-center justify-between cursor-pointer">
+                  <h3 
+                    className="font-semibold"
+                    style={{ 
+                      color: '#242424', 
+                      fontFamily: 'Helvetica', 
+                      fontSize: '16px', 
+                      fontWeight: 700, 
+                      lineHeight: '121.525%', 
+                      letterSpacing: '-0.48px' 
+                    }}
+                  >
+                    What does ViaQuest Hospice care cost, and what is covered?
+                  </h3>
+                  <span className="text-gray-500">+</span>
+                </div>
+              </div>
+
+              {/* FAQ Item 5 - Collapsed */}
+              <div className="border-b border-gray-200 pb-4">
+                <div className="flex items-center justify-between cursor-pointer">
+                  <h3 
+                    className="font-semibold"
+                    style={{ 
+                      color: '#242424', 
+                      fontFamily: 'Helvetica', 
+                      fontSize: '16px', 
+                      fontWeight: 700, 
+                      lineHeight: '121.525%', 
+                      letterSpacing: '-0.48px' 
+                    }}
+                  >
+                    What Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                  </h3>
+                  <span className="text-gray-500">+</span>
+                </div>
               </div>
             </div>
           </div>
