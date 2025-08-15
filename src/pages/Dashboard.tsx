@@ -75,10 +75,10 @@ const Dashboard = () => {
     
     switch (serviceType) {
       case 'ai-insights':
-        navigate('/services');
+        window.open('https://www.aidatamanagement.com/ai-insights', '_blank', 'noopener,noreferrer');
         break;
       case 'capabilities':
-        navigate('/services');
+        window.open('https://www.aidatamanagement.com/about-us', '_blank', 'noopener,noreferrer');
         break;
       case 'gpt-builder':
         navigate('/services');
@@ -249,8 +249,7 @@ const Dashboard = () => {
                 </p>
                 <Button 
                   className="bg-[#026242] hover:bg-[#026242]/90 text-white px-3 py-2 rounded-[40px] h-10"
-                  onClick={() => handleServiceClick('ai-insights', aiInsightsStatus)}
-                  disabled={aiInsightsStatus === 'locked'}
+                  onClick={() => handleServiceClick('ai-insights', 'enabled')}
                 >
                   <span 
                     className="text-[14px] font-medium tracking-[-0.56px]"
@@ -294,8 +293,7 @@ const Dashboard = () => {
                 </p>
                 <Button 
                   className="bg-[#026242] hover:bg-[#026242]/90 text-white px-3 py-2 rounded-[40px] h-10"
-                  onClick={() => handleServiceClick('capabilities', capabilitiesStatus)}
-                  disabled={capabilitiesStatus === 'locked'}
+                  onClick={() => handleServiceClick('capabilities', 'enabled')}
                 >
                   <span 
                     className="text-[14px] font-medium tracking-[-0.56px]"

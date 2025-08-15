@@ -109,3 +109,4 @@
 - Added fixed footer to Layout component with copyright and navigation links for consistent branding across all pages
 - Updated Privacy Policy link in footer to point to external AIDM website (https://www.aidatamanagement.com/privacy-policy)
 - Removed support page link from footer and profile avatar dropdown menu, and removed the "Need Help?" card from sidebar
+- Connected AI Insights and Capabilities "Read More" buttons to external AIDM website links and enabled them without service restrictions, disabled theme toggle button in navbar
