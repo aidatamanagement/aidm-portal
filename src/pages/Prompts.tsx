@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -213,71 +213,100 @@ const Prompts = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/prompts-intro')}
-            className="flex items-center space-x-2"
-          >
-            <ChevronRight className="h-4 w-4 rotate-180" />
-            <span>Back to Intro</span>
-          </Button>
-          <h1 className="text-2xl font-bold">Writing Prompts</h1>
+      {/* Navigation Card */}
+      <div 
+        className="bg-[#F9F9F9] rounded-[10px] p-8 border border-[#D9D9D9]"
+        style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+      >
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Link 
+              to="/dashboard" 
+              className="text-[14px] text-slate-600 tracking-[-0.084px] hover:text-slate-800 transition-colors"
+              style={{ fontFamily: '"SF Pro Text", sans-serif', lineHeight: '20px' }}
+            >
+              Dashboard
+            </Link>
+            <ChevronRight className="h-5 w-5 text-slate-600" />
+            <Link 
+              to="/prompts-intro" 
+              className="text-[14px] text-slate-600 tracking-[-0.084px] hover:text-slate-800 transition-colors"
+              style={{ fontFamily: '"SF Pro Text", sans-serif', lineHeight: '20px' }}
+            >
+              AIDM Prompt Builder
+            </Link>
+            <ChevronRight className="h-5 w-5 text-slate-600" />
+            <span 
+              className="text-[14px] text-[#026242] font-semibold tracking-[-0.084px]"
+              style={{ fontFamily: '"SF Pro Text", sans-serif', lineHeight: '20px' }}
+            >
+              Prompts
+            </span>
+          </div>
         </div>
-        <div className="flex space-x-2">
-          <Button
-            variant={showFavoritesOnly ? "outline" : "default"}
-            onClick={() => setShowFavoritesOnly(false)}
+
+        {/* Title and Controls */}
+        <div className="flex items-center justify-between">
+          <h1 
+            className="text-[30px] font-bold text-slate-800 tracking-[-0.39px] leading-[38px]"
+            style={{ fontFamily: 'Helvetica, sans-serif' }}
           >
-            All Prompts
-          </Button>
-          <Button
-            variant={showFavoritesOnly ? "default" : "outline"}
-            onClick={() => setShowFavoritesOnly(true)}
-          >
-            <Heart className="h-4 w-4 mr-2" />
-            My Favorites
-          </Button>
+            Writing Prompts
+          </h1>
+          
+          {/* Action Buttons */}
+          <div className="flex space-x-2">
+            <Button
+              variant={showFavoritesOnly ? "outline" : "default"}
+              onClick={() => setShowFavoritesOnly(false)}
+              className="bg-[#026242] hover:bg-[#026242]/90 text-white"
+            >
+              All Prompts
+            </Button>
+            <Button
+              variant={showFavoritesOnly ? "default" : "outline"}
+              onClick={() => setShowFavoritesOnly(true)}
+              className={showFavoritesOnly ? "bg-[#026242] hover:bg-[#026242]/90 text-white" : ""}
+            >
+              <Heart className="h-4 w-4 mr-2" />
+              My Favorites
+            </Button>
+          </div>
+        </div>
+
+        {/* Search and Filter Bar */}
+        <div className="mt-6 flex gap-4">
+          {/* Search Bar */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search prompts by title, description, persona, role, context, interview, task, boundaries, reasoning, keywords, or category..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          {/* Category Dropdown */}
+          <div className="w-64">
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="uncategorized">Uncategorized</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
-
-      {/* Search and Filter Bar */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex gap-4">
-            {/* Search Bar - Half Size */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search prompts by title, description, persona, role, context, interview, task, boundaries, reasoning, keywords, or category..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            {/* Category Dropdown - Half Size */}
-            <div className="w-64">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="uncategorized">Uncategorized</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id.toString()}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {filteredPrompts.length === 0 ? (
         <Card>
@@ -337,11 +366,11 @@ const Prompts = () => {
                 {/* Category and Keyword Badges */}
                 <div className="flex flex-wrap gap-2 mt-2">
                   {prompt.prompt_categories && (
-                    <Badge 
-                      variant="secondary" 
-                      style={{ backgroundColor: prompt.prompt_categories.color || '#3B82F6' }}
-                      className="text-white"
-                    >
+                                          <Badge 
+                        variant="secondary" 
+                        style={{ backgroundColor: prompt.prompt_categories.color || '#026242' }}
+                        className="text-white"
+                      >
                       {prompt.prompt_categories.name}
                     </Badge>
                   )}

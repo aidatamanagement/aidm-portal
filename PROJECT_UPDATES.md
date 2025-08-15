@@ -104,3 +104,5 @@
 - Updated What You'll Learn section to match Figma design with two-column layout (overview left, learning categories right)
 - Replaced FAQ content with AIDM-specific questions and answers about services, benefits, and getting started
 - Made FAQ accordion functional with click handlers, state management, and dynamic plus/minus signs
+- Updated Prompts page navigation to match lessons page design with breadcrumb navigation and consolidated controls card
+- Changed category badge fallback color from blue to AIDM brand green (#026242) in Prompts page
