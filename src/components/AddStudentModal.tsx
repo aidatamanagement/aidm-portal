@@ -29,7 +29,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ isOpen, onClose }) =>
     password: '',
     organization: '',
     organization_role: '',
-    role: 'student'
+    role: 'client'
   });
 
   const createUserMutation = useMutation({
@@ -60,7 +60,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ isOpen, onClose }) =>
       return result.user;
     },
     onSuccess: (user) => {
-      toast.success('Student created successfully');
+      toast.success('Client created successfully');
       queryClient.invalidateQueries({ queryKey: ['admin-students'] });
       // Reset form and close modal
       setFormData({
@@ -69,12 +69,12 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ isOpen, onClose }) =>
         password: '',
         organization: '',
         organization_role: '',
-        role: 'student'
+        role: 'client'
       });
       onClose();
     },
     onError: (error: any) => {
-      toast.error(`Failed to create student: ${error.message}`);
+      toast.error(`Failed to create client: ${error.message}`);
       console.error('Create user error:', error);
     },
   });
@@ -107,7 +107,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ isOpen, onClose }) =>
       password: '',
       organization: '',
       organization_role: '',
-      role: 'student'
+      role: 'client'
     });
     onClose();
   };
@@ -116,22 +116,12 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ isOpen, onClose }) =>
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <UserPlus className="h-5 w-5 text-[#0D5C4B]" />
-              <DialogTitle>Add New Student</DialogTitle>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center space-x-2">
+            <UserPlus className="h-5 w-5 text-[#0D5C4B]" />
+            <DialogTitle>Add New Client</DialogTitle>
           </div>
           <DialogDescription>
-            Fill in the details to create a new student account
+            Fill in the details to create a new client account
           </DialogDescription>
         </DialogHeader>
 
@@ -203,7 +193,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ isOpen, onClose }) =>
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="student">Student</SelectItem>
+                <SelectItem value="client">Client</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
               </SelectContent>
             </Select>
@@ -215,7 +205,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ isOpen, onClose }) =>
               className="bg-[#0D5C4B] hover:bg-green-700"
               disabled={createUserMutation.isPending}
             >
-              {createUserMutation.isPending ? 'Creating Student...' : 'Create Student'}
+              {createUserMutation.isPending ? 'Creating Client...' : 'Create Client'}
             </Button>
             
             <Button

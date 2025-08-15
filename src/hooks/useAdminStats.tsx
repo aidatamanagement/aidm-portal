@@ -9,7 +9,7 @@ export const useAdminStats = () => {
       const { count: totalStudents } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
-        .eq('role', 'student');
+        .eq('role', 'client');
 
       // Get active services
       const { count: activeServices } = await supabase

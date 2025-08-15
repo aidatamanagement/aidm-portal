@@ -93,3 +93,5 @@
 - Added course overview section next to hero with side-by-side layout featuring course details and action buttons
 - Updated course overview card styling to match Figma design with #F9F9F9 background and #D9D9D9 border
 - Fixed sidebar scroll issue by adjusting height calculation and adding overflow-hidden to prevent internal scrolling
+- Changed user role from 'student' to 'client' throughout the codebase including database migration, UI text, and variable names
+- Updated admin navbar and forms to use 'client' terminology, fixed duplicate close icons in modals

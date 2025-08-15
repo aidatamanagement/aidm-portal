@@ -31,7 +31,7 @@ const AdminStudents = () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .in('role', ['student', 'admin'])
+        .in('role', ['client', 'admin'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -206,7 +206,7 @@ const AdminStudents = () => {
           onClick={() => setIsAddModalOpen(true)}
         >
             <Users className="h-4 w-4 mr-2" />
-            Add Student
+                            Add Client
           </Button>
       </div>
 
@@ -241,7 +241,7 @@ const AdminStudents = () => {
                   <SelectItem value="joined-desc">Joined Date (Newest First)</SelectItem>
                   <SelectItem value="joined-asc">Joined Date (Oldest First)</SelectItem>
                   <SelectItem value="role-asc">Role (Admin First)</SelectItem>
-                  <SelectItem value="role-desc">Role (Student First)</SelectItem>
+                  <SelectItem value="role-desc">Role (Client First)</SelectItem>
                   <SelectItem value="services-desc">Services (High to Low)</SelectItem>
                   <SelectItem value="services-asc">Services (Low to High)</SelectItem>
                 </SelectContent>
@@ -381,7 +381,7 @@ const AdminStudents = () => {
               <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-lg font-semibold text-muted-foreground">No users found</p>
               <p className="text-sm text-muted-foreground">
-                {searchTerm ? 'Try adjusting your search criteria' : 'Add your first student to get started'}
+                {searchTerm ? 'Try adjusting your search criteria' : 'Add your first client to get started'}
               </p>
             </div>
           )}
@@ -398,7 +398,7 @@ const AdminStudents = () => {
         isDeleting={deleteUserMutation.isPending}
       />
 
-      {/* Add Student Modal */}
+      {/* Add Client Modal */}
       <AddStudentModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}

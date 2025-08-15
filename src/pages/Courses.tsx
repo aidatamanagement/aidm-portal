@@ -239,18 +239,18 @@ const Courses = () => {
         </div>
       </div>
 
-            <div className="container mx-auto px-4 py-12 max-w-7xl">
+      <div className="container mx-auto px-4 py-12 max-w-7xl">
         {/* Course Overview Section - Side by Side */}
         <div className="grid lg:grid-cols-2 gap-8 mb-16">
           {/* Left Side - Course Overview Content */}
           <div className="space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold" style={{ color: '#242424', fontFamily: 'Helvetica', fontSize: '40px', fontWeight: 700, lineHeight: '121.525%', letterSpacing: '-1.2px' }}>
               Course Overview: Leadership Series - Implementing AI in Your Business
-            </h2>
+              </h2>
             <h3 className="text-xl font-semibold" style={{ color: '#242424', fontFamily: 'Helvetica', fontSize: '25px', fontWeight: 700, lineHeight: '121.525%', letterSpacing: '-0.75px' }}>
               Transform Your Organization Through Strategic AI Implementation
             </h3>
-            <p className="leading-relaxed" style={{ color: '#706F6F', fontFamily: '"SF Pro Text"', fontSize: '16px', fontWeight: 400, lineHeight: '100%', letterSpacing: '-0.48px' }}>
+              <p className="leading-relaxed" style={{ color: '#706F6F', fontFamily: '"SF Pro Text"', fontSize: '16px', fontWeight: 400, lineHeight: '100%', letterSpacing: '-0.48px' }}>
               This comprehensive leadership series empowers executives and senior managers to successfully navigate AI adoption across their organizations. Through nine strategic episodes, you'll master the essential frameworks, decision-making processes, and leadership principles needed to drive meaningful AI transformation.
             </p>
             
@@ -431,7 +431,7 @@ const Courses = () => {
                           src={modules[(currentModuleIndex + 2) % modules.length]?.image}
                           alt={modules[(currentModuleIndex + 2) % modules.length]?.title}
                         />
-                      </div>
+                    </div>
                       <div className="p-3">
                         <h3 className="text-base font-semibold text-[#1A1A1A] mb-1 leading-tight">
                           {modules[(currentModuleIndex + 2) % modules.length]?.title}
@@ -453,15 +453,15 @@ const Courses = () => {
                           src={modules[(currentModuleIndex + 3) % modules.length]?.image}
                           alt={modules[(currentModuleIndex + 3) % modules.length]?.title}
                         />
-                      </div>
+                  </div>
                       <div className="p-3">
                         <h3 className="text-base font-semibold text-[#1A1A1A] mb-1 leading-tight">
                           {modules[(currentModuleIndex + 3) % modules.length]?.title}
-                        </h3>
+                  </h3>
                         <p className="text-xs text-[#555] leading-relaxed">
                           {modules[(currentModuleIndex + 3) % modules.length]?.description}
-                        </p>
-                      </div>
+                  </p>
+                </div>
                     </div>
                   </div>
                   
@@ -489,9 +489,9 @@ const Courses = () => {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
+                </div>
+              </div>
+            </section>
 
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Main Content */}
@@ -562,13 +562,13 @@ const Courses = () => {
                       </Card>
                     );
                   })}
-                </div>
+              </div>
               )}
             </section>
           </div>
 
-            {/* Sidebar */}
-            <div className="lg:col-span-1">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
             <div className="sticky top-8">
               <div className="rounded-[10px] border border-[#D9D9D9] bg-[#F9F9F9] p-6">
                 <h3 className="mb-4" style={{ color: '#242424', fontFamily: 'Helvetica', fontSize: '16px', fontWeight: 700, lineHeight: '121.525%', letterSpacing: '-0.48px' }}>On this Page</h3>

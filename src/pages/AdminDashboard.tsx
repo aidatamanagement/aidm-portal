@@ -42,7 +42,7 @@ const AdminDashboard = () => {
         <div className="relative z-10">
           <h1 className="text-3xl font-bold mb-2">Welcome to Admin Portal</h1>
           <p className="text-green-100 text-lg max-w-2xl">
-            Manage students, courses, services, and monitor platform performance from your central command center.
+            Manage clients, courses, services, and monitor platform performance from your central command center.
           </p>
         </div>
         <div className="absolute top-4 right-4 opacity-20">
@@ -56,8 +56,8 @@ const AdminDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Students</p>
-                <p className="text-3xl font-bold text-primary">{stats?.totalStudents || 0}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Clients</p>
+                                  <p className="text-3xl font-bold text-primary">{stats?.totalClients || 0}</p>
                 <p className="text-xs text-green-600 mt-1">Active learners</p>
               </div>
               <Users className="h-12 w-12 text-primary opacity-80" />
@@ -115,16 +115,16 @@ const AdminDashboard = () => {
                 <Calendar className="h-5 w-5 text-primary" />
                 <CardTitle> Recent Enrollments</CardTitle>
               </div>
-              <Link to="/admin/students">
+              <Link to="/admin/clients">
                 <Button variant="outline" size="sm">View All</Button>
               </Link>
             </div>
-            <CardDescription>Latest students who joined the platform</CardDescription>
+            <CardDescription>Latest clients who joined the platform</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {stats?.recentStudents && stats.recentStudents.length > 0 ? (
-                stats.recentStudents.map((student: any) => (
+              {stats?.recentClients && stats.recentClients.length > 0 ? (
+                stats.recentClients.map((student: any) => (
                   <div key={student.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
@@ -146,7 +146,7 @@ const AdminDashboard = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Badge variant="outline" className="text-xs capitalize">
-                        Student
+                        Client
                       </Badge>
                       <Link to={`/admin/students/${student.id}`}>
                         <Button variant="outline" size="sm">
@@ -211,7 +211,7 @@ const AdminDashboard = () => {
             <Link to="/admin/add-user">
               <Button variant="outline" className="w-full h-20 flex flex-col space-y-2 hover:bg-primary hover:text-white transition-colors">
                 <Users className="h-6 w-6" />
-                <span className="text-xs">Add Student</span>
+                <span className="text-xs">Add Client</span>
               </Button>
             </Link>
             <Link to="/admin/courses">

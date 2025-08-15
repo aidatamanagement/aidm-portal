@@ -22,7 +22,7 @@ export const useRealtimeAdminStats = () => {
         supabase
           .from('profiles')
           .select('*', { count: 'exact', head: true })
-          .eq('role', 'student'),
+          .eq('role', 'client'),
         
         supabase
           .from('services')
@@ -88,11 +88,11 @@ export const useRealtimeAdminStats = () => {
           `)
           .order('created_at', { ascending: false }),
 
-        // Get recent student enrollments (profiles with role 'student')
+        // Get recent client enrollments (profiles with role 'client')
         supabase
           .from('profiles')
           .select('id, name, email, created_at, role')
-          .eq('role', 'student')
+          .eq('role', 'client')
           .order('created_at', { ascending: false })
           .limit(3)
       ]);
@@ -112,12 +112,12 @@ export const useRealtimeAdminStats = () => {
       const completionRate = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
       const result = {
-        totalStudents: studentsResult.count || 0,
+        totalClients: studentsResult.count || 0,
         activeServices: servicesResult.count || 0,
         totalCourses: coursesResult.count || 0,
         totalFiles: filesResult.count || 0,
         recentEnrollments: assignedServicesResult.data || [],
-        recentStudents: recentStudentsResult.data || [],
+        recentClients: recentStudentsResult.data || [],
         completedLessons,
         completionRate,
         assignedServices: assignedServicesResult.data || [],

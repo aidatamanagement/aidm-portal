@@ -119,7 +119,7 @@ const AdminServices = () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, name, email')
-        .eq('role', 'student')
+        .eq('role', 'client')
         .order('name');
 
       if (error) throw error;
@@ -528,7 +528,7 @@ const AdminServices = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-[#0D5C4B]">Service Management</h1>
-          <p className="text-muted-foreground">Manage services and student assignments</p>
+          <p className="text-muted-foreground">Manage services and client assignments</p>
         </div>
         <div className="flex space-x-2">
           <Button onClick={handleCreateService} className="bg-[#0D5C4B] hover:bg-green-700">
@@ -544,9 +544,9 @@ const AdminServices = () => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Assign Service to Student</DialogTitle>
+              <DialogTitle>Assign Service to Client</DialogTitle>
               <DialogDescription>
-                Select a service and student to create a new assignment.
+                Select a service and client to create a new assignment.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -566,10 +566,10 @@ const AdminServices = () => {
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium">Student</label>
+                <label className="text-sm font-medium">Client</label>
                 <Select value={selectedStudent} onValueChange={setSelectedStudent}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a student" />
+                                          <SelectValue placeholder="Select a client" />
                   </SelectTrigger>
                   <SelectContent>
                     {students?.map((student) => (
@@ -657,11 +657,11 @@ const AdminServices = () => {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Assigned Students:</span>
+                    <span className="text-sm text-muted-foreground">Assigned Clients:</span>
                     <div 
                       className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 rounded-md px-2 py-1 transition-colors"
                       onClick={() => handleShowAssignedStudents(service)}
-                      title="Click to view assigned students"
+                      title="Click to view assigned clients"
                     >
                       <Users className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium text-[#0D5C4B] text-lg">{assignedCount}</span>
@@ -804,10 +804,10 @@ const AdminServices = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <Users className="h-5 w-5 text-[#0D5C4B]" />
-              <span>Students Assigned to "{selectedServiceForStudents?.title}"</span>
+              <span>Clients Assigned to "{selectedServiceForStudents?.title}"</span>
             </DialogTitle>
             <DialogDescription>
-              View all students currently assigned to this service
+              View all clients currently assigned to this service
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -818,16 +818,16 @@ const AdminServices = () => {
               return assignedStudents.length === 0 ? (
                 <div className="text-center py-8">
                   <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Students Assigned</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Clients Assigned</h3>
                   <p className="text-gray-600">
-                    This service has no active student assignments.
+                    This service has no active client assignments.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">
-                      {filteredStudents.length} of {assignedStudents.length} student{assignedStudents.length !== 1 ? 's' : ''} {filteredStudents.length !== assignedStudents.length ? 'shown' : 'assigned'}
+                      {filteredStudents.length} of {assignedStudents.length} client{assignedStudents.length !== 1 ? 's' : ''} {filteredStudents.length !== assignedStudents.length ? 'shown' : 'assigned'}
                     </div>
                   </div>
                   

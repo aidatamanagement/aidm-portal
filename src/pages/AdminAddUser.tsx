@@ -21,7 +21,7 @@ const AdminAddUser = () => {
     password: '',
     organization: '',
     organization_role: '',
-    role: 'student'
+          role: 'client'
   });
 
   const createUserMutation = useMutation({

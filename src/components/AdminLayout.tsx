@@ -27,7 +27,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: BarChart3 },
-    { name: 'Students', href: '/admin/students', icon: Users },
+    { name: 'Clients', href: '/admin/students', icon: Users },
     { name: 'Courses', href: '/admin/courses', icon: BookOpen },
     { name: 'Services', href: '/admin/services', icon: Zap },
     { name: 'Prompts', href: '/admin/prompts', icon: MessageSquare },
