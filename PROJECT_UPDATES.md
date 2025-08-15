@@ -106,3 +106,6 @@
 - Made FAQ accordion functional with click handlers, state management, and dynamic plus/minus signs
 - Updated Prompts page navigation to match lessons page design with breadcrumb navigation and consolidated controls card
 - Changed category badge fallback color from blue to AIDM brand green (#026242) in Prompts page
+- Added fixed footer to Layout component with copyright and navigation links for consistent branding across all pages
+- Updated Privacy Policy link in footer to point to external AIDM website (https://www.aidatamanagement.com/privacy-policy)
+- Removed support page link from footer and profile avatar dropdown menu, and removed the "Need Help?" card from sidebar

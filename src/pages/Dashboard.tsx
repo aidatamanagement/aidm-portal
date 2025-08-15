@@ -132,11 +132,7 @@ const Dashboard = () => {
       return (
       <div className="space-y-8 pr-8">
       {/* Real-time indicator */}
-      {isFetching && (
-        <div className="fixed top-20 right-4 z-50 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs">
-          Updating...
-        </div>
-      )}
+      {isFetching}
 
               {/* Welcome Section and Hero Banner - Side by Side */}
         <div className="flex items-start justify-between space-x-8">
