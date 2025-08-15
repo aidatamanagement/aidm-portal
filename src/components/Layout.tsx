@@ -141,9 +141,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main Content Area with Sidebar */}
       <div className="flex flex-1">
         {/* Sidebar */}
-        <div className="w-[164px] bg-white border-r border-[#eef0f3] flex flex-col sticky top-16 h-screen">
+        <div className="w-[164px] bg-white border-r border-[#eef0f3] flex flex-col sticky top-16 h-[calc(100vh-64px)] overflow-hidden">
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-[17px]">
+          <nav className="flex-1 p-4 space-y-[17px] overflow-hidden">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (

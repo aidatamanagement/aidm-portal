@@ -92,3 +92,4 @@
 - Enhanced "Start Learning Now" buttons to directly navigate to course functionality instead of scrolling, and removed "Course Access" section title for cleaner design
 - Added course overview section next to hero with side-by-side layout featuring course details and action buttons
 - Updated course overview card styling to match Figma design with #F9F9F9 background and #D9D9D9 border
+- Fixed sidebar scroll issue by adjusting height calculation and adding overflow-hidden to prevent internal scrolling
