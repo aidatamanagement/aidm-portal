@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -176,24 +176,48 @@ const CourseDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header with Breadcrumbs */}
-      <div className="bg-card border-b px-4 sm:px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={goBackToCourses}
+    <div className="space-y-6">
+      {/* Hero Section */}
+      <div 
+        className="bg-[#F9F9F9] rounded-[10px] p-8 border border-[#D9D9D9]"
+        style={{ fontFamily: '"SF Pro Text", sans-serif' }}
+      >
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Link 
+              to="/dashboard" 
+              className="text-[14px] text-slate-600 tracking-[-0.084px] hover:text-slate-800 transition-colors"
+              style={{ fontFamily: '"SF Pro Text", sans-serif', lineHeight: '20px' }}
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Back to Service</span>
-              <span className="sm:hidden">Courses</span>
-            </Button>
-            <div className="text-sm text-muted-foreground">
-              Home / Courses
-            </div>
+              Dashboard
+            </Link>
+            <ChevronRight className="h-5 w-5 text-slate-600" />
+            <Link 
+              to="/courses" 
+              className="text-[14px] text-slate-600 tracking-[-0.084px] hover:text-slate-800 transition-colors"
+              style={{ fontFamily: '"SF Pro Text", sans-serif', lineHeight: '20px' }}
+            >
+              AI Leadership Training
+            </Link>
+            <ChevronRight className="h-5 w-5 text-slate-600" />
+            <span 
+              className="text-[14px] text-[#026242] font-semibold tracking-[-0.084px]"
+              style={{ fontFamily: '"SF Pro Text", sans-serif', lineHeight: '20px' }}
+            >
+              {currentLesson?.title || 'Lesson'}
+            </span>
           </div>
+        </div>
+
+        {/* Title */}
+        <div className="flex items-center justify-between">
+          <h1 
+            className="text-[30px] font-bold text-slate-800 tracking-[-0.39px] leading-[38px]"
+            style={{ fontFamily: 'Helvetica, sans-serif' }}
+          >
+            {currentLesson?.title || 'Lesson'}
+          </h1>
         </div>
       </div>
 
@@ -357,7 +381,7 @@ const CourseDetail = () => {
               <span className="text-sm text-muted-foreground">{totalLessons} Modules</span>
             </div>
             
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="space-y-2">
               {allLessons?.map((moduleLesson, index) => {
                 const isCurrent = moduleLesson.id === selectedLessonId;
                 const isCompleted = isLessonCompleted(moduleLesson.id);

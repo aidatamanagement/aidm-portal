@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Lock, CheckCircle, Clock, ArrowLeft, Target, Users, Award, TrendingUp, Shield, Lightbulb, Play, ArrowRight } from 'lucide-react';
+import { BookOpen, Lock, CheckCircle, Clock, ArrowLeft, Target, Users, Award, TrendingUp, Shield, Lightbulb, Play, ArrowRight, ChevronRight } from 'lucide-react';
 import ScrollJourney from '@/components/ScrollJourney';
 
 const Courses = () => {
@@ -184,26 +184,33 @@ const Courses = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b px-4 sm:px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="outline" 
-              onClick={() => navigate('/services')}
-              className="flex items-center space-x-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Services</span>
-            </Button>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-6">
+
 
       {/* Hero Section */}
       <div className="relative bg-cover bg-center bg-no-repeat text-white py-20 mx-4 rounded-2xl" style={{ backgroundImage: 'url(/images/aileadershipseries.png)' }}>
         <div className="absolute inset-0 bg-black/40 rounded-2xl"></div>
+        
+        {/* Breadcrumb Navigation - Top Left */}
+        <div className="absolute top-6 left-6 z-10">
+          <div className="flex items-center gap-2">
+            <Link 
+              to="/dashboard" 
+              className="text-[14px] text-white/80 tracking-[-0.084px] hover:text-white transition-colors"
+              style={{ fontFamily: '"SF Pro Text", sans-serif', lineHeight: '20px' }}
+            >
+              Dashboard
+            </Link>
+            <ChevronRight className="h-5 w-5 text-white/80" />
+            <span 
+              className="text-[14px] text-white font-semibold tracking-[-0.084px]"
+              style={{ fontFamily: '"SF Pro Text", sans-serif', lineHeight: '20px' }}
+            >
+              AI Leadership Training
+            </span>
+          </div>
+        </div>
+        
         <div className="relative container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
             Executive AI Leadership Training
@@ -488,7 +495,7 @@ const Courses = () => {
                     </button>
                   </div>
                 </div>
-              </div>
+                  </div>
                 </div>
               </div>
             </section>

@@ -96,3 +96,6 @@
 - Changed user role from 'student' to 'client' throughout the codebase including database migration, UI text, and variable names
 - Updated admin navbar and forms to use 'client' terminology, fixed duplicate close icons in modals
 - Updated admin profile dropdown to show "Client Portal" instead of "Student Portal"
+- Enhanced client file management with upload, create folder, delete, edit, and manage files functionality
+- Removed height restriction and scrollbar from lesson list in CourseDetail page to show all lessons without scrolling
+- Reduced chatbot circle size from 130px to 100px for a more compact appearance

@@ -73,6 +73,7 @@ const UploadFileModal = ({ open, onOpenChange, studentId, onFileUploaded }: Uplo
       setFile(null);
       setDescription('');
       queryClient.invalidateQueries({ queryKey: ['admin-student-files', studentId] });
+      queryClient.invalidateQueries({ queryKey: ['folder-contents'] });
       onFileUploaded?.();
     },
     onError: (error) => {
@@ -95,7 +96,7 @@ const UploadFileModal = ({ open, onOpenChange, studentId, onFileUploaded }: Uplo
         <DialogHeader>
           <DialogTitle>Upload File</DialogTitle>
           <DialogDescription>
-            Upload a file to share with this student.
+            Upload a file to your file manager.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">

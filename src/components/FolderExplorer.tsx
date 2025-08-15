@@ -1140,9 +1140,6 @@ const FolderExplorer = ({ studentId, studentName, isAdmin = false }: FolderExplo
       {/* Header with actions */}
       <div className="flex justify-between items-start mb-6">
         <div className="flex-1">
-          <h2 className="text-2xl font-bold text-[#0D5C4B] mb-2">
-            {studentName ? `${studentName}'s Files & Folders` : 'File Explorer'}
-          </h2>
           <div className="flex items-center space-x-4 text-sm text-gray-600">
             {loading && <span className="text-blue-600">Loading...</span>}
             {selectedItems.size > 0 && (
@@ -1175,13 +1172,6 @@ const FolderExplorer = ({ studentId, studentName, isAdmin = false }: FolderExplo
 
       {/* Action Buttons */}
       <div className="flex space-x-2 mb-6">
-        <Button
-          variant="outline"
-          onClick={() => setCreateFolderModalOpen(true)}
-        >
-          <FolderPlus className="h-4 w-4 mr-2" />
-          New Folder
-        </Button>
         {isAdmin && (
           <>
             <Button

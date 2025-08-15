@@ -20,10 +20,10 @@ const ChatSupport: React.FC = () => {
           const chatElement = document.getElementById('smallChatCoachvox');
           const containerElement = chatElement?.parentElement;
           if (chatElement) {
-            chatElement.setAttribute("style", "height:130px;width:130px;position:fixed;bottom:10px;right:10px;z-index:2147483647;border:none;");
+            chatElement.setAttribute("style", "height:100px;width:100px;position:fixed;bottom:10px;right:10px;z-index:2147483647;border:none;");
           }
           if (containerElement) {
-            containerElement.setAttribute("style", "position:fixed;z-index:2147483647;bottom:10px;right:10px;min-width:130px;min-height:130px;overflow:visible;pointer-events:auto;");
+            containerElement.setAttribute("style", "position:fixed;z-index:2147483647;bottom:10px;right:10px;min-width:100px;min-height:100px;overflow:visible;pointer-events:auto;");
           }
         }
       } catch (e) {
@@ -45,8 +45,8 @@ const ChatSupport: React.FC = () => {
       zIndex: 2147483647,
       bottom: '10px',
       right: '10px',
-      minWidth: '130px',
-      minHeight: '130px',
+      minWidth: '100px',
+      minHeight: '100px',
       overflow: 'visible',
       pointerEvents: 'auto'
     }}>
@@ -58,10 +58,10 @@ const ChatSupport: React.FC = () => {
         id="smallChatCoachvox" 
         style={{
           position: 'fixed',
-          height: '130px',
+          height: '100px',
           bottom: '10px',
           right: '10px',
-          width: '130px',
+          width: '100px',
           zIndex: 2147483647,
           border: 'none'
         }}
