@@ -95,3 +95,4 @@
 - Fixed sidebar scroll issue by adjusting height calculation and adding overflow-hidden to prevent internal scrolling
 - Changed user role from 'student' to 'client' throughout the codebase including database migration, UI text, and variable names
 - Updated admin navbar and forms to use 'client' terminology, fixed duplicate close icons in modals
+- Updated admin profile dropdown to show "Client Portal" instead of "Student Portal"

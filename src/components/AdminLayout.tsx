@@ -110,7 +110,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/dashboard">Student Portal</Link>
+                    <Link to="/dashboard">Client Portal</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
