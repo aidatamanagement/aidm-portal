@@ -523,7 +523,7 @@ const Courses = () => {
               }}
             >
               What You'll Learn
-            </h2>
+              </h2>
             <p 
               className="text-base"
               style={{ 
@@ -546,7 +546,7 @@ const Courses = () => {
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                   <BookOpen className="h-6 w-6 text-gray-600" />
-                </div>
+                  </div>
                 <div>
                   <h3 
                     className="font-bold mb-2"
@@ -576,14 +576,14 @@ const Courses = () => {
                   </p>
                 </div>
               </div>
-            </div>
+                </div>
 
             {/* Advanced Strategies */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                   <Target className="h-6 w-6 text-gray-600" />
-                </div>
+                  </div>
                 <div>
                   <h3 
                     className="font-bold mb-2"
@@ -613,14 +613,14 @@ const Courses = () => {
                   </p>
                 </div>
               </div>
-            </div>
+                </div>
 
             {/* Real-world Applications */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                   <TrendingUp className="h-6 w-6 text-gray-600" />
-                </div>
+                  </div>
                 <div>
                   <h3 
                     className="font-bold mb-2"
@@ -672,7 +672,7 @@ const Courses = () => {
               }}
             >
               You seem either very interested, or have questions.
-            </h2>
+              </h2>
             <p 
               className="text-base"
               style={{ 
@@ -765,7 +765,7 @@ const Courses = () => {
                     AIDM empowers organizations to assess, plan, and execute their AI strategy. Our services include the AI Readiness Framework, AI Maturity Assessment, 12-Month AI Adoption Plan, and access to tools and consultants to integrate AI into operations, marketing, sales, HR, and customer service workflows. The ultimate goal is to drive measurable ROI through intelligent automation.
                   </p>
                 )}
-              </div>
+          </div>
 
               {/* FAQ Item 3 */}
               <div className="border-b border-gray-200 pb-4">

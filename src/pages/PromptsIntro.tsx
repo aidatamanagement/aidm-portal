@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -9,7 +9,8 @@ import {
   Zap,
   Users,
   CheckCircle,
-  Play
+  Play,
+  ChevronRight
 } from 'lucide-react';
 
 function PromptsIntro() {
@@ -28,19 +29,32 @@ function PromptsIntro() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b px-4 sm:px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            {/* Header content removed */}
-          </div>
-        </div>
-      </div>
-
       {/* Hero Section */}
       <div className="relative bg-cover bg-center bg-no-repeat text-white py-20 mx-4 rounded-2xl" style={{ backgroundImage: 'url(/images/PromptBuilder.png)' }}>
         <div className="absolute inset-0 bg-black/40 rounded-2xl"></div>
+        
+        {/* Breadcrumb Navigation */}
+        <div className="absolute top-6 left-6 z-10">
+          <div className="flex items-center gap-2">
+            <Link 
+              to="/dashboard" 
+              className="text-[14px] text-white/80 tracking-[-0.084px] hover:text-white transition-colors"
+              style={{ fontFamily: '"SF Pro Text", sans-serif', lineHeight: '20px' }}
+            >
+              Dashboard
+            </Link>
+            <ChevronRight className="h-5 w-5 text-white/80" />
+            <span 
+              className="text-[14px] text-white font-semibold tracking-[-0.084px]"
+              style={{ fontFamily: '"SF Pro Text", sans-serif', lineHeight: '20px' }}
+            >
+              AIDM Prompt Builder
+            </span>
+          </div>
+        </div>
+        
         <div className="relative container mx-auto px-4 text-center">
+          
           <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
             AIDM Prompt Builder: Free AI Tools for Leaders
           </h1>
